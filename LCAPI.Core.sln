@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LCAPI.Core", "LCAPI.Core\LCAPI.Core.csproj", "{037047FB-A85A-4647-8D94-B9450853D09E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
