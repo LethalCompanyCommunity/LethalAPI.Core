@@ -9,7 +9,7 @@
         <DebugType>embedded</DebugType>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
-        <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+        <DocumentationFile>..\bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)LCAPI.ruleset</CodeAnalysisRuleSet>
         <OutputPath>..\bin\$(Configuration)\</OutputPath>
     </PropertyGroup>
@@ -27,12 +27,7 @@
     </ItemGroup>
     
     <ItemGroup>
-        <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp-Publicized.dll" Private="False" />
-        <Reference Include="Assembly-CSharp-firstpass" HintPath="$(LC_REFERENCES)\Assembly-CSharp-firstpass.dll" Private="False" />
-        <Reference Include="Facepunch.Steamworks.Win64" HintPath="$(LC_REFERENCES)\Facepunch.Steamworks.Win64.dll" Private="False" />
-        <Reference Include="Unity.Netcode.Runtime" HintPath="$(LC_REFERENCES)\Unity.Netcode.Runtime.dll" Private="False" />
-        <Reference Include="Unity.TextMeshPro" HintPath="$(LC_REFERENCES)\Unity.TextMeshPro.dll" Private="False" />
-        <Reference Include="UnityEngine.UI" HintPath="$(LC_REFERENCES)\UnityEngine.UI.dll" Private="False" />
+        <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp.dll" Private="False" />
     </ItemGroup>
     
     <ItemGroup>
