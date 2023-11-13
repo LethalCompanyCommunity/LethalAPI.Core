@@ -18,6 +18,7 @@ internal class GameNetworkManagerPatches
 
     [HarmonyPatch("SteamMatchmaking_OnLobbyCreated")]
     [HarmonyPostfix]
+    [HarmonyPriority(Priority.Last)]
     [HarmonyWrapSafe]
     private static void SteamMatchmaking_OnLobbyCreated_Postfix(Result result, ref Lobby lobby)
     {
@@ -34,13 +35,14 @@ internal class GameNetworkManagerPatches
 
     [HarmonyPatch(nameof(GameNetworkManager.LobbyDataIsJoinable))]
     [HarmonyPrefix]
+    [HarmonyPriority(Priority.Last)]
     [HarmonyWrapSafe]
     private static bool LobbyDataIsJoinable_Prefix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
     {
         var data = lobby.GetData("__modded_user");
         if (data != "true")
         {
-            UnityEngine.Debug.Log("Lobby join denied! Attempted to join non-modded lobby");
+            Plugin.Log.LogDebug("Lobby join denied! Attempted to join non-modded lobby");
             UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, "The server host is not a modded user");
             __result = false;
             return false;
@@ -48,7 +50,7 @@ internal class GameNetworkManagerPatches
         data = lobby.GetData("vers");
         if (data != __instance.gameVersionNum.ToString())
         {
-            UnityEngine.Debug.Log(string.Format("Lobby join denied! Attempted to join vers.{0} lobby id: {1}", data, lobby.Id));
+            Plugin.Log.LogDebug(string.Format("Lobby join denied! Attempted to join vers.{0} lobby id: {1}", data, lobby.Id));
             UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, string.Format("The server host is playing on version {0} while you are on version {1}.", data, GameNetworkManager.Instance.gameVersionNum));
             __result = false;
             return false;
@@ -59,10 +61,10 @@ internal class GameNetworkManagerPatches
         {
             foreach (var friend in friendArr)
             {
-                UnityEngine.Debug.Log(string.Format("blocked users: name: {0} | id: {1}", friend.Name, friend.Id));
+                Plugin.Log.LogDebug(string.Format("Lobby join denied! Attempted to join a user which the user has blocked: name: {0} | id: {1}", friend.Name, friend.Id));
                 if (lobby.IsOwnedBy(friend.Id))
                 {
-                    UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, "An error occured!");
+                    UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, "You attempted to join a lobby owned by a user you blocked.");
                     __result = false;
                     return false;
                 }
@@ -71,14 +73,14 @@ internal class GameNetworkManagerPatches
         data = lobby.GetData("__joinable");
         if (data == "false")
         {
-            UnityEngine.Debug.Log("Lobby join denied! Host lobby is not joinable");
+            Plugin.Log.LogDebug("Lobby join denied! Host lobby is not joinable");
             UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, "The server host has already landed their ship, or they are still loading in.");
             return false;
         }
 
         if (lobby.MemberCount >= 4 || lobby.MemberCount < 1)
         {
-            UnityEngine.Debug.Log(string.Format("Lobby join denied! Too many members in lobby! {0}", lobby.Id));
+            Plugin.Log.LogDebug(string.Format("Lobby join denied! Too many members in lobby! {0}", lobby.Id));
             UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.Full, "The server is full!");
             __result = false;
             return false;

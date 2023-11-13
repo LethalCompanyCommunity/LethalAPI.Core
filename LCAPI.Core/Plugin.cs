@@ -22,7 +22,7 @@ public class Plugin : BaseUnityPlugin
     {
         Log = Logger;
 
-        Log.LogInfo("LCAPI.Core is being loaded");
+        Log.LogInfo($"{PluginInfo.PLUGIN_GUID} is being loaded...");
         _harmony = new(PluginInfo.PLUGIN_GUID);
 
         _harmony.PatchAll(typeof(Plugin).Assembly);
