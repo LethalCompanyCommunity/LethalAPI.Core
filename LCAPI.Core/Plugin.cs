@@ -8,6 +8,7 @@
 namespace LCAPI.Core;
 
 using BepInEx;
+using MEC;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]

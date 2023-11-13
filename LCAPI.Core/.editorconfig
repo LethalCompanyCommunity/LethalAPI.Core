@@ -127,6 +127,12 @@ resharper_string_literal_typo_highlighting=none
 resharper_identifier_typo_highlighting=none
 resharper_comment_typo_highlighting=none
 
+# MEC Timings
+[MEC/Timing.cs]
+# SA1633: File should have header.
+dotnet_diagnostic.SA1633.severity = none
+
+
 [*.{cs,vb}]
 #### Naming styles ####
 
