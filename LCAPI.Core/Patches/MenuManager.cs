@@ -10,7 +10,7 @@ namespace LCAPI.Core.Patches;
 using HarmonyLib;
 
 [HarmonyPatch(typeof(MenuManager))]
-internal class MenuManagerPatches
+public static class MenuManagerPatches
 {
 
     [HarmonyPatch("Awake")]

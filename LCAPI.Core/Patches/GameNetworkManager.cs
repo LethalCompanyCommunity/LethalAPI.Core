@@ -14,7 +14,7 @@ using Steamworks;
 using Steamworks.Data;
 
 [HarmonyPatch(typeof(GameNetworkManager))]
-internal class GameNetworkManagerPatches
+public static class GameNetworkManagerPatches
 {
 
     [HarmonyPatch("SteamMatchmaking_OnLobbyCreated")]
