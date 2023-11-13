@@ -7,10 +7,11 @@
 
 namespace LCAPI.Core.Patches;
 
+using System.Linq;
+
 using HarmonyLib;
 using Steamworks;
 using Steamworks.Data;
-using System.Linq;
 
 [HarmonyPatch(typeof(GameNetworkManager))]
 internal class GameNetworkManagerPatches
@@ -20,7 +21,7 @@ internal class GameNetworkManagerPatches
     [HarmonyPostfix]
     [HarmonyPriority(Priority.Last)]
     [HarmonyWrapSafe]
-    private static void SteamMatchmaking_OnLobbyCreated_Postfix(Result result, ref Lobby lobby)
+    public static void SteamMatchmaking_OnLobbyCreated_Postfix(Result result, ref Lobby lobby)
     {
         // lobby has not yet created or something went wrong
         if (result != Result.OK)
@@ -37,7 +38,7 @@ internal class GameNetworkManagerPatches
     [HarmonyPrefix]
     [HarmonyPriority(Priority.Last)]
     [HarmonyWrapSafe]
-    private static bool LobbyDataIsJoinable_Prefix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
+    public static bool LobbyDataIsJoinable_Prefix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
     {
         var data = lobby.GetData("__modded_user");
         if (data != "true")

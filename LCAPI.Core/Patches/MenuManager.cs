@@ -16,7 +16,7 @@ internal class MenuManagerPatches
     [HarmonyPatch("Awake")]
     [HarmonyPostfix]
     [HarmonyWrapSafe]
-    private static void Awake_Postfix(MenuManager __instance)
+    public static void Awake_Postfix(MenuManager __instance)
     {
         if (__instance != null && __instance.versionNumberText != null)
         {
