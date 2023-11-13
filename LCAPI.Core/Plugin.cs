@@ -8,13 +8,23 @@
 namespace LCAPI.Core;
 
 using BepInEx;
+using BepInEx.Logging;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
 {
+    public static Plugin Singleton;
+
+    /// <summary>
+    /// Gets the <see cref="Logger"/>.
+    /// </summary>
+    public ManualLogSource Log => this.Logger;
+
     private void Awake()
     {
+        Singleton = this;
+
         // Plugin startup logic
         this.Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }
