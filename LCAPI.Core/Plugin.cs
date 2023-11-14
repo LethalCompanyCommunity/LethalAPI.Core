@@ -5,7 +5,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LCAPI.Core;
+namespace LethalAPI.Core;
 
 using BepInEx;
 using BepInEx.Logging;
@@ -26,9 +26,11 @@ public class Plugin : BaseUnityPlugin
     /// <summary>
     /// Gets the <see cref="Logger"/>.
     /// </summary>
-    public ManualLogSource Log => this.Logger;
-
     internal static ManualLogSource Log;
+
+    /// <summary>
+    /// The internal harmony instance.
+    /// </summary>
     internal static Harmony _harmony;
 
     private void Awake()
