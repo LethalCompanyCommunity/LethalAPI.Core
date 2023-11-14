@@ -10,13 +10,13 @@ namespace LCAPI.Core.Patches;
 using HarmonyLib;
 
 [HarmonyPatch(typeof(MenuManager))]
-public static class MenuManagerPatches
+internal static class MenuManagerPatches
 {
 
     [HarmonyPatch("Awake")]
     [HarmonyPostfix]
     [HarmonyWrapSafe]
-    public static void Awake_Postfix(MenuManager __instance)
+    private static void Awake_Postfix(MenuManager __instance)
     {
         if (__instance != null && __instance.versionNumberText != null)
         {

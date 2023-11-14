@@ -14,14 +14,14 @@ using Steamworks;
 using Steamworks.Data;
 
 [HarmonyPatch(typeof(GameNetworkManager))]
-public static class GameNetworkManagerPatches
+internal static class GameNetworkManagerPatches
 {
 
     [HarmonyPatch("SteamMatchmaking_OnLobbyCreated")]
     [HarmonyPostfix]
     [HarmonyPriority(Priority.Last)]
     [HarmonyWrapSafe]
-    public static void SteamMatchmaking_OnLobbyCreated_Postfix(Result result, ref Lobby lobby)
+    private static void SteamMatchmaking_OnLobbyCreated_Postfix(Result result, ref Lobby lobby)
     {
         // lobby has not yet created or something went wrong
         if (result != Result.OK)
@@ -29,18 +29,18 @@ public static class GameNetworkManagerPatches
             return;
         }
 
-        lobby.SetData("__modded_user", "true");
-        lobby.SetData("__joinable", lobby.GetData("joinable"));
-        lobby.SetData("joinable", "false");
+        lobby.SetData("__modded_lobby", "true");
+        lobby.SetData("__joinable", lobby.GetData("joinable")); // the actual joinable
+        lobby.SetData("joinable", "false"); // fake joinable to force vanilla user to not able to join
     }
 
     [HarmonyPatch(nameof(GameNetworkManager.LobbyDataIsJoinable))]
     [HarmonyPrefix]
     [HarmonyPriority(Priority.Last)]
     [HarmonyWrapSafe]
-    public static bool LobbyDataIsJoinable_Prefix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
+    private static bool LobbyDataIsJoinable_Prefix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
     {
-        var data = lobby.GetData("__modded_user");
+        var data = lobby.GetData("__modded_lobby"); // is modded lobby?
         if (data != "true")
         {
             Plugin.Log.LogDebug("Lobby join denied! Attempted to join non-modded lobby");
@@ -48,7 +48,7 @@ public static class GameNetworkManagerPatches
             __result = false;
             return false;
         }
-        data = lobby.GetData("vers");
+        data = lobby.GetData("vers"); // game version
         if (data != __instance.gameVersionNum.ToString())
         {
             Plugin.Log.LogDebug(string.Format("Lobby join denied! Attempted to join vers.{0} lobby id: {1}", data, lobby.Id));
@@ -57,7 +57,7 @@ public static class GameNetworkManagerPatches
             return false;
         }
 
-        Friend[] friendArr = SteamFriends.GetBlocked().ToArray<Friend>();
+        var friendArr = SteamFriends.GetBlocked().ToArray<Friend>();
         if (friendArr != null && friendArr.Length > 0)
         {
             foreach (var friend in friendArr)
@@ -71,7 +71,7 @@ public static class GameNetworkManagerPatches
                 }
             }
         }
-        data = lobby.GetData("__joinable");
+        data = lobby.GetData("__joinable"); // is lobby joinable?
         if (data == "false")
         {
             Plugin.Log.LogDebug("Lobby join denied! Host lobby is not joinable");
