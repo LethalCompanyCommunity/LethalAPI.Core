@@ -17,12 +17,12 @@ namespace LethalAPI.Core;
 public static class ModdedLobbyManager
 {
     /// <summary>
-    /// The count of mods installed.
+    /// The amount of times a user has been prevented from joining non-modded lobbies.
     /// </summary>
     internal static int ModdedOnlyCounter;
 
     /// <summary>
-    /// Indicates whether only modded players are allowed on the server.
+    /// Indicates whether the user is only allowed to join a modded lobby, or that only modded player's are allowed to join the user's lobby.
     /// </summary>
     internal static bool ModdedOnly;
 
