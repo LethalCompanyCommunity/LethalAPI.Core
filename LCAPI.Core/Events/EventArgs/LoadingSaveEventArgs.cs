@@ -5,7 +5,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace LCAPI.Core.Events.EventArgs;
+
+using System;
+
+#pragma warning disable SA1201
 
 /// <summary>
 ///     Represents the event args that are called when loading a save.
@@ -17,13 +22,65 @@ public sealed class LoadingSaveEventArgs
     /// Initializes a new instance of the <see cref="LoadingSaveEventArgs"/> class.
     /// </summary>
     /// <param name="saveSlot">The slot being loaded.</param>
-    public LoadingSaveEventArgs(byte saveSlot)
+    /// <param name="loadedItem">The item or items being loaded..</param>
+    public LoadingSaveEventArgs(string saveSlot, LoadedItem loadedItem)
     {
         this.SaveSlot = saveSlot;
+        this.LoadedItem = loadedItem;
     }
 
     /// <summary>
     /// Gets the slot of the save being loaded from.
     /// </summary>
-    public byte SaveSlot { get; }
+    /// <code>
+    /// Currently Supports Save Slots:
+    ///     LCGeneralSaveData - Global save slot.
+    ///     LCSaveFile1 - Save slot 1.
+    ///     LCSaveFile2 - Save slot 2.
+    ///     LCSaveFile3 - Save slot 3.
+    /// </code>
+    // ReSharper disable once UnusedAutoPropertyAccessor.Global
+    public string SaveSlot { get; }
+
+    /// <summary>
+    /// Gets the item or items that are being loaded.
+    /// </summary>
+    public LoadedItem LoadedItem { get; }
+}
+
+/// <summary>
+/// Items that are being loaded.
+/// </summary>
+[Flags]
+public enum LoadedItem
+{
+    /// <summary>
+    /// Custom Mod info is being loaded.
+    /// </summary>
+    Mods,
+
+    /// <summary>
+    /// Round stats are loaded. Called after <see cref="StartOfRound.SetTimeAndPlanetToSavedSettings"/>.
+    /// </summary>
+    SetTimeAndPlanetToSavedSettings,
+
+    /// <summary>
+    /// Grabbable Items are loaded. Called after <see cref="StartOfRound.LoadShipGrabbableItems"/>.
+    /// </summary>
+    LoadShipGrabbableItems,
+
+    /// <summary>
+    /// Unlockables are spawned. Called after <see cref="StartOfRound.SpawnUnlockable"/>.
+    /// </summary>
+    SpawnUnlockable,
+
+    /// <summary>
+    /// Unlockables are loaded. Called after <see cref="StartOfRound.LoadUnlockables"/>.
+    /// </summary>
+    LoadUnlockables,
+
+    /// <summary>
+    /// Last selected save is loaded. Called after <see cref="GameNetworkManager.Start"/>.
+    /// </summary>
+    LastSelectedSave,
 }

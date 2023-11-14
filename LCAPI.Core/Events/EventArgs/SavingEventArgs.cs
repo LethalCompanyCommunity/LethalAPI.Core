@@ -7,25 +7,72 @@
 
 namespace LCAPI.Core.Events.EventArgs;
 
+using System;
+
 using Interfaces;
+
+#pragma warning disable SA1201
 
 /// <summary>
 ///     Represents the event args that are called when saving.
 /// </summary>
 // ReSharper disable once ClassNeverInstantiated.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 public sealed class SavingEventArgs : ILcApiEvent
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SavingEventArgs"/> class.
     /// </summary>
     /// <param name="saveSlot">The slot being saved.</param>
-    public SavingEventArgs(byte saveSlot)
+    /// <param name="saveItem">The item or items being saved.</param>
+    public SavingEventArgs(string saveSlot, SaveItem saveItem)
     {
         this.SaveSlot = saveSlot;
+        this.SaveItem = saveItem;
     }
 
     /// <summary>
     /// Gets the slot of the save being saved to.
     /// </summary>
-    public byte SaveSlot { get; }
+    /// <code>
+    /// Currently Supports Save Slots:
+    ///     LCGeneralSaveData - Global save slot.
+    ///     LCSaveFile1 - Save slot 1.
+    ///     LCSaveFile2 - Save slot 2.
+    ///     LCSaveFile3 - Save slot 3.
+    /// </code>
+    // ReSharper disable once UnusedAutoPropertyAccessor.Global
+    public string SaveSlot { get; }
+
+    /// <summary>
+    /// Gets the item or items being saved.
+    /// </summary>
+    public SaveItem SaveItem { get; }
+}
+
+/// <summary>
+/// Item or items that are being saved.
+/// </summary>
+[Flags]
+public enum SaveItem
+{
+    /// <summary>
+    /// Mod information is being saved.
+    /// </summary>
+    Mods,
+
+    /// <summary>
+    /// Game stats are being saved. Called after <see cref="GameNetworkManager.SaveGameValues" />.
+    /// </summary>
+    GameStats,
+
+    /// <summary>
+    /// Ship items are saved. Called after <see cref="GameNetworkManager.SaveItemsInShip"/>.
+    /// </summary>
+    ShipItems,
+
+    /// <summary>
+    /// Unsellable items are saved. Called after <see cref="GameNetworkManager.ConvertUnsellableItemsToCredits"/>.
+    /// </summary>
+    UnsellableItems,
 }

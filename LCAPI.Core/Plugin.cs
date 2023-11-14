@@ -14,6 +14,9 @@ using BepInEx.Logging;
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
 {
+    /// <summary>
+    /// Gets the singleton for a plugin.
+    /// </summary>
     public static Plugin Singleton;
 
     /// <summary>

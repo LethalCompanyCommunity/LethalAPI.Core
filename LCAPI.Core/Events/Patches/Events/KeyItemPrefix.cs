@@ -1,10 +1,11 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="KeyItemPatch.cs" company="Lethal Company Modding Community">
+// <copyright file="KeyItemPrefix.cs" company="Lethal Company Modding Community">
 // Copyright (c) Lethal Company Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
 // -----------------------------------------------------------------------
 
+// ReSharper disable InconsistentNaming
 namespace LCAPI.Core.Events.Patches.Events;
 
 using Attributes;
@@ -15,7 +16,7 @@ using UnityEngine;
 /// </summary>
 [EventPatch(typeof(Handlers.Player), nameof(Handlers.Player.UsingKey))]
 [HarmonyPatch(typeof(KeyItem), nameof(KeyItem.ItemActivate))]
-internal sealed class KeyItemPatch
+internal sealed class KeyItemPrefix
 {
     [HarmonyPrefix]
     private static bool Prefix(KeyItem __instance, bool used, bool buttonDown = true)
