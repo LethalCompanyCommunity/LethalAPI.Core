@@ -27,6 +27,7 @@ If applicable, add screenshots to help explain your problem.
  - OS: [e.g. Windows 10]
  - Game Version
  - API Version
+ - BepInEx Version
 
 **Additional context**
 Add any other context about the problem here.
