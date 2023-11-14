@@ -9,6 +9,8 @@ namespace LCAPI.Core;
 
 using BepInEx;
 using BepInEx.Logging;
+using BepInEx.Logging;
+using HarmonyLib;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -26,11 +28,20 @@ public class Plugin : BaseUnityPlugin
     /// </summary>
     public ManualLogSource Log => this.Logger;
 
+    internal static ManualLogSource Log;
+    internal static Harmony _harmony;
+
     private void Awake()
     {
         Singleton = this;
 
         // Plugin startup logic
         this.Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+        Log = Logger;
+
+        Log.LogInfo($"{PluginInfo.PLUGIN_GUID} is being loaded...");
+        _harmony = new(PluginInfo.PLUGIN_GUID);
+
+        _harmony.PatchAll(typeof(Plugin).Assembly);
     }
 }
