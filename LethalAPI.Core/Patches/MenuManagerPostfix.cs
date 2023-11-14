@@ -10,7 +10,7 @@ namespace LethalAPI.Core.Patches;
 using HarmonyLib;
 
 /// <summary>
-/// Patches the menu manager to prevent non-modded players from joining modded games.
+/// Patches the menu manager to show a 'MOD' mark next to the main menu version display, informing the user they're running mods.
 /// </summary>
 [HarmonyPatch(typeof(MenuManager), "Awake")]
 [HarmonyWrapSafe]

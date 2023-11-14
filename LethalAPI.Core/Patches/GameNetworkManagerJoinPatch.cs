@@ -15,8 +15,9 @@ using Steamworks;
 using Steamworks.Data;
 
 /// <summary>
-/// Patches <see cref="GameNetworkManager.SteamMatchmaking_OnLobbyCreated"/> to add modded flags to the lobby.
+/// Patches <see cref="GameNetworkManager.SteamMatchmaking_OnLobbyCreated"/> to add extra lobby metadata for using with the below patch.
 /// </summary>
+/// <seealso cref="GameNetworkManager.SteamMatchmaking_OnLobbyCreated"/>
 [HarmonyPatch(typeof(GameNetworkManager), "SteamMatchmaking_OnLobbyCreated")]
 [HarmonyWrapSafe]
 [HarmonyPriority(Priority.Last)]
@@ -43,7 +44,7 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
 }
 
 /// <summary>
-/// Patches the <see cref="GameNetworkManager.LobbyDataIsJoinable"/> to ensure modded players only join.
+/// Patches the <see cref="GameNetworkManager.LobbyDataIsJoinable"/> to replace the game lobby checking to ensure modded player only join for a modded lobby when they are forced to.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.LobbyDataIsJoinable))]
 [HarmonyPriority(Priority.Last)]
