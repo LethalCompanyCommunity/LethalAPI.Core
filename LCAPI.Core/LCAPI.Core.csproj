@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
-        <AssemblyName>LCAPI.Core</AssemblyName>
-        <RootNamespace>LCAPI.Core</RootNamespace>
+        <AssemblyName>LethalAPI.Core</AssemblyName>
+        <RootNamespace>LethalAPI.Core</RootNamespace>
         <Description>A core modding library for Lethal Company.</Description>
         <Version>1.0.0</Version>
         <DebugType>embedded</DebugType>

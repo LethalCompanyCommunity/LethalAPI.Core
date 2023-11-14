@@ -1,15 +1,25 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="Core.cs" company="Lethal Company Modding Community">
-// Copyright (c) Lethal Company Modding Community. All rights reserved.
+// <copyright file="ModdedLobbyManager.cs" company="LethalAPI Modding Community">
+// Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LCAPI.Core;
+namespace LethalAPI.Core;
 
-public static class Core
+/// <summary>
+/// Manages the modded lobby instances.
+/// </summary>
+public static class ModdedLobbyManager
 {
+    /// <summary>
+    /// The count of mods installed.
+    /// </summary>
     internal static int _moddedOnlyCounter = 0;
+
+    /// <summary>
+    /// Indicates whether only modded players are allowed on the server/
+    /// </summary>
     internal static bool _moddedOnly = false;
 
     /// <summary>

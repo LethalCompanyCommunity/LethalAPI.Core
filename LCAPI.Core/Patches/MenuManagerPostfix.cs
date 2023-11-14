@@ -1,22 +1,23 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="MenuManager.cs" company="Lethal Company Modding Community">
-// Copyright (c) Lethal Company Modding Community. All rights reserved.
+// <copyright file="MenuManagerPostfix.cs" company="LethalAPI Modding Community">
+// Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LCAPI.Core.Patches;
+namespace LethalAPI.Core.Patches;
 
 using HarmonyLib;
 
-[HarmonyPatch(typeof(MenuManager))]
-internal static class MenuManagerPatches
+/// <summary>
+/// Patches the menu manager to prevent non-modded players from joining modded games.
+/// </summary>
+[HarmonyPatch(typeof(MenuManager), "Awake")]
+[HarmonyWrapSafe]
+internal static class MenuManagerPostfix
 {
-
-    [HarmonyPatch("Awake")]
     [HarmonyPostfix]
-    [HarmonyWrapSafe]
-    private static void Awake_Postfix(MenuManager __instance)
+    private static void Postfix(MenuManager __instance)
     {
         if (__instance != null && __instance.versionNumberText != null)
         {

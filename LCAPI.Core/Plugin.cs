@@ -1,11 +1,11 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="Plugin.cs" company="Lethal Company Modding Community">
-// Copyright (c) Lethal Company Modding Community. All rights reserved.
+// <copyright file="Plugin.cs" company="LethalAPI Modding Community">
+// Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LCAPI.Core;
+namespace LethalAPI.Core;
 
 using BepInEx;
 using BepInEx.Logging;
@@ -15,7 +15,14 @@ using HarmonyLib;
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
 {
+    /// <summary>
+    /// The base logger.
+    /// </summary>
     internal static ManualLogSource Log;
+    
+    /// <summary>
+    /// The harmony instance.
+    /// </summary>
     internal static Harmony _harmony;
 
     private void Awake()

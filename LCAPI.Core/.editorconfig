@@ -2,6 +2,9 @@
 # SA1633: File should have header
 dotnet_diagnostic.SA1633.severity = error
 
+# SA1633: File should be documented
+dotnet_diagnostic.SA1600.severity = error
+
 # IDE0003: Remove qualification
 dotnet_diagnostic.IDE0003.severity = none
 
