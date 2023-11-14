@@ -1,11 +1,15 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="Plugin.cs" company="Lethal Company Modding Community">
-// Copyright (c) Lethal Company Modding Community. All rights reserved.
+// <copyright file="Plugin.cs" company="LethalAPI Modding Community">
+// Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LCAPI.Core;
+namespace LethalAPI.Core;
+
+// ReSharper disable InconsistentNaming
+// ReSharper disable MemberCanBePrivate.Global
+#pragma warning disable SA1401 // field should be made private
 
 using BepInEx;
 using BepInEx.Logging;
@@ -15,16 +19,23 @@ using HarmonyLib;
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
 {
+    /// <summary>
+    /// The base logger.
+    /// </summary>
     internal static ManualLogSource Log;
-    internal static Harmony _harmony;
+
+    /// <summary>
+    /// The harmony instance.
+    /// </summary>
+    internal static Harmony Harmony;
 
     private void Awake()
     {
         Log = Logger;
 
         Log.LogInfo($"{PluginInfo.PLUGIN_GUID} is being loaded...");
-        _harmony = new(PluginInfo.PLUGIN_GUID);
+        Harmony = new(PluginInfo.PLUGIN_GUID);
 
-        _harmony.PatchAll(typeof(Plugin).Assembly);
+        Harmony.PatchAll(typeof(Plugin).Assembly);
     }
 }

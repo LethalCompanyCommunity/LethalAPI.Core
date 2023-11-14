@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LCAPI.Core", "LCAPI.Core\LCAPI.Core.csproj", "{037047FB-A85A-4647-8D94-B9450853D09E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LethalAPI.Core", "LethalAPI.Core\LethalAPI.Core.csproj", "{037047FB-A85A-4647-8D94-B9450853D09E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

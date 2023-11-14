@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="Usings.cs" company="Lethal Company Modding Community">
-// Copyright (c) Lethal Company Modding Community. All rights reserved.
+// <copyright file="Usings.cs" company="LethalAPI Modding Community">
+// Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
 // -----------------------------------------------------------------------
