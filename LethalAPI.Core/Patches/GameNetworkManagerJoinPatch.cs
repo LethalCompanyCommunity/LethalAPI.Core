@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="GameNetworkManager.cs" company="LethalAPI Modding Community">
+// <copyright file="GameNetworkManagerJoinPatch.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
@@ -35,7 +35,7 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
         lobby.SetData("__joinable", lobby.GetData("joinable")); // the actual joinable
 
         // if the user is forced to only allow modded user to join, joinable flag is set to prevent vanilla user to join
-        if (ModdedLobbyManager._moddedOnly)
+        if (ModdedLobbyManager.ModdedOnly)
         {
             lobby.SetData("joinable", "false");
         }
@@ -55,7 +55,7 @@ internal static class LobbyDataIsJoinablePrefix
     {
         Plugin.Log.LogDebug($"Attempting to join lobby id: {lobby.Id}");
         string data = lobby.GetData("__modded_lobby"); // is modded lobby?
-        if (ModdedLobbyManager._moddedOnly && data != "true")
+        if (ModdedLobbyManager.ModdedOnly && data != "true")
         {
             Plugin.Log.LogDebug("Lobby join denied! Attempted to join non-modded lobby");
             UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, "The server host is not a modded user");

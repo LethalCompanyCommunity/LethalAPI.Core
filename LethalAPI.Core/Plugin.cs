@@ -7,6 +7,10 @@
 
 namespace LethalAPI.Core;
 
+// ReSharper disable InconsistentNaming
+// ReSharper disable MemberCanBePrivate.Global
+#pragma warning disable SA1401 // field should be made private
+
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -19,19 +23,19 @@ public class Plugin : BaseUnityPlugin
     /// The base logger.
     /// </summary>
     internal static ManualLogSource Log;
-    
+
     /// <summary>
     /// The harmony instance.
     /// </summary>
-    internal static Harmony _harmony;
+    internal static Harmony Harmony;
 
     private void Awake()
     {
         Log = Logger;
 
         Log.LogInfo($"{PluginInfo.PLUGIN_GUID} is being loaded...");
-        _harmony = new(PluginInfo.PLUGIN_GUID);
+        Harmony = new(PluginInfo.PLUGIN_GUID);
 
-        _harmony.PatchAll(typeof(Plugin).Assembly);
+        Harmony.PatchAll(typeof(Plugin).Assembly);
     }
 }

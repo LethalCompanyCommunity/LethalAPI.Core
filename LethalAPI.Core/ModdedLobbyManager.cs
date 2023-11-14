@@ -7,6 +7,10 @@
 
 namespace LethalAPI.Core;
 
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable once InconsistentNaming
+#pragma warning disable SA1401
+
 /// <summary>
 /// Manages the modded lobby instances.
 /// </summary>
@@ -15,12 +19,12 @@ public static class ModdedLobbyManager
     /// <summary>
     /// The count of mods installed.
     /// </summary>
-    internal static int _moddedOnlyCounter = 0;
+    internal static int ModdedOnlyCounter;
 
     /// <summary>
-    /// Indicates whether only modded players are allowed on the server/
+    /// Indicates whether only modded players are allowed on the server.
     /// </summary>
-    internal static bool _moddedOnly = false;
+    internal static bool ModdedOnly;
 
     /// <summary>
     /// Manual switch for forced modded only.<br/>
@@ -31,13 +35,13 @@ public static class ModdedLobbyManager
     {
         if (!flag)
         {
-            _moddedOnlyCounter--;
+            ModdedOnlyCounter--;
         }
         else
         {
-            _moddedOnlyCounter++;
+            ModdedOnlyCounter++;
         }
 
-        _moddedOnly = _moddedOnlyCounter > 0;
+        ModdedOnly = ModdedOnlyCounter > 0;
     }
 }
