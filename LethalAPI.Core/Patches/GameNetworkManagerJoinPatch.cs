@@ -1,11 +1,12 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="GameNetworkManager.cs" company="Lethal Company Modding Community">
-// Copyright (c) Lethal Company Modding Community. All rights reserved.
+// <copyright file="GameNetworkManagerJoinPatch.cs" company="LethalAPI Modding Community">
+// Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LCAPI.Core.Patches;
+// ReSharper disable InconsistentNaming
+namespace LethalAPI.Core.Patches;
 
 using System.Linq;
 
@@ -13,15 +14,16 @@ using HarmonyLib;
 using Steamworks;
 using Steamworks.Data;
 
-[HarmonyPatch(typeof(GameNetworkManager))]
-internal static class GameNetworkManagerPatches
+/// <summary>
+/// Patches <see cref="GameNetworkManager.SteamMatchmaking_OnLobbyCreated"/> to add modded flags to the lobby.
+/// </summary>
+[HarmonyPatch(typeof(GameNetworkManager), "SteamMatchmaking_OnLobbyCreated")]
+[HarmonyWrapSafe]
+[HarmonyPriority(Priority.Last)]
+internal static class SteamMatchmakingOnLobbyCreatedPostfix
 {
-
-    [HarmonyPatch("SteamMatchmaking_OnLobbyCreated")]
     [HarmonyPostfix]
-    [HarmonyPriority(Priority.Last)]
-    [HarmonyWrapSafe]
-    private static void SteamMatchmaking_OnLobbyCreated_Postfix(Result result, ref Lobby lobby)
+    private static void Postfix(Result result, ref Lobby lobby)
     {
         // lobby has not yet created or something went wrong
         if (result != Result.OK)
@@ -33,42 +35,50 @@ internal static class GameNetworkManagerPatches
         lobby.SetData("__joinable", lobby.GetData("joinable")); // the actual joinable
 
         // if the user is forced to only allow modded user to join, joinable flag is set to prevent vanilla user to join
-        if (Core._moddedOnly)
+        if (ModdedLobbyManager.ModdedOnly)
         {
             lobby.SetData("joinable", "false");
         }
     }
+}
 
-    [HarmonyPatch(nameof(GameNetworkManager.LobbyDataIsJoinable))]
+/// <summary>
+/// Patches the <see cref="GameNetworkManager.LobbyDataIsJoinable"/> to ensure modded players only join.
+/// </summary>
+[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.LobbyDataIsJoinable))]
+[HarmonyPriority(Priority.Last)]
+[HarmonyWrapSafe]
+internal static class LobbyDataIsJoinablePrefix
+{
     [HarmonyPrefix]
-    [HarmonyPriority(Priority.Last)]
-    [HarmonyWrapSafe]
-    private static bool LobbyDataIsJoinable_Prefix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
+    private static bool Prefix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
     {
-        Plugin.Log.LogDebug(string.Format("Attempting to join lobby id: {0}", lobby.Id));
-        var data = lobby.GetData("__modded_lobby"); // is modded lobby?
-        if (Core._moddedOnly && data != "true")
+        Plugin.Log.LogDebug($"Attempting to join lobby id: {lobby.Id}");
+        string data = lobby.GetData("__modded_lobby"); // is modded lobby?
+        if (ModdedLobbyManager.ModdedOnly && data != "true")
         {
             Plugin.Log.LogDebug("Lobby join denied! Attempted to join non-modded lobby");
             UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, "The server host is not a modded user");
             __result = false;
             return false;
         }
+
         data = lobby.GetData("vers"); // game version
         if (data != __instance.gameVersionNum.ToString())
         {
-            Plugin.Log.LogDebug(string.Format("Lobby join denied! Attempted to join vers {0}", data, lobby.Id));
-            UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, string.Format("The server host is playing on version {0} while you are on version {1}.", data, GameNetworkManager.Instance.gameVersionNum));
+            Plugin.Log.LogDebug($"Lobby join denied! Attempted to join vers {data}");
+            UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, $"The server host is playing on version {data} while you are on version {GameNetworkManager.Instance.gameVersionNum}.");
             __result = false;
             return false;
         }
 
-        var friendArr = SteamFriends.GetBlocked().ToArray<Friend>();
-        if (friendArr != null && friendArr.Length > 0)
+        Friend[] friendArr = SteamFriends.GetBlocked().ToArray();
+
+        if (friendArr is { Length: > 0 })
         {
-            foreach (var friend in friendArr)
+            foreach (Friend friend in friendArr)
             {
-                Plugin.Log.LogDebug(string.Format("Lobby join denied! Attempted to join a lobby owned by a user which you has blocked: name: {0} | id: {1}", friend.Name, friend.Id));
+                Plugin.Log.LogDebug($"Lobby join denied! Attempted to join a lobby owned by a user which you has blocked: name: {friend.Name} | id: {friend.Id}");
                 if (lobby.IsOwnedBy(friend.Id))
                 {
                     UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, "You attempted to join a lobby owned by a user you blocked.");
@@ -86,15 +96,15 @@ internal static class GameNetworkManagerPatches
             return false;
         }
 
-        if (lobby.MemberCount >= 4 || lobby.MemberCount < 1)
+        if (lobby.MemberCount is >= 4 or < 1)
         {
-            Plugin.Log.LogDebug(string.Format("Lobby join denied! Too many members in lobby! {0}", lobby.Id));
+            Plugin.Log.LogDebug($"Lobby join denied! Too many members in lobby! {lobby.Id}");
             UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.Full, "The server is full!");
             __result = false;
             return false;
         }
 
-        Plugin.Log.LogDebug(string.Format("Lobby join accepted! Lobby ID: {0}", lobby.Id));
+        Plugin.Log.LogDebug($"Lobby join accepted! Lobby ID: {lobby.Id}");
         __result = true;
         return false;
     }
