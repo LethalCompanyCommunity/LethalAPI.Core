@@ -28,10 +28,10 @@
 
     <ItemGroup>
       <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp.dll" Private="False" />
-      <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Facepunch.Steamworks.Win64.dll" Private="False" />
-      <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Unity.TextMeshPro.dll" Private="False" />
-      <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\UnityEngine.dll" Private="False" />
-      <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\UnityEngine.UI.dll" Private="False" />
+      <Reference Include="GameNetworkManager" HintPath="$(LC_REFERENCES)\Facepunch.Steamworks.Win64.dll" Private="False" />
+      <Reference Include="Unity.TextMeshPro" HintPath="$(LC_REFERENCES)\Unity.TextMeshPro.dll" Private="False" />
+      <Reference Include="UnityEngine" HintPath="$(LC_REFERENCES)\UnityEngine.dll" Private="False" />
+      <Reference Include="UnityEngine.UI" HintPath="$(LC_REFERENCES)\UnityEngine.UI.dll" Private="False" />
     </ItemGroup>
 
     <ItemGroup>
