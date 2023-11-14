@@ -16,7 +16,7 @@ using EventArgs.Player;
 /// </summary>
 [EventPatch(typeof(Handlers.Player), nameof(Handlers.Player.UsingKey))]
 [HarmonyPatch(typeof(GrabbableObject), nameof(GrabbableObject.ItemActivate))]
-internal sealed class UsingItemPrefix
+internal static class UsingItemPrefix
 {
     [HarmonyPrefix]
     private static bool Prefix(GrabbableObject __instance, bool used, bool buttonDown = true)

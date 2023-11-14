@@ -16,7 +16,6 @@ namespace LCAPI.Core.Events.Handlers.Internal;
 
 using UnityEngine.SceneManagement;
 
-
 /// <summary>
 ///     Handles scene unload event.
 /// </summary>

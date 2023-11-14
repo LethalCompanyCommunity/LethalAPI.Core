@@ -27,7 +27,7 @@ public class HealingEventArgs : IDeniableEvent
     }
 
     /// <summary>
-    /// The player who is being healed.
+    /// Gets the player who is being healed.
     /// </summary>
     public PlayerControllerB Player { get; }
 

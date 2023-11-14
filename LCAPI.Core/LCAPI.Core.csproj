@@ -30,7 +30,6 @@
         <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)/Assembly-CSharp.dll" Private="False" />
         <Reference Include="Unity.Netcode.Components" HintPath="$(LC_REFERENCES)/Unity.Netcode.Components.dll" Private="False" />
         <Reference Include="Unity.Netcode.Runtime" HintPath="$(LC_REFERENCES)/Unity.Netcode.Runtime.dll" Private="False" />
-        <Reference Include="Unity.Netcode.Transport" HintPath="$(LC_REFERENCES)/Unity.Netcode.Transport.dll" Private="False" />
     </ItemGroup>
     
     <ItemGroup>

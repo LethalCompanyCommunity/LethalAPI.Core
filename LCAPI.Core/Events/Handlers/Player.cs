@@ -11,6 +11,9 @@ using EventArgs;
 using EventArgs.Player;
 using Features;
 
+/// <summary>
+/// Contains event handlers for player events.
+/// </summary>
 public static class Player
 {
     /// <summary>

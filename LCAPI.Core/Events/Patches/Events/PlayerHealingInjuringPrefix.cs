@@ -18,7 +18,7 @@ using GameNetcodeStuff;
 [HarmonyPatch(typeof(PlayerControllerB), nameof(PlayerControllerB.MakeCriticallyInjured))]
 [EventPatch(typeof(Handlers.Player), nameof(Handlers.Player.CriticallyInjure))]
 [EventPatch(typeof(Handlers.Player), nameof(Handlers.Player.Healing))]
-internal sealed class PlayerHealingInjuringPrefix
+internal static class PlayerHealingInjuringPrefix
 {
     [HarmonyPrefix]
     private static bool Prefix(PlayerControllerB __instance, bool enable)

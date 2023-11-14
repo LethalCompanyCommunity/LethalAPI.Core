@@ -15,13 +15,55 @@ using Handlers;
 /// <summary>
 ///     Patches the <see cref="Handlers.Server.Saving"/> event.
 /// </summary>
-[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveGame))]
+[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveGameValues))]
 [EventPatch(typeof(Server), nameof(Server.Saving))]
-internal sealed class SavingPostfix
+internal static class SaveGameValuesPostfix
 {
     [HarmonyPostfix]
     private static void Postfix(GameNetworkManager __instance)
     {
-         Server.OnSaving(new SavingEventArgs(__instance.currentSaveFileName));
+         Server.OnSaving(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.GameValues));
+    }
+}
+
+/// <summary>
+///     Patches the <see cref="Handlers.Server.Saving"/> event.
+/// </summary>
+[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveLocalPlayerValues))]
+[EventPatch(typeof(Server), nameof(Server.Saving))]
+internal static class SaveLocalPlayerValues
+{
+    [HarmonyPostfix]
+    private static void Postfix(GameNetworkManager __instance)
+    {
+         Server.OnSaving(new SavingEventArgs("LCGeneralSaveData", SaveItem.LocalPlayerValues));
+    }
+}
+
+/// <summary>
+///     Patches the <see cref="Handlers.Server.Saving"/> event.
+/// </summary>
+[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveItemsInShip))]
+[EventPatch(typeof(Server), nameof(Server.Saving))]
+internal static class SaveItemsInShipPostfix
+{
+    [HarmonyPostfix]
+    private static void Postfix(GameNetworkManager __instance)
+    {
+         Server.OnSaving(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.ShipItems));
+    }
+}
+
+/// <summary>
+///     Patches the <see cref="Handlers.Server.Saving"/> event.
+/// </summary>
+[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.ConvertUnsellableItemsToCredits))]
+[EventPatch(typeof(Server), nameof(Server.Saving))]
+internal static class SaveUnsellableItemsPostfix
+{
+    [HarmonyPostfix]
+    private static void Postfix(GameNetworkManager __instance)
+    {
+         Server.OnSaving(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.UnsellableItems));
     }
 }

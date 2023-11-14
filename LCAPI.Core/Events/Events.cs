@@ -13,6 +13,7 @@ namespace LCAPI.Core.Events;
 
 using System;
 using System.Diagnostics;
+
 using Features;
 using UnityEngine.SceneManagement;
 
@@ -27,14 +28,14 @@ public sealed class Events
     public static Events Instance { get; private set; }
 
     /// <summary>
-    /// Gets the <see cref="Features.Patcher"/> used to employ all patches.
-    /// </summary>
-    public Patcher Patcher { get; private set; }
-
-    /// <summary>
     /// Gets or sets a value indicating whether or not dynamic patching will be used.
     /// </summary>
     public static bool UseDynamicPatching { get; set; } = true;
+
+    /// <summary>
+    /// Gets the <see cref="Features.Patcher"/> used to employ all patches.
+    /// </summary>
+    public Patcher Patcher { get; private set; }
 
     /// <summary>
     /// Patches all methods.

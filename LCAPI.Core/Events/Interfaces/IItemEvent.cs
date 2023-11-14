@@ -22,5 +22,4 @@ public interface IItemEvent : ILcApiEvent
     /// Gets the item.
     /// </summary>
     public GrabbableObject GrabbableItem { get; }
-
 }

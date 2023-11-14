@@ -64,7 +64,7 @@ public enum SaveItem
     /// <summary>
     /// Game stats are being saved. Called after <see cref="GameNetworkManager.SaveGameValues" />.
     /// </summary>
-    GameStats,
+    GameValues,
 
     /// <summary>
     /// Ship items are saved. Called after <see cref="GameNetworkManager.SaveItemsInShip"/>.
@@ -75,4 +75,9 @@ public enum SaveItem
     /// Unsellable items are saved. Called after <see cref="GameNetworkManager.ConvertUnsellableItemsToCredits"/>.
     /// </summary>
     UnsellableItems,
+
+    /// <summary>
+    /// Local player values are saved. Called after <see cref="GameNetworkManager.SaveLocalPlayerValues"/>.
+    /// </summary>
+    LocalPlayerValues,
 }

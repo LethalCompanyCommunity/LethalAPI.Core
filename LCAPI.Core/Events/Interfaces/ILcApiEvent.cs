@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------
-// <copyright file="IExiledEvent.cs" company="Lethal Company Modding Community">
+// <copyright file="ILcApiEvent.cs" company="Lethal Company Modding Community">
 // Copyright (c) Lethal Company Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>

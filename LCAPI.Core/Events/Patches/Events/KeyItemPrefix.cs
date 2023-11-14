@@ -16,7 +16,7 @@ using UnityEngine;
 /// </summary>
 [EventPatch(typeof(Handlers.Player), nameof(Handlers.Player.UsingKey))]
 [HarmonyPatch(typeof(KeyItem), nameof(KeyItem.ItemActivate))]
-internal sealed class KeyItemPrefix
+internal static class KeyItemPrefix
 {
     [HarmonyPrefix]
     private static bool Prefix(KeyItem __instance, bool used, bool buttonDown = true)

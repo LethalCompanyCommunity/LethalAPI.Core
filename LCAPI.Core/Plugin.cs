@@ -17,7 +17,9 @@ public class Plugin : BaseUnityPlugin
     /// <summary>
     /// Gets the singleton for a plugin.
     /// </summary>
+#pragma warning disable SA1401
     public static Plugin Singleton;
+#pragma warning restore SA1401
 
     /// <summary>
     /// Gets the <see cref="Logger"/>.

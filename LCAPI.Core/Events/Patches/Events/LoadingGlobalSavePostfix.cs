@@ -18,7 +18,7 @@ using Handlers;
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.Start))]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
-internal sealed class LoadingGlobalSavePostfix
+internal static class LoadingGlobalSavePostfix
 {
     [HarmonyPostfix]
     private static void Postfix()
@@ -32,7 +32,7 @@ internal sealed class LoadingGlobalSavePostfix
 /// </summary>
 [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SpawnUnlockable))]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
-internal sealed class SpawnUnlockablePostfix
+internal static class SpawnUnlockablePostfix
 {
     [HarmonyPostfix]
     private static void Postfix(StartOfRound __instance)
@@ -44,13 +44,41 @@ internal sealed class SpawnUnlockablePostfix
 /// <summary>
 ///     Patches the <see cref="Handlers.Server.LoadingSave"/> event.
 /// </summary>
-[HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SpawnUnlockable))]
+[HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.LoadUnlockables))]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
-internal sealed class SpawnUnlockablePostfix
+internal static class LoadUnlockablesPostfix
 {
     [HarmonyPostfix]
     private static void Postfix(StartOfRound __instance)
     {
         Server.OnLoadingSave(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.LoadUnlockables));
+    }
+}
+
+/// <summary>
+///     Patches the <see cref="Handlers.Server.LoadingSave"/> event.
+/// </summary>
+[HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.LoadShipGrabbableItems))]
+[EventPatch(typeof(Server), nameof(Server.LoadingSave))]
+internal static class LoadShipGrabbableItemsPostfix
+{
+    [HarmonyPostfix]
+    private static void Postfix(StartOfRound __instance)
+    {
+        Server.OnLoadingSave(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.LoadShipGrabbableItems));
+    }
+}
+
+/// <summary>
+///     Patches the <see cref="Handlers.Server.LoadingSave"/> event.
+/// </summary>
+[HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SetTimeAndPlanetToSavedSettings))]
+[EventPatch(typeof(Server), nameof(Server.LoadingSave))]
+internal static class SetTimeAndPlanetPostfix
+{
+    [HarmonyPostfix]
+    private static void Postfix(StartOfRound __instance)
+    {
+        Server.OnLoadingSave(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.SetTimeAndPlanetToSavedSettings));
     }
 }
