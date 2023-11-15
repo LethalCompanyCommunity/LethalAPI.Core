@@ -30,16 +30,16 @@ public readonly struct InstructionsToSearch
     /// </summary>
     /// <param name="instructionsToFind">The instructions to find.</param>
     /// <param name="index">The index to find.</param>
-    public InstructionsToSearch(IEnumerable<CodeInstruction> instructionsToFind, int index = 0)
+    public InstructionsToSearch(IEnumerable<List<OpCode>> instructionsToFind, int index = 0)
     {
-        this.InstructionsToFind = instructionsToFind as List<CodeInstruction> ?? instructionsToFind.ToList();
+        this.InstructionsToFind = instructionsToFind as List<List<OpCode>> ?? instructionsToFind.ToList();
         this.Index = index;
     }
 
     /// <summary>
     /// Gets the instructions that are being searched for.
     /// </summary>
-    public List<CodeInstruction> InstructionsToFind { get; init; }
+    public List<List<OpCode>> InstructionsToFind { get; init; }
 
     /// <summary>
     /// Gets the index of these instructions to find.
@@ -59,7 +59,7 @@ public readonly struct InstructionsToSearch
         int totalFoundInstances = 0;
         int foundIndex = 0;
         bool trailFound = false;
-        OpCode firstItem = this.InstructionsToFind[0].opcode;
+        List<OpCode> firstItem = this.InstructionsToFind[0];
         for (int i = 0; i < list.Count; i++)
         {
             if (trailFound)
@@ -78,7 +78,7 @@ public readonly struct InstructionsToSearch
                     continue;
                 }
 
-                if (list[i].opcode != this.InstructionsToFind[foundIndex].opcode)
+                if (!this.InstructionsToFind[foundIndex].Contains(list[i].opcode))
                 {
                     startIndex = -1;
                     foundIndex = 0;
@@ -90,7 +90,7 @@ public readonly struct InstructionsToSearch
                 continue;
             }
 
-            if (firstItem == list[i].opcode)
+            if (firstItem.Contains(list[i].opcode))
             {
                 trailFound = true;
                 startIndex = i;
