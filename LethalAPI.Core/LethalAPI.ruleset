@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="LCAPI Rule Set" Description=" " ToolsVersion="17.0">
+<RuleSet Name="LethalAPI Rule Set" Description=" " ToolsVersion="17.0">
     <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
         <Rule Id="SA1000" Action="None" />
         <Rule Id="SA1101" Action="None" />
