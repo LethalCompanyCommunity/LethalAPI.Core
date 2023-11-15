@@ -11,6 +11,7 @@ namespace LethalAPI.Core.Patches;
 using System.Linq;
 
 using HarmonyLib;
+using Models;
 using Steamworks;
 using Steamworks.Data;
 
@@ -32,14 +33,7 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
             return;
         }
 
-        lobby.SetData("__modded_lobby", "true");
-        lobby.SetData("__joinable", lobby.GetData("joinable")); // the actual joinable
-
-        // if the user is forced to only allow modded user to join, joinable flag is set to prevent vanilla user to join
-        if (ModdedLobbyManager.ModdedOnly)
-        {
-            lobby.SetData("joinable", "false");
-        }
+        lobby.SetData(LobbyMetadata.Modded, "true");
     }
 }
 
