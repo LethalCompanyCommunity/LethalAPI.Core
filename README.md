@@ -1,4 +1,4 @@
-# LCAPI.Core
+# LethalAPI.Core
 A core modding library for Lethal Company
 
 

@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
-        <AssemblyName>LCAPI.Core</AssemblyName>
-        <RootNamespace>LCAPI.Core</RootNamespace>
+        <AssemblyName>LethalAPI.Core</AssemblyName>
+        <RootNamespace>LethalAPI.Core</RootNamespace>
         <Description>A core modding library for Lethal Company.</Description>
         <Version>1.0.0</Version>
         <DebugType>embedded</DebugType>
@@ -25,15 +25,19 @@
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
         <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" ExcludeAssets="RUNTIME" />
     </ItemGroup>
-    
+
     <ItemGroup>
-        <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp.dll" Private="False" />
+      <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp.dll" Private="False" />
+      <Reference Include="GameNetworkManager" HintPath="$(LC_REFERENCES)\Facepunch.Steamworks.Win64.dll" Private="False" />
+      <Reference Include="Unity.TextMeshPro" HintPath="$(LC_REFERENCES)\Unity.TextMeshPro.dll" Private="False" />
+      <Reference Include="UnityEngine" HintPath="$(LC_REFERENCES)\UnityEngine.dll" Private="False" />
+      <Reference Include="UnityEngine.UI" HintPath="$(LC_REFERENCES)\UnityEngine.UI.dll" Private="False" />
     </ItemGroup>
-    
+
     <ItemGroup>
         <AdditionalFiles Include="stylecop.json" />
     </ItemGroup>
-    
+
     <ItemGroup>
       <Content Include="..\.gitignore">
         <Link>.gitignore</Link>
@@ -45,5 +49,5 @@
         <Link>README.md</Link>
       </Content>
     </ItemGroup>
-
+    
 </Project>
