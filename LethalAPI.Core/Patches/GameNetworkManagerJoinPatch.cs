@@ -27,13 +27,14 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
     [HarmonyPostfix]
     private static void Postfix(Result result, ref Lobby lobby)
     {
-        // lobby has not yet created or something went wrong
+        // lobby has not yet been created or something went wrong
         if (result != Result.OK)
         {
             return;
         }
 
         lobby.SetData(LobbyMetadata.Modded, "true");
+        lobby.SetData(LobbyMetadata.Plugins, PluginManager.GetLobbyPluginsMetadata());
     }
 }
 
