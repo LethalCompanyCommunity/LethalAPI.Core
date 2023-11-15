@@ -1,0 +1,102 @@
+﻿// -----------------------------------------------------------------------
+// <copyright file="InstructionsToSearch.cs" company="LethalAPI Modding Community">
+// Copyright (c) LethalAPI Modding Community. All rights reserved.
+// Licensed under the GPL-3.0 license.
+// </copyright>
+// -----------------------------------------------------------------------
+
+namespace LethalAPI.Core.HarmonyTools;
+
+using System.Collections.Generic;
+using System.Linq;
+
+using OpCode = System.Reflection.Emit.OpCode;
+
+/// <summary>
+/// A helper tool to find code at an index.
+/// </summary>
+// ReSharper disable MemberCanBePrivate.Global
+public readonly struct InstructionsToSearch
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InstructionsToSearch"/> struct.
+    /// </summary>
+    public InstructionsToSearch()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InstructionsToSearch"/> struct.
+    /// </summary>
+    /// <param name="instructionsToFind">The instructions to find.</param>
+    /// <param name="index">The index to find.</param>
+    public InstructionsToSearch(IEnumerable<CodeInstruction> instructionsToFind, int index = 0)
+    {
+        this.InstructionsToFind = instructionsToFind as List<CodeInstruction> ?? instructionsToFind.ToList();
+        this.Index = index;
+    }
+
+    /// <summary>
+    /// Gets the instructions that are being searched for.
+    /// </summary>
+    public List<CodeInstruction> InstructionsToFind { get; init; }
+
+    /// <summary>
+    /// Gets the index of these instructions to find.
+    /// </summary>
+    public int Index { get; init; } = 0;
+
+    /// <summary>
+    /// Gets the index of the instructions from a set of instructions.
+    /// </summary>
+    /// <param name="instructions">The instructions to search.</param>
+    /// <returns>The index of the instructions or -1 if the instructions weren't found.</returns>
+    public int FindIndex(IEnumerable<CodeInstruction> instructions)
+    {
+        int startIndex = -1;
+        List<CodeInstruction> list = instructions as List<CodeInstruction> ?? instructions.ToList();
+
+        int totalFoundInstances = 0;
+        int foundIndex = 0;
+        bool trailFound = false;
+        OpCode firstItem = this.InstructionsToFind[0].opcode;
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (trailFound)
+            {
+                if (foundIndex >= this.InstructionsToFind.Count)
+                {
+                    if (totalFoundInstances == this.Index)
+                    {
+                        return startIndex;
+                    }
+
+                    totalFoundInstances++;
+                    startIndex = -1;
+                    foundIndex = 0;
+                    trailFound = false;
+                    continue;
+                }
+
+                if (list[i].opcode != this.InstructionsToFind[foundIndex].opcode)
+                {
+                    startIndex = -1;
+                    foundIndex = 0;
+                    trailFound = false;
+                    continue;
+                }
+
+                foundIndex++;
+                continue;
+            }
+
+            if (firstItem == list[i].opcode)
+            {
+                trailFound = true;
+                startIndex = i;
+            }
+        }
+
+        return -1;
+    }
+}
