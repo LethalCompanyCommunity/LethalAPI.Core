@@ -6,15 +6,16 @@
 // -----------------------------------------------------------------------
 
 // ReSharper disable InconsistentNaming
-namespace LethalAPI.Core.Events.Patches.Events;
+namespace LethalAPI.Core.Patches.Events;
 
-using Attributes;
-using EventArgs.Player;
+using Core.Events.Handlers;
+using LethalAPI.Core.Events.Attributes;
+using LethalAPI.Core.Events.EventArgs.Player;
 
 /// <summary>
-///     Patches the <see cref="Handlers.Player.UsingItem"/> event.
+///     Patches the <see cref="Player.UsingItem"/> event.
 /// </summary>
-[EventPatch(typeof(Handlers.Player), nameof(Handlers.Player.UsingKey))]
+[EventPatch(typeof(Player), nameof(Player.UsingKey))]
 [HarmonyPatch(typeof(GrabbableObject), nameof(GrabbableObject.ItemActivate))]
 internal static class UsingItemPrefix
 {
@@ -23,7 +24,7 @@ internal static class UsingItemPrefix
     {
         // This needs to become a transpiler.
         UsingItemEventArgs ev = new UsingItemEventArgs(__instance);
-        Handlers.Player.OnUsingItem(ev);
+        Player.OnUsingItem(ev);
         return ev.IsAllowed;
     }
 }

@@ -11,8 +11,6 @@
 
 namespace LethalAPI.Core.Events.Interfaces;
 
-using UnityEngine;
-
 /// <summary>
 ///     Event args used for all Item related events.
 /// </summary>

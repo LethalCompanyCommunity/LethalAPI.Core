@@ -6,18 +6,19 @@
 // -----------------------------------------------------------------------
 
 // ReSharper disable InconsistentNaming
-namespace LethalAPI.Core.Events.Patches.Events;
+namespace LethalAPI.Core.Patches.Events;
 
-using Attributes;
-using EventArgs.Player;
+using Core.Events.Handlers;
 using GameNetcodeStuff;
+using LethalAPI.Core.Events.Attributes;
+using LethalAPI.Core.Events.EventArgs.Player;
 
 /// <summary>
-///     Patches the <see cref="Handlers.Player.Healing"/> and <see cref="Handlers.Player.CriticallyInjure"/> event.
+///     Patches the <see cref="Player.Healing"/> and <see cref="Player.CriticallyInjure"/> event.
 /// </summary>
 [HarmonyPatch(typeof(PlayerControllerB), nameof(PlayerControllerB.MakeCriticallyInjured))]
-[EventPatch(typeof(Handlers.Player), nameof(Handlers.Player.CriticallyInjure))]
-[EventPatch(typeof(Handlers.Player), nameof(Handlers.Player.Healing))]
+[EventPatch(typeof(Player), nameof(Player.CriticallyInjure))]
+[EventPatch(typeof(Player), nameof(Player.Healing))]
 internal static class PlayerHealingInjuringPrefix
 {
     [HarmonyPrefix]
@@ -26,13 +27,13 @@ internal static class PlayerHealingInjuringPrefix
         if (enable)
         {
             CriticallyInjureEventArgs injuring = new (__instance);
-            Handlers.Player.OnCriticalInjury(injuring);
+            Player.OnCriticalInjury(injuring);
             return injuring.IsAllowed;
         }
         else
         {
             HealingEventArgs healing = new (__instance);
-            Handlers.Player.OnHealing(healing);
+            Player.OnHealing(healing);
             return healing.IsAllowed;
         }
     }

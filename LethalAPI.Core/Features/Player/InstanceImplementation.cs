@@ -7,6 +7,7 @@
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable once CheckNamespace
 namespace LethalAPI.Core.Features;
 
 using GameNetcodeStuff;

@@ -8,8 +8,6 @@
 // ReSharper disable InconsistentNaming
 namespace LethalAPI.Core.Events.Interfaces;
 
-using DunGen;
-
 /// <summary>
 ///     Event args used for all door lock related events.
 /// </summary>

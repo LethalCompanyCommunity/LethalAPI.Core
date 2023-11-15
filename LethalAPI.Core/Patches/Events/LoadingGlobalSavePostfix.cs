@@ -5,16 +5,16 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core.Events.Patches.Events;
+namespace LethalAPI.Core.Patches.Events;
 
-using Attributes;
-using EventArgs;
-using Handlers;
+using LethalAPI.Core.Events.Attributes;
+using LethalAPI.Core.Events.EventArgs;
+using LethalAPI.Core.Events.Handlers;
 
 #pragma warning disable SA1402
 
 /// <summary>
-///     Patches the <see cref="Handlers.Server.LoadingSave"/> event.
+///     Patches the <see cref="Server.LoadingSave"/> event.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.Start))]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
@@ -28,7 +28,7 @@ internal static class LoadingGlobalSavePostfix
 }
 
 /// <summary>
-///     Patches the <see cref="Handlers.Server.LoadingSave"/> event.
+///     Patches the <see cref="Server.LoadingSave"/> event.
 /// </summary>
 [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SpawnUnlockable))]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
@@ -42,7 +42,7 @@ internal static class SpawnUnlockablePostfix
 }
 
 /// <summary>
-///     Patches the <see cref="Handlers.Server.LoadingSave"/> event.
+///     Patches the <see cref="Server.LoadingSave"/> event.
 /// </summary>
 [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.LoadUnlockables))]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
@@ -56,7 +56,7 @@ internal static class LoadUnlockablesPostfix
 }
 
 /// <summary>
-///     Patches the <see cref="Handlers.Server.LoadingSave"/> event.
+///     Patches the <see cref="Server.LoadingSave"/> event.
 /// </summary>
 [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.LoadShipGrabbableItems))]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
@@ -70,7 +70,7 @@ internal static class LoadShipGrabbableItemsPostfix
 }
 
 /// <summary>
-///     Patches the <see cref="Handlers.Server.LoadingSave"/> event.
+///     Patches the <see cref="Server.LoadingSave"/> event.
 /// </summary>
 [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SetTimeAndPlanetToSavedSettings))]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]

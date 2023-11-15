@@ -9,35 +9,34 @@
 // Changes: Namespace adjustments.
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core.Events.Attributes
-{
-    using System;
+namespace LethalAPI.Core.Events.Attributes;
 
-    using Interfaces;
+using System;
+
+using Interfaces;
+
+/// <summary>
+/// An attribute to contain data about an event patch.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+internal class EventPatchAttribute : Attribute
+{
+    private readonly Type handlerType;
+    private readonly string eventName;
 
     /// <summary>
-    /// An attribute to contain data about an event patch.
+    /// Initializes a new instance of the <see cref="EventPatchAttribute"/> class.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    internal class EventPatchAttribute : Attribute
+    /// <param name="eventName">The <see cref="Type"/> of the handler class that contains the event.</param>
+    /// <param name="handlerType">The name of the event.</param>
+    internal EventPatchAttribute(Type handlerType, string eventName)
     {
-        private readonly Type handlerType;
-        private readonly string eventName;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EventPatchAttribute"/> class.
-        /// </summary>
-        /// <param name="eventName">The <see cref="Type"/> of the handler class that contains the event.</param>
-        /// <param name="handlerType">The name of the event.</param>
-        internal EventPatchAttribute(Type handlerType, string eventName)
-        {
-            this.handlerType = handlerType;
-            this.eventName = eventName;
-        }
-
-        /// <summary>
-        /// Gets the <see cref="ILcApiEvent"/> that will be raised by this patch.
-        /// </summary>
-        internal ILcApiEvent Event => (ILcApiEvent)handlerType.GetProperty(eventName)?.GetValue(null);
+        this.handlerType = handlerType;
+        this.eventName = eventName;
     }
+
+    /// <summary>
+    /// Gets the <see cref="ILcApiEvent"/> that will be raised by this patch.
+    /// </summary>
+    internal ILcApiEvent Event => (ILcApiEvent)handlerType.GetProperty(eventName)?.GetValue(null);
 }

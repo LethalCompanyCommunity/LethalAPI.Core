@@ -13,7 +13,7 @@ using Interfaces;
 ///     Represents the event args that are called when saving.
 /// </summary>
 // ReSharper disable once ClassNeverInstantiated.Global
-public sealed class ResetSaveEventArgs : ILcApiEvent, IDeniableEvent
+public sealed class ResetSaveEventArgs : IDeniableEvent
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ResetSaveEventArgs"/> class.

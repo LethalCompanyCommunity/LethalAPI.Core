@@ -13,9 +13,7 @@ namespace LethalAPI.Core;
 
 using BepInEx;
 using BepInEx.Logging;
-using BepInEx.Logging;
 using HarmonyLib;
-using Patches;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]

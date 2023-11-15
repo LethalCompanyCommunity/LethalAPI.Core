@@ -5,6 +5,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// ReSharper disable once CheckNamespace
 namespace LethalAPI.Core.Features;
 
 using GameNetcodeStuff;

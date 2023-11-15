@@ -123,7 +123,7 @@ dotnet_diagnostic.SA1633.severity = none
 [Events/Interfaces/*.cs]
 resharper_unassigned_get_only_auto_property_highlighting=none
 
-[Patches/*/*.cs]
+[Patches{/*/*,/*}.cs]
 # SA1313: 
 dotnet_diagnostic.SA1313.severity = none
 

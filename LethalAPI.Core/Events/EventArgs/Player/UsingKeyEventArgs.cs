@@ -9,7 +9,6 @@ namespace LethalAPI.Core.Events.EventArgs.Player;
 
 using DunGen;
 using Interfaces;
-using LethalAPI.Core.Events.Interfaces;
 using UnityEngine;
 
 /// <summary>

@@ -6,14 +6,14 @@
 // -----------------------------------------------------------------------
 
 // ReSharper disable InconsistentNaming
-namespace LethalAPI.Core.Events.Patches.Events;
+namespace LethalAPI.Core.Patches.Events;
 
-using Attributes;
-using EventArgs;
-using Handlers;
+using LethalAPI.Core.Events.Attributes;
+using LethalAPI.Core.Events.EventArgs;
+using LethalAPI.Core.Events.Handlers;
 
 /// <summary>
-///     Patches the <see cref="Handlers.Server.Saving"/> event.
+///     Patches the <see cref="Server.Saving"/> event.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveGameValues))]
 [EventPatch(typeof(Server), nameof(Server.Saving))]
@@ -27,7 +27,7 @@ internal static class SaveGameValuesPostfix
 }
 
 /// <summary>
-///     Patches the <see cref="Handlers.Server.Saving"/> event.
+///     Patches the <see cref="Server.Saving"/> event.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveLocalPlayerValues))]
 [EventPatch(typeof(Server), nameof(Server.Saving))]
@@ -41,7 +41,7 @@ internal static class SaveLocalPlayerValues
 }
 
 /// <summary>
-///     Patches the <see cref="Handlers.Server.Saving"/> event.
+///     Patches the <see cref="Server.Saving"/> event.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveItemsInShip))]
 [EventPatch(typeof(Server), nameof(Server.Saving))]
@@ -55,7 +55,7 @@ internal static class SaveItemsInShipPostfix
 }
 
 /// <summary>
-///     Patches the <see cref="Handlers.Server.Saving"/> event.
+///     Patches the <see cref="Server.Saving"/> event.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.ConvertUnsellableItemsToCredits))]
 [EventPatch(typeof(Server), nameof(Server.Saving))]
