@@ -22,7 +22,7 @@ public static class LobbyMetadata
     /// <summary>
     ///     The tag for the lobby being joinable.
     /// </summary>
-    public const string Joinable = "__joinable";
+    public const string Joinable = "joinable";
 
     /// <summary>
     ///     The tag for plugin information.
