@@ -18,8 +18,8 @@ using Steamworks.Data;
 /// </summary>
 /// <seealso cref="GameNetworkManager.SteamMatchmaking_OnLobbyCreated" />
 [HarmonyPatch(typeof(GameNetworkManager), "SteamMatchmaking_OnLobbyCreated")]
-[HarmonyWrapSafe]
 [HarmonyPriority(Priority.Last)]
+[HarmonyWrapSafe]
 internal static class SteamMatchmakingOnLobbyCreatedPostfix
 {
     [HarmonyPostfix]
