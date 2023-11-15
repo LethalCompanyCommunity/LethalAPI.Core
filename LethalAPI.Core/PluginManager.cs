@@ -53,4 +53,29 @@ internal static class PluginManager
         List<APIPluginInfo> plugins = GetAPIPluginInfoList();
         return JsonUtility.ToJson(plugins);
     }
+
+    /// <summary>
+    ///     Parses a json string containing the metadata of all plugins.
+    /// </summary>
+    /// <param name="json"> The json string to parse. </param>
+    /// <returns> A list of plugins in the APIPluginInfo format. </returns>
+    internal static List<APIPluginInfo> ParseLobbyPluginsMetadata(string json)
+    {
+        return JsonUtility.FromJson<List<APIPluginInfo>>(json);
+    }
+
+    /// <summary>
+    ///     Checks if the client has all plugins labeled as required.
+    /// </summary>
+    /// <param name="targetPluginInfo"> The plugin info of the target. </param>
+    /// <returns> True if the client has all plugins labeled as required, false otherwise. </returns>
+    internal static bool MatchesTargetRequirements(List<APIPluginInfo> targetPluginInfo)
+    {
+        List<APIPluginInfo> clientPluginInfo = GetAPIPluginInfoList();
+
+        return targetPluginInfo.Where(pluginInfo => pluginInfo.Required).All(pluginInfo =>
+            clientPluginInfo.Exists(plugin =>
+                plugin.Guid == pluginInfo.Guid && plugin.PluginVersion.Major == pluginInfo.PluginVersion.Major &&
+                plugin.PluginVersion.Minor >= pluginInfo.PluginVersion.Minor));
+    }
 }
