@@ -120,7 +120,7 @@ public class Event<T> : ILcApiEvent
             }
             catch (Exception ex)
             {
-                Plugin.Singleton.Log.LogError($"Method \"{handler.Method.Name}\" of the class \"{handler.Method.ReflectedType?.FullName}\" caused an exception when handling the event \"{GetType().FullName}\"\n{ex}");
+                Log.Error($"Method \"{handler.Method.Name}\" of the class \"{handler.Method.ReflectedType?.FullName}\" caused an exception when handling the event \"{GetType().FullName}\"\n{ex}");
             }
         }
     }

@@ -77,7 +77,7 @@ public class Patcher
         }
         catch (Exception ex)
         {
-            Plugin.Singleton.Log.LogError($"Patching by event failed!\n{ex}");
+            Log.Error($"Patching by event failed!\n{ex}");
         }
     }
 
@@ -101,17 +101,17 @@ public class Patcher
                 }
                 catch (HarmonyException exception)
                 {
-                    Plugin.Singleton.Log.LogError($"Patching by attributes failed!\n{exception}");
+                    Log.Error($"Patching by attributes failed!\n{exception}");
 
                     failedPatch++;
                 }
             }
 
-            Plugin.Singleton.Log.LogDebug("Events patched by attributes successfully!");
+            Log.Debug("Events patched by attributes successfully!");
         }
         catch (Exception exception)
         {
-            Plugin.Singleton.Log.LogError($"Patching by attributes failed!\n{exception}");
+            Log.Error($"Patching by attributes failed!\n{exception}");
         }
     }
 
@@ -125,7 +125,7 @@ public class Patcher
         {
             Harmony.Unpatch(method, HarmonyPatchType.All, Harmony.Id);
 
-            Plugin.Singleton.Log.LogInfo($"Unpatched {method.Name}");
+            Log.Info($"Unpatched {method.Name}");
         }
     }
 
@@ -134,11 +134,11 @@ public class Patcher
     /// </summary>
     public void UnpatchAll()
     {
-        Plugin.Singleton.Log.LogDebug("Un-patching events...");
+        Log.Debug("Un-patching events...");
         Harmony.UnpatchID(Harmony.Id);
         UnpatchedTypes = GetAllPatchTypes();
 
-        Plugin.Singleton.Log.LogDebug("All events have been unpatched. Goodbye!");
+        Log.Debug("All events have been unpatched. Goodbye!");
     }
 
     /// <summary>

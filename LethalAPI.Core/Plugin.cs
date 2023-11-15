@@ -15,6 +15,7 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Logging;
 using HarmonyLib;
+using Patches;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -31,7 +32,9 @@ public class Plugin : BaseUnityPlugin
     /// <summary>
     /// The base logger.
     /// </summary>
-    internal static ManualLogSource Log;
+#pragma warning disable SA1309
+    internal static ManualLogSource _Logger;
+#pragma warning restore SA1309
 
     /// <summary>
     /// The harmony instance.
@@ -40,15 +43,11 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        Singleton = this;
-        Log = this.Logger;
-
-        // Plugin startup logic
-        this.Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
-
-        Log.LogInfo($"{PluginInfo.PLUGIN_GUID} is being loaded...");
         Harmony = new(PluginInfo.PLUGIN_GUID);
-
         Harmony.PatchAll(typeof(Plugin).Assembly);
+        _Logger = this.Logger;
+        Singleton = this;
+
+        Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
     }
 }

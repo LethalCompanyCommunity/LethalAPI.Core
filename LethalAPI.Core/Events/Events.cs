@@ -47,7 +47,7 @@ public sealed class Events
         Stopwatch watch = Stopwatch.StartNew();
         Patch();
         watch.Stop();
-        Plugin.Singleton.Log.LogInfo($"All patches completed in {watch.Elapsed}");
+        Log.Info($"All patches completed in {watch.Elapsed}");
 
         SceneManager.sceneUnloaded += Handlers.Internal.SceneUnloaded.OnSceneUnloaded;
     }
@@ -72,13 +72,13 @@ public sealed class Events
             Patcher.PatchAll(out int failedPatch);
 
             if (failedPatch == 0)
-                Plugin.Singleton.Log.LogDebug("Events patched successfully!");
+                Log.Debug("Events patched successfully!");
             else
-                Plugin.Singleton.Log.LogError($"Patching failed! There are {failedPatch} broken patches.");
+                Log.Error($"Patching failed! There are {failedPatch} broken patches.");
         }
         catch (Exception exception)
         {
-            Plugin.Singleton.Log.LogError($"Patching failed!\n{exception}");
+            Log.Error($"Patching failed!\n{exception}");
         }
     }
 
@@ -87,9 +87,9 @@ public sealed class Events
     /// </summary>
     public void Unpatch()
     {
-        Plugin.Singleton.Log.LogDebug("Unpatching events...");
+        Log.Debug("Unpatching events...");
         Patcher.UnpatchAll();
         Patcher = null;
-        Plugin.Singleton.Log.LogDebug("All events have been unpatched complete. Goodbye!");
+        Log.Debug("All events have been unpatched complete. Goodbye!");
     }
 }
