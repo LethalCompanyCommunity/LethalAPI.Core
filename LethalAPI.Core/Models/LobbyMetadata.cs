@@ -20,9 +20,14 @@ public static class LobbyMetadata
     public const string Modded = "__modded";
 
     /// <summary>
-    ///     The tag for the lobby being joinable.
+    ///     The tag for the lobby being joinable for vanilla clients.
     /// </summary>
     public const string Joinable = "joinable";
+
+    /// <summary>
+    ///     The tag for the lobby being joinable for modded clients.
+    /// </summary>
+    public const string JoinableModded = "__joinable";
 
     /// <summary>
     ///     The tag for plugin information.
