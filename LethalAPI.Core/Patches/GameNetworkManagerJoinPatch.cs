@@ -7,8 +7,6 @@
 
 namespace LethalAPI.Core.Patches;
 
-using System.Linq;
-
 using HarmonyLib;
 using Models;
 using Steamworks;
@@ -39,69 +37,39 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
 }
 
 /// <summary>
-/// Patches the <see cref="GameNetworkManager.LobbyDataIsJoinable"/> to replace the game lobby checking to ensure modded player only join for a modded lobby when they are forced to.
+///     Patches <see cref="GameNetworkManager.LobbyDataIsJoinable" />.
+///     Checks if required plugins are present in the lobby metadata and are the same version as the client.
 /// </summary>
+/// <seealso cref="GameNetworkManager.LobbyDataIsJoinable" />
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.LobbyDataIsJoinable))]
 [HarmonyPriority(Priority.Last)]
 [HarmonyWrapSafe]
 internal static class LobbyDataIsJoinablePrefix
 {
-    [HarmonyPrefix]
-    private static bool Prefix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
+    [HarmonyPostfix]
+    private static bool Postfix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
     {
-        Plugin.Log.LogDebug($"Attempting to join lobby id: {lobby.Id}");
-        string data = lobby.GetData("__modded_lobby"); // is modded lobby?
-        if (ModdedLobbyManager.ModdedOnly && data != "true")
+        // If original result was false, return false
+        if (!__result)
         {
-            Plugin.Log.LogDebug("Lobby join denied! Attempted to join non-modded lobby");
-            UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, "The server host is not a modded user");
-            __result = false;
             return false;
         }
 
-        data = lobby.GetData("vers"); // game version
-        if (data != __instance.gameVersionNum.ToString())
+        // If the lobby is not modded, return original result
+        if (lobby.GetData(LobbyMetadata.Modded) != "true")
         {
-            Plugin.Log.LogDebug($"Lobby join denied! Attempted to join vers {data}");
-            UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, $"The server host is playing on version {data} while you are on version {GameNetworkManager.Instance.gameVersionNum}.");
-            __result = false;
-            return false;
+            return __result;
         }
 
-        Friend[] friendArr = SteamFriends.GetBlocked().ToArray();
+        string lobbyPluginString = lobby.GetData(LobbyMetadata.Plugins);
 
-        if (friendArr is { Length: > 0 })
+        // If the lobby does not have any plugin information, return original result
+        if (string.IsNullOrEmpty(lobbyPluginString))
         {
-            foreach (Friend friend in friendArr)
-            {
-                Plugin.Log.LogDebug($"Lobby join denied! Attempted to join a lobby owned by a user which you has blocked: name: {friend.Name} | id: {friend.Id}");
-                if (lobby.IsOwnedBy(friend.Id))
-                {
-                    UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, "You attempted to join a lobby owned by a user you blocked.");
-                    __result = false;
-                    return false;
-                }
-            }
+            Plugin.Log.LogWarning("Lobby is modded but does not have any plugin information.");
+            return __result;
         }
 
-        data = lobby.GetData("__joinable"); // is lobby joinable?
-        if (data == "false")
-        {
-            Plugin.Log.LogDebug("Lobby join denied! Host lobby is not joinable");
-            UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.DoesntExist, "The server host has already landed their ship, or they are still loading in.");
-            return false;
-        }
-
-        if (lobby.MemberCount is >= 4 or < 1)
-        {
-            Plugin.Log.LogDebug($"Lobby join denied! Too many members in lobby! {lobby.Id}");
-            UObject.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.Full, "The server is full!");
-            __result = false;
-            return false;
-        }
-
-        Plugin.Log.LogDebug($"Lobby join accepted! Lobby ID: {lobby.Id}");
-        __result = true;
-        return false;
+        return PluginManager.MatchesTargetRequirements(PluginManager.ParseLobbyPluginsMetadata(lobbyPluginString));
     }
 }
