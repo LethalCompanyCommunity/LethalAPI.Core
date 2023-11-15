@@ -10,7 +10,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <DocumentationFile>..\bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)LCAPI.ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)LethalAPI.ruleset</CodeAnalysisRuleSet>
         <OutputPath>..\bin\$(Configuration)\</OutputPath>
     </PropertyGroup>
 
