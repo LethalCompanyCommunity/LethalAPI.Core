@@ -11,8 +11,7 @@
         <LangVersion>latest</LangVersion>
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;
-            https://nuget.bepinex.dev/v3/index.json;
-            https://nuget.samboy.dev/v3/index.json
+            https://nuget.bepinex.dev/v3/index.json
         </RestoreAdditionalProjectSources>
         <DocumentationFile>..\bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)LethalAPI.ruleset</CodeAnalysisRuleSet>
