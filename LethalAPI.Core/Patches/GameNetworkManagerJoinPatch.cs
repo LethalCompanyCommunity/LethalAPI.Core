@@ -5,7 +5,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-// ReSharper disable InconsistentNaming
 namespace LethalAPI.Core.Patches;
 
 using System.Linq;
