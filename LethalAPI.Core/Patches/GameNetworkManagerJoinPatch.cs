@@ -99,7 +99,7 @@ internal static class LobbyDataIsJoinableTranspiler
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return new CodeMatcher(instructions)
-            .SearchBack(instruction => instruction.operand.Equals(LobbyMetadata.Joinable))
+            .SearchForward(instruction => instruction.OperandIs(LobbyMetadata.Joinable))
             .ThrowIfInvalid("Could not find joinable")
             .RemoveInstruction()
             .Insert(new CodeInstruction(OpCodes.Ldstr, LobbyMetadata.JoinableModded))
