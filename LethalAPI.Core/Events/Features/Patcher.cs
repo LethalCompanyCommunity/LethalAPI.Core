@@ -65,7 +65,7 @@ public class Patcher
     {
         try
         {
-            List<Type> types = new (UnpatchedTypes.Where(x => x.GetCustomAttributes<EventPatchAttribute>().Any((epa) => epa.Event == @event)));
+            List<Type> types = new (GetAllPatchTypes().Where(x => x.GetCustomAttributes<EventPatchAttribute>().Any((epa) => epa.Event == @event)));
 
             Log.Debug($"Patching event for {types.Count} types.", Events.DebugPatches, "LethalAPI-Patcher");
             foreach (Type type in types)

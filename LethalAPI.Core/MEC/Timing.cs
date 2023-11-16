@@ -28,6 +28,7 @@ namespace MEC
 {
     using System;
     using System.Linq;
+    using LethalAPI.Core;
     using UnityEngine.Profiling;
 
     public class Timing : MonoBehaviour
@@ -176,6 +177,8 @@ namespace MEC
             {
                 if (_instance == null || !_instance.gameObject)
                 {
+                    Log.Error("Timings is not initialized! You cannot use timings until the player has reached the menu.");
+                    throw new Exception("Timings is not initialized! You cannot use timings until the player has reached the menu.");
                     GameObject instanceHome = GameObject.Find("Timing Controller");
 
                     if (instanceHome == null)
@@ -262,8 +265,6 @@ namespace MEC
 
         void Update()
         {
-            //todo remove this
-            // LethalAPI.Core.Log.Debug("-");
             if (OnPreExecute != null)
                 OnPreExecute();
 
@@ -311,7 +312,7 @@ namespace MEC
                     catch (System.Exception ex)
                     {
                         InvokeException(ex, name);
-                        Debug.LogException(ex);
+                        //LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -365,7 +366,7 @@ namespace MEC
                     catch (System.Exception ex)
                     {
                         InvokeException(ex, name);
-                        Debug.LogException(ex);
+                        //Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -440,7 +441,7 @@ namespace MEC
                     catch (System.Exception ex)
                     {
                         InvokeException(ex, name);
-                        Debug.LogException(ex);
+                        //Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -502,7 +503,7 @@ namespace MEC
                     catch (System.Exception ex)
                     {
                         InvokeException(ex, name);
-                        Debug.LogException(ex);
+                        //Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -2211,8 +2212,6 @@ namespace MEC
 
         private IEnumerator<float> _DelayedCall(float delay, System.Action action, GameObject cancelWith)
         {
-            // todo delete this
-            // LethalAPI.Core.Log.Debug("Delayed Call.");
             yield return WaitForSecondsOnInstance(delay);
             LethalAPI.Core.Log.Debug("Delayed Call callback.");
 

@@ -56,13 +56,8 @@ public class Plugin : BaseUnityPlugin
 
     private void InitTimings(StartScreenEventArgs ev)
     {
-        Timing.Instance = this.gameObject.AddComponent<Timing>();
         Timing.Instance.name = "Timing Controller";
         Timing.Instance.OnException += OnError;
-        Timing.CallDelayed(1f, () =>
-        {
-            Log.Debug("Timings.");
-        });
     }
 
     // ReSharper disable once ParameterHidesMember
