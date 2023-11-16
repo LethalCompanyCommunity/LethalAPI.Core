@@ -41,6 +41,7 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
 
         if (PluginManager.GetAPIPluginInfoList().Exists(plugin => plugin.Required))
         {
+            Plugin.Log.LogWarning("You are hosting a lobby with required plugins. Disabling vanilla clients from joining.");
             lobby.SetData(LobbyMetadata.Joinable, "false");
         }
     }
