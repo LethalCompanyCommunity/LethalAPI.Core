@@ -26,6 +26,9 @@ using UnityEngine.Assertions;
 
 namespace MEC
 {
+    using System;
+    using System.Linq;
+    using LethalAPI.Core;
     using UnityEngine.Profiling;
 
     public class Timing : MonoBehaviour
@@ -174,13 +177,18 @@ namespace MEC
             {
                 if (_instance == null || !_instance.gameObject)
                 {
+                    Log.Error("Timings is not initialized! You cannot use timings until the player has reached the menu.");
+                    throw new Exception("Timings is not initialized! You cannot use timings until the player has reached the menu.");
                     GameObject instanceHome = GameObject.Find("Timing Controller");
 
                     if (instanceHome == null)
                     {
-                        instanceHome = new GameObject { name = "Timing Controller" };
+                         //instanceHome = GameObject.FindGameObjectWithTag("BepInEx_Manager");
+                         instanceHome = GameObject.FindObjectsOfType<GameObject>()
+                             .First(x => x.name == "BepInEx_Manager");
+                        // instanceHome = new GameObject { name = "Timing Controller" };
 
-                        DontDestroyOnLoad(instanceHome);
+                        //DontDestroyOnLoad(instanceHome);
                     }
 
                     _instance = instanceHome.GetComponent<Timing>() ?? instanceHome.AddComponent<Timing>();
@@ -190,7 +198,11 @@ namespace MEC
 
                 return _instance;
             }
-            set { _instance = value; }
+            set
+            {
+                _instance = value;
+                _instance.InitializeInstanceID();
+            }
         }
 
         void OnDestroy()
@@ -203,7 +215,7 @@ namespace MEC
         {
             if (MainThread == null)
                 MainThread = System.Threading.Thread.CurrentThread;
-
+            
             InitializeInstanceID();
         }
 
@@ -211,6 +223,20 @@ namespace MEC
         {
             if (_instanceID < ActiveInstances.Length)
                 ActiveInstances[_instanceID] = null;
+        }
+
+        public event Action<Exception, string> OnException;
+
+        private void InvokeException(Exception e, string name )//= "Unknown")
+        {
+            try
+            {
+                OnException.Invoke(e, name);
+            }
+            catch (Exception)
+            {
+                // unused;
+            }
         }
 
         private void InitializeInstanceID()
@@ -250,12 +276,13 @@ namespace MEC
 
                 for (coindex.i = 0; coindex.i < _lastSlowUpdateProcessSlot; coindex.i++)
                 {
+                    string name = "Unknown";
                     try
                     {
                         if (!SlowUpdatePaused[coindex.i] && !SlowUpdateHeld[coindex.i] && SlowUpdateProcesses[coindex.i] != null && !(localTime < SlowUpdateProcesses[coindex.i].Current))
                         {
                             currentCoroutine = _indexToHandle[coindex];
-
+                            name = _taggedProcesses.FirstOrDefault(x => x.Value.Any(handle => handle == currentCoroutine)).Key ?? "Unknown";
                             if (ProfilerDebugAmount != DebugInfoType.None && _indexToHandle.ContainsKey(coindex))
                             {
                                 Profiler.BeginSample(ProfilerDebugAmount == DebugInfoType.SeperateTags ? ("Processing Coroutine (Slow Update)" +
@@ -284,7 +311,8 @@ namespace MEC
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogException(ex);
+                        InvokeException(ex, name);
+                        //LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -301,11 +329,13 @@ namespace MEC
 
                 for (coindex.i = 0; coindex.i < _lastUpdateProcessSlot; coindex.i++)
                 {
+                    string name = String.Empty;
                     try
                     {
                         if (!UpdatePaused[coindex.i] && !UpdateHeld[coindex.i] && UpdateProcesses[coindex.i] != null && !(localTime < UpdateProcesses[coindex.i].Current))
                         {
                             currentCoroutine = _indexToHandle[coindex];
+                            name = _taggedProcesses.FirstOrDefault(x => x.Value.Any(handle => handle == currentCoroutine)).Key ?? "Unknown";
 
                             if (ProfilerDebugAmount != DebugInfoType.None && _indexToHandle.ContainsKey(coindex))
                             {
@@ -335,7 +365,8 @@ namespace MEC
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogException(ex);
+                        InvokeException(ex, name);
+                        //Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -373,12 +404,13 @@ namespace MEC
 
                 for (coindex.i = 0; coindex.i < _lastFixedUpdateProcessSlot; coindex.i++)
                 {
+                    string name = String.Empty;
                     try
                     {
                         if (!FixedUpdatePaused[coindex.i] && !FixedUpdateHeld[coindex.i] && FixedUpdateProcesses[coindex.i] != null && !(localTime < FixedUpdateProcesses[coindex.i].Current))
                         {
                             currentCoroutine = _indexToHandle[coindex];
-
+                            name = _taggedProcesses.FirstOrDefault(x => x.Value.Any(handle => handle == currentCoroutine)).Key ?? "Unknown";
 
                             if (ProfilerDebugAmount != DebugInfoType.None && _indexToHandle.ContainsKey(coindex))
                             {
@@ -408,7 +440,8 @@ namespace MEC
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogException(ex);
+                        InvokeException(ex, name);
+                        //Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -433,12 +466,13 @@ namespace MEC
 
                 for (coindex.i = 0; coindex.i < _lastLateUpdateProcessSlot; coindex.i++)
                 {
+                    string name = String.Empty;
                     try
                     {
                         if (!LateUpdatePaused[coindex.i] && !LateUpdateHeld[coindex.i] && LateUpdateProcesses[coindex.i] != null && !(localTime < LateUpdateProcesses[coindex.i].Current))
                         {
                             currentCoroutine = _indexToHandle[coindex];
-
+                            name = _taggedProcesses.FirstOrDefault(x => x.Value.Any(handle => handle == currentCoroutine)).Key ?? "Unknown";
 
                             if (ProfilerDebugAmount != DebugInfoType.None && _indexToHandle.ContainsKey(coindex))
                             {
@@ -468,7 +502,8 @@ namespace MEC
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogException(ex);
+                        InvokeException(ex, name);
+                        //Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -2178,6 +2213,7 @@ namespace MEC
         private IEnumerator<float> _DelayedCall(float delay, System.Action action, GameObject cancelWith)
         {
             yield return WaitForSecondsOnInstance(delay);
+            LethalAPI.Core.Log.Debug("Delayed Call callback.");
 
             if(ReferenceEquals(cancelWith, null) || cancelWith != null)
                 action();
@@ -2500,43 +2536,43 @@ namespace MEC
         public new void StopAllCoroutines() { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void Destroy(Object obj) { }
+        public new static void Destroy(UObject obj) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void Destroy(Object obj, float f) { }
+        public new static void Destroy(UObject obj, float f) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void DestroyObject(Object obj) { }
+        public new static void DestroyObject(UObject obj) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void DestroyObject(Object obj, float f) { }
+        public new static void DestroyObject(UObject obj, float f) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void DestroyImmediate(Object obj) { }
+        public new static void DestroyImmediate(UObject obj) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void DestroyImmediate(Object obj, bool b) { }
+        public new static void DestroyImmediate(UObject obj, bool b) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void Instantiate(Object obj) { }
+        public new static void Instantiate(UObject obj) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void Instantiate(Object original, Vector3 position, Quaternion rotation) { }
+        public new static void Instantiate(UObject original, Vector3 position, Quaternion rotation) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void Instantiate<T>(T original) where T : Object { }
+        public new static void Instantiate<T>(T original) where T : UObject { }
 
         [System.Obsolete("Just.. no.", true)]
-        public new static T FindObjectOfType<T>() where T : Object { return null; }
+        public new static T FindObjectOfType<T>() where T : UObject { return null; }
 
         [System.Obsolete("Just.. no.", true)]
-        public new static Object FindObjectOfType(System.Type t) { return null; }
+        public new static UObject FindObjectOfType(System.Type t) { return null; }
 
         [System.Obsolete("Just.. no.", true)]
-        public new static T[] FindObjectsOfType<T>() where T : Object { return null; }
+        public new static T[] FindObjectsOfType<T>() where T : UObject { return null; }
 
         [System.Obsolete("Just.. no.", true)]
-        public new static Object[] FindObjectsOfType(System.Type t) { return null; }
+        public new static UObject[] FindObjectsOfType(System.Type t) { return null; }
 
         [System.Obsolete("Just.. no.", true)]
         public new static void print(object message) { }

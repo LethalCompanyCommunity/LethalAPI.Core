@@ -45,7 +45,7 @@ dotnet_diagnostic.CS8618.severity = error
 dotnet_diagnostic.CS8776.severity = error
 csharp_using_directive_placement = inside_namespace:warning
 csharp_prefer_simple_using_statement = true:warning
-csharp_prefer_braces = true:warning
+# csharp_prefer_braces = true:suggestion
 csharp_style_namespace_declarations = file_scoped:warning
 csharp_style_prefer_method_group_conversion = true:warning
 csharp_style_prefer_top_level_statements = false:warning
@@ -120,7 +120,10 @@ dotnet_diagnostic.CS1591.severity = none
 # SA1633: File should have header 
 dotnet_diagnostic.SA1633.severity = none
 
-[Patches/*.cs]
+[Events/Interfaces/*.cs]
+resharper_unassigned_get_only_auto_property_highlighting=none
+
+[Patches/{Fixes,Events}/{*,Player/*,Server/*}.cs]
 # SA1313: 
 dotnet_diagnostic.SA1313.severity = none
 
@@ -136,14 +139,31 @@ resharper_unused_member_local_highlighting=none
 resharper_string_literal_typo_highlighting=none
 resharper_identifier_typo_highlighting=none
 resharper_comment_typo_highlighting=none
-resharper_inconsistent_naming_highlighting=none
-resharper_unused_parameter_local_highlighting=none
-resharper_unused_member_local_highlighting=none
-resharper_string_literal_typo_highlighting=none
-resharper_identifier_typo_highlighting=none
-resharper_comment_typo_highlighting=none
 
-# MEC Timings
+[System/*.cs]
+# SA1633: File should have header 
+dotnet_diagnostic.SA1633.severity = none
+
+dotnet_diagnostic.SA1636.severity = none
+
+# SA1641: File should have copyright
+dotnet_diagnostic.SA1641.severity = none
+
+[Events/EventArgs/*/*.cs]
+# CS0649: Property never assigned.
+dotnet_diagnostic.CS0649.severity=error
+resharper_unused_auto_property_accessor_global_highlighting=none
+resharper_class_never_instantiated_global_highlighting=none
+resharper_unassigned_get_only_auto_property_highlighting=error
+
+[Safety/SafeEnumerator\{T\}.cs]
+# SA1633: File should have header.
+dotnet_diagnostic.SA1633.severity = none
+
+[Patches/HarmonyTools/{SafetyPatch,TranspilerHelper}.cs]
+# SA1633: File should have header.
+dotnet_diagnostic.SA1633.severity = none
+
 [MEC/Timing.cs]
 # SA1633: File should have header.
 dotnet_diagnostic.SA1633.severity = none

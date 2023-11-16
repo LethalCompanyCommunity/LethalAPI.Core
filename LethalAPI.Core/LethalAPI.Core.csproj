@@ -16,6 +16,7 @@
         <DocumentationFile>..\bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)LethalAPI.ruleset</CodeAnalysisRuleSet>
         <OutputPath>..\bin\$(Configuration)\</OutputPath>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
@@ -36,6 +37,8 @@
       <Reference Include="Unity.TextMeshPro" HintPath="$(LC_REFERENCES)\Unity.TextMeshPro.dll" Private="False" />
       <Reference Include="UnityEngine" HintPath="$(LC_REFERENCES)\UnityEngine.dll" Private="False" />
       <Reference Include="UnityEngine.UI" HintPath="$(LC_REFERENCES)\UnityEngine.UI.dll" Private="False" />
+      <Reference Include="Unity.Networking.Transport" HintPath="$(LC_REFERENCES)\Unity.Networking.Transport.dll" Private="False" />
+      <Reference Include="Unity.Netcode.Runtime" HintPath="$(LC_REFERENCES)\Unity.Netcode.Runtime.dll" Private="False" />
     </ItemGroup>
 
     <ItemGroup>

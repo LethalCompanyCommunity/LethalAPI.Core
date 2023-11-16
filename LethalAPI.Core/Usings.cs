@@ -7,6 +7,10 @@
 
 #pragma warning disable SA1200 // Using directives should be placed correctly
 // ReSharper disable RedundantUsingDirective.Global
+global using HarmonyLib;
+
+global using HandlersPlayer = LethalAPI.Core.Events.Handlers.Player;
+global using HandlersServer = LethalAPI.Core.Events.Handlers.Server;
 global using Type = System.Type;
 global using UObject = UnityEngine.Object;
 global using Vector3 = UnityEngine.Vector3;
