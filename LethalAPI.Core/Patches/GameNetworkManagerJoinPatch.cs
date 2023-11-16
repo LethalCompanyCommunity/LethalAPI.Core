@@ -81,7 +81,15 @@ internal static class LobbyDataIsJoinablePostfix
             return __result;
         }
 
-        return PluginManager.MatchesTargetRequirements(PluginManager.ParseLobbyPluginsMetadata(lobbyPluginString));
+        bool matchesPluginRequirements = PluginManager.MatchesTargetRequirements(PluginManager.ParseLobbyPluginsMetadata(lobbyPluginString));
+
+        if (!matchesPluginRequirements)
+        {
+            Plugin.Log.LogWarning("You are missing required plugins to join this lobby.");
+            UnityEngine.Object.FindObjectOfType<MenuManager>().SetLoadingScreen(false, RoomEnter.Error, "You are missing required mods to join this lobby.");
+        }
+
+        return matchesPluginRequirements;
     }
 }
 
