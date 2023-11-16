@@ -70,7 +70,7 @@ internal static class FixLoggerPrefix
         bool flag = false;
         string text = (string)eventArgs.Data;
 
-        // Process chars
+        // Process the characters
         // ReSharper disable once ForCanBeConvertedToForeach
         // In case we want to ensure it isn't \& in the future, we will need a for loop.
         for (int i = 0; i < text.Length; i++)
