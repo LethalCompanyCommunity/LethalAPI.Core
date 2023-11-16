@@ -22,6 +22,26 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public sealed class Events
 {
+#pragma warning disable SA1401 // literally how should this be private when to other instances outside this class use it???????
+    /// <summary>
+    /// Indicates whether debug patches and debug patch logs should be enabled.
+    /// </summary>
+    internal const bool DebugPatches = true;
+
+    /// <summary>
+    /// Indicates whether or not events should be logged on execution.
+    /// </summary>
+    internal const bool LogEvent = true;
+#pragma warning restore SA1401
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Events"/> class.
+    /// </summary>
+    internal Events()
+    {
+        OnEnabled();
+    }
+
     /// <summary>
     /// Gets the plugin instance.
     /// </summary>
@@ -69,12 +89,12 @@ public sealed class Events
         try
         {
             Patcher = new Patcher();
-            Patcher.PatchAll(out int failedPatch);
+            Patcher.PatchAll(out int failedPatch, out int totalPatches);
 
             if (failedPatch == 0)
-                Log.Debug("Events patched successfully!");
+                Log.Debug($"Events patched successfully! [{totalPatches} total patches]");
             else
-                Log.Error($"Patching failed! There are {failedPatch} broken patches.");
+                Log.Error($"Patching failed! There are {failedPatch} broken patches [{totalPatches} total patches].");
         }
         catch (Exception exception)
         {

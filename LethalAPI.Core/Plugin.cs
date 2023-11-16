@@ -14,6 +14,7 @@ using System;
 
 using BepInEx;
 using BepInEx.Logging;
+using Events.EventArgs.Server;
 using global::MEC;
 using HarmonyLib;
 
@@ -47,12 +48,13 @@ public class Plugin : BaseUnityPlugin
         Harmony = new(PluginInfo.PLUGIN_GUID);
 
         // Events..cctor -> Patcher.PatchAll will do the patching. This is necessary for dynamic patching.
+        _ = new Events.Events();
         Singleton = this;
         Events.Handlers.Server.GameOpened += InitTimings;
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
     }
 
-    private void InitTimings()
+    private void InitTimings(StartScreenEventArgs ev)
     {
         Timing.Instance = this.gameObject.AddComponent<Timing>();
         Timing.Instance.name = "Timing Controller";

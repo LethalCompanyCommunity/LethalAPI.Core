@@ -62,6 +62,7 @@ public class Event<T> : ILethalApiEvent
     /// <returns>The <see cref="Event{T}"/> with the handler subscribed to it.</returns>
     public static Event<T> operator +(Event<T> @event, CustomEventHandler<T> handler)
     {
+        Log.Debug($"Event {typeof(T).Name} Subscribed to by {handler.Method.Name}", Events.DebugPatches, "LethalAPI-Events");
         @event.Subscribe(handler);
         return @event;
     }
@@ -109,7 +110,7 @@ public class Event<T> : ILethalApiEvent
     /// <exception cref="ArgumentNullException">Event or its arg is <see langword="null"/>.</exception>
     public void InvokeSafely(T arg)
     {
-        Log.Debug($"Event {typeof(T).Name} Invoked", Patcher.LogEvent, "LethalAPI-Events");
+        Log.Debug($"Event {typeof(T).Name} Invoked", Events.LogEvent, "LethalAPI-Events");
 
         if (InnerEvent is null)
             return;

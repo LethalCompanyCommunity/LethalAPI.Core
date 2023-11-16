@@ -5,7 +5,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core.Patches;
+namespace LethalAPI.Core.Patches.Fixes;
 
 using System;
 using System.Collections.Generic;

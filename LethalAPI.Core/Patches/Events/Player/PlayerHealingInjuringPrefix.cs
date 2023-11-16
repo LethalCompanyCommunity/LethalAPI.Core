@@ -6,25 +6,24 @@
 // -----------------------------------------------------------------------
 
 // ReSharper disable InconsistentNaming
-namespace LethalAPI.Core.Patches.Events;
+namespace LethalAPI.Core.Patches.Events.Player;
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-using Core.Events.Handlers;
 using GameNetcodeStuff;
 using HarmonyTools;
 using LethalAPI.Core.Events.Attributes;
 using LethalAPI.Core.Events.EventArgs.Player;
 
 /// <summary>
-///     Patches the <see cref="Player.Healing"/> and <see cref="Player.CriticallyInjure"/> event.
+///     Patches the <see cref="HandlersPlayer.Healing"/> and <see cref="HandlersPlayer.CriticallyInjure"/> event.
 /// </summary>
 [HarmonyPatch(typeof(PlayerControllerB), nameof(PlayerControllerB.MakeCriticallyInjured))]
-[EventPatch(typeof(Player), nameof(Player.CriticallyInjure))]
-[EventPatch(typeof(Player), nameof(Player.Healing))]
+[EventPatch(typeof(HandlersPlayer), nameof(HandlersPlayer.CriticallyInjure))]
+[EventPatch(typeof(HandlersPlayer), nameof(HandlersPlayer.Healing))]
 internal static class PlayerHealingInjuringPrefix
 {
     [HarmonyTranspiler]

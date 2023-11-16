@@ -6,16 +6,16 @@
 // -----------------------------------------------------------------------
 
 // ReSharper disable InconsistentNaming
-namespace LethalAPI.Core.Patches.Events;
+namespace LethalAPI.Core.Patches.Events.Player;
 
-using Core.Events.Handlers;
 using LethalAPI.Core.Events.Attributes;
+using LethalAPI.Core.Events.Handlers;
 using UnityEngine;
 
 /// <summary>
-///     Patches the <see cref="Player.UsingKey"/> event.
+///     Patches the <see cref="HandlersPlayer.UsingKey"/> event.
 /// </summary>
-[EventPatch(typeof(Player), nameof(Player.UsingKey))]
+[EventPatch(typeof(HandlersPlayer), nameof(HandlersPlayer.UsingKey))]
 [HarmonyPatch(typeof(KeyItem), nameof(KeyItem.ItemActivate))]
 internal static class KeyItemPrefix
 {

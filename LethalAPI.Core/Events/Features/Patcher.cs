@@ -25,13 +25,6 @@ using Interfaces;
 public class Patcher
 {
     /// <summary>
-    /// Indicates whether or not events should be logged on execution.
-    /// </summary>
-#pragma warning disable SA1401 // literally how should this be private when to other instances outside this class use it???????
-    internal static bool LogEvent = true;
-#pragma warning restore SA1401
-
-    /// <summary>
     /// The below variable is used to increment the name of the harmony instance, otherwise harmony will not work upon a plugin reload.
     /// </summary>
     // ReSharper disable once InconsistentNaming
@@ -74,6 +67,7 @@ public class Patcher
         {
             List<Type> types = new (UnpatchedTypes.Where(x => x.GetCustomAttributes<EventPatchAttribute>().Any((epa) => epa.Event == @event)));
 
+            Log.Debug($"Patching event for {types.Count} types.", Events.DebugPatches, "LethalAPI-Patcher");
             foreach (Type type in types)
             {
                 List<MethodInfo> methodInfos = new PatchClassProcessor(Harmony, type).Patch();
@@ -92,8 +86,10 @@ public class Patcher
     /// Patches all events.
     /// </summary>
     /// <param name="failedPatch">the number of failed patch returned.</param>
-    public void PatchAll(out int failedPatch)
+    /// <param name="totalPatches">the number of total patches attempted.</param>
+    public void PatchAll(out int failedPatch, out int totalPatches)
     {
+        totalPatches = 0;
         failedPatch = 0;
 
         try
@@ -101,10 +97,12 @@ public class Patcher
             List<Type> toPatch = new (UnpatchedTypes);
             foreach (Type patch in toPatch)
             {
+                totalPatches++;
                 try
                 {
                     Harmony.CreateClassProcessor(patch).Patch();
                     UnpatchedTypes.Remove(patch);
+                    Log.Debug($"Patching type '{patch.FullName}'", Events.DebugPatches, "LethalAPI-Patcher");
                 }
                 catch (HarmonyException exception)
                 {
@@ -158,5 +156,5 @@ public class Patcher
     /// Gets all types that have a <see cref="HarmonyPatch"/> attributed to them, but don't have an <see cref="EventPatchAttribute"/> attribute.
     /// </summary>
     /// <returns>A <see cref="HashSet{T}"/> of all patch types.</returns>
-    private static HashSet<Type> GetNonEventPatchTypes() => Assembly.GetExecutingAssembly().GetTypes().Where((type) => type.GetCustomAttribute<HarmonyPatch>() is not null && type.GetCustomAttribute<EventPatchAttribute>() is null).ToHashSet();
+    private static HashSet<Type> GetNonEventPatchTypes() => Assembly.GetExecutingAssembly().GetTypes().Where((type) => type.GetCustomAttribute<HarmonyPatch>() is not null && !type.GetCustomAttributes<EventPatchAttribute>().Any()).ToHashSet();
 }

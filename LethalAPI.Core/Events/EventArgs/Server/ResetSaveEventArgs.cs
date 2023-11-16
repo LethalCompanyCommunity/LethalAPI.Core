@@ -5,9 +5,9 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core.Events.EventArgs;
+namespace LethalAPI.Core.Events.EventArgs.Server;
 
-using Interfaces;
+using LethalAPI.Core.Events.Interfaces;
 
 /// <summary>
 ///     Represents the event args that are called when saving.

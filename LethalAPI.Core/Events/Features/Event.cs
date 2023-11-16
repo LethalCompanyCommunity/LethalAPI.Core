@@ -62,6 +62,7 @@ public class Event : ILethalApiEvent
     /// <returns>The <see cref="Event"/> with the handler added to it.</returns>
     public static Event operator +(Event @event, CustomEventHandler handler)
     {
+        Log.Debug($"An unknown event has been subscribed to by {handler.Method.Name}", Events.DebugPatches, "LethalAPI-Events");
         @event.Subscribe(handler);
         return @event;
     }
@@ -107,7 +108,7 @@ public class Event : ILethalApiEvent
     /// </summary>
     public void InvokeSafely()
     {
-        Log.Debug($"Blank Event Invoked", Patcher.LogEvent, "LethalAPI-Events");
+        Log.Debug($"Blank Event Invoked", Events.LogEvent, "LethalAPI-Events");
         if (InnerEvent is null)
             return;
 

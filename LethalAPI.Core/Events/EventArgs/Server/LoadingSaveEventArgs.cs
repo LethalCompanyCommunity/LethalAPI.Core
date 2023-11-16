@@ -6,9 +6,11 @@
 // -----------------------------------------------------------------------
 
 // ReSharper disable UnusedAutoPropertyAccessor.Global
-namespace LethalAPI.Core.Events.EventArgs;
+namespace LethalAPI.Core.Events.EventArgs.Server;
 
 using System;
+
+using Interfaces;
 
 #pragma warning disable SA1201
 
@@ -16,7 +18,7 @@ using System;
 ///     Represents the event args that are called when loading a save.
 /// </summary>
 // ReSharper disable once ClassNeverInstantiated.Global
-public sealed class LoadingSaveEventArgs
+public sealed class LoadingSaveEventArgs : ILethalApiEvent
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="LoadingSaveEventArgs"/> class.

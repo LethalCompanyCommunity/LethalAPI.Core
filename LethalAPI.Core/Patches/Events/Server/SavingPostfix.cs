@@ -6,64 +6,64 @@
 // -----------------------------------------------------------------------
 
 // ReSharper disable InconsistentNaming
-namespace LethalAPI.Core.Patches.Events;
+namespace LethalAPI.Core.Patches.Events.Server;
 
 using LethalAPI.Core.Events.Attributes;
-using LethalAPI.Core.Events.EventArgs;
+using LethalAPI.Core.Events.EventArgs.Server;
 using LethalAPI.Core.Events.Handlers;
 
 /// <summary>
-///     Patches the <see cref="Server.Saving"/> event.
+///     Patches the <see cref="HandlersServer.Saving"/> event.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveGameValues))]
-[EventPatch(typeof(Server), nameof(Server.Saving))]
+[EventPatch(typeof(HandlersServer), nameof(HandlersServer.Saving))]
 internal static class SaveGameValuesPostfix
 {
     [HarmonyPostfix]
     private static void Postfix(GameNetworkManager __instance)
     {
-         Server.Saving.InvokeSafely(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.GameValues));
+        HandlersServer.Saving.InvokeSafely(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.GameValues));
     }
 }
 
 /// <summary>
-///     Patches the <see cref="Server.Saving"/> event.
+///     Patches the <see cref="HandlersServer.Saving"/> event.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveLocalPlayerValues))]
-[EventPatch(typeof(Server), nameof(Server.Saving))]
+[EventPatch(typeof(HandlersServer), nameof(HandlersServer.Saving))]
 internal static class SaveLocalPlayerValues
 {
     [HarmonyPostfix]
     private static void Postfix(GameNetworkManager __instance)
     {
-         Server.Saving.InvokeSafely(new SavingEventArgs("LCGeneralSaveData", SaveItem.LocalPlayerValues));
+        HandlersServer.Saving.InvokeSafely(new SavingEventArgs("LCGeneralSaveData", SaveItem.LocalPlayerValues));
     }
 }
 
 /// <summary>
-///     Patches the <see cref="Server.Saving"/> event.
+///     Patches the <see cref="HandlersServer.Saving"/> event.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveItemsInShip))]
-[EventPatch(typeof(Server), nameof(Server.Saving))]
+[EventPatch(typeof(HandlersServer), nameof(HandlersServer.Saving))]
 internal static class SaveItemsInShipPostfix
 {
     [HarmonyPostfix]
     private static void Postfix(GameNetworkManager __instance)
     {
-         Server.Saving.InvokeSafely(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.ShipItems));
+        HandlersServer.Saving.InvokeSafely(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.ShipItems));
     }
 }
 
 /// <summary>
-///     Patches the <see cref="Server.Saving"/> event.
+///     Patches the <see cref="HandlersServer.Saving"/> event.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.ConvertUnsellableItemsToCredits))]
-[EventPatch(typeof(Server), nameof(Server.Saving))]
+[EventPatch(typeof(HandlersServer), nameof(HandlersServer.Saving))]
 internal static class SaveUnsellableItemsPostfix
 {
     [HarmonyPostfix]
     private static void Postfix(GameNetworkManager __instance)
     {
-         Server.Saving.InvokeSafely(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.UnsellableItems));
+        HandlersServer.Saving.InvokeSafely(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.UnsellableItems));
     }
 }

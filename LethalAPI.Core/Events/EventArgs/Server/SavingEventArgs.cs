@@ -5,7 +5,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core.Events.EventArgs;
+namespace LethalAPI.Core.Events.EventArgs.Server;
 
 using System;
 

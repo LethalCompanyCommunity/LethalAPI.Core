@@ -56,9 +56,5 @@
         <Link>README.md</Link>
       </Content>
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Patches\Events\Player\" />
-    </ItemGroup>
     
 </Project>

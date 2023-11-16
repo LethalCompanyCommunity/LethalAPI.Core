@@ -5,25 +5,25 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core.Patches.Events;
+namespace LethalAPI.Core.Patches.Events.Server;
 
 using LethalAPI.Core.Events.Attributes;
-using LethalAPI.Core.Events.EventArgs;
+using LethalAPI.Core.Events.EventArgs.Server;
 using LethalAPI.Core.Events.Handlers;
 
 #pragma warning disable SA1402
 
 /// <summary>
-///     Patches the <see cref="Server.LoadingSave"/> event.
+///     Patches the <see cref="HandlersServer.LoadingSave"/> event.
 /// </summary>
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.Start))]
-[EventPatch(typeof(Server), nameof(Server.LoadingSave))]
+[EventPatch(typeof(HandlersServer), nameof(HandlersServer.LoadingSave))]
 internal static class LoadingGlobalSavePostfix
 {
     [HarmonyPostfix]
     private static void Postfix()
     {
-        Server.LoadingSave.InvokeSafely(new LoadingSaveEventArgs("LCGeneralSaveData", LoadedItem.LastSelectedSave));
+        HandlersServer.LoadingSave.InvokeSafely(new LoadingSaveEventArgs("LCGeneralSaveData", LoadedItem.LastSelectedSave));
     }
 }
 
@@ -37,7 +37,7 @@ internal static class SpawnUnlockablePostfix
     [HarmonyPostfix]
     private static void Postfix(StartOfRound __instance)
     {
-        Server.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.SpawnUnlockable));
+        HandlersServer.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.SpawnUnlockable));
     }
 }
 
@@ -51,7 +51,7 @@ internal static class LoadUnlockablesPostfix
     [HarmonyPostfix]
     private static void Postfix(StartOfRound __instance)
     {
-        Server.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.LoadUnlockables));
+        HandlersServer.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.LoadUnlockables));
     }
 }
 
@@ -65,7 +65,7 @@ internal static class LoadShipGrabbableItemsPostfix
     [HarmonyPostfix]
     private static void Postfix(StartOfRound __instance)
     {
-        Server.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.LoadShipGrabbableItems));
+        HandlersServer.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.LoadShipGrabbableItems));
     }
 }
 
@@ -79,6 +79,6 @@ internal static class SetTimeAndPlanetPostfix
     [HarmonyPostfix]
     private static void Postfix(StartOfRound __instance)
     {
-        Server.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.SetTimeAndPlanetToSavedSettings));
+        HandlersServer.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.SetTimeAndPlanetToSavedSettings));
     }
 }
