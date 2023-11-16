@@ -179,21 +179,6 @@ namespace MEC
                 {
                     Log.Error("Timings is not initialized! You cannot use timings until the player has reached the menu.");
                     throw new Exception("Timings is not initialized! You cannot use timings until the player has reached the menu.");
-                    GameObject instanceHome = GameObject.Find("Timing Controller");
-
-                    if (instanceHome == null)
-                    {
-                         //instanceHome = GameObject.FindGameObjectWithTag("BepInEx_Manager");
-                         instanceHome = GameObject.FindObjectsOfType<GameObject>()
-                             .First(x => x.name == "BepInEx_Manager");
-                        // instanceHome = new GameObject { name = "Timing Controller" };
-
-                        //DontDestroyOnLoad(instanceHome);
-                    }
-
-                    _instance = instanceHome.GetComponent<Timing>() ?? instanceHome.AddComponent<Timing>();
-
-                    _instance.InitializeInstanceID();
                 }
 
                 return _instance;
@@ -312,7 +297,6 @@ namespace MEC
                     catch (System.Exception ex)
                     {
                         InvokeException(ex, name);
-                        //LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -366,7 +350,6 @@ namespace MEC
                     catch (System.Exception ex)
                     {
                         InvokeException(ex, name);
-                        //Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -441,7 +424,6 @@ namespace MEC
                     catch (System.Exception ex)
                     {
                         InvokeException(ex, name);
-                        //Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"
@@ -503,7 +485,6 @@ namespace MEC
                     catch (System.Exception ex)
                     {
                         InvokeException(ex, name);
-                        //Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
                             Debug.LogError("This exception can probably be fixed by adding \"CancelWith(gameObject)\" when you run the coroutine.\n"

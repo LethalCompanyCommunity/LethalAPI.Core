@@ -14,7 +14,7 @@ namespace LethalAPI.Core.Events.Interfaces;
 using UnityEngine;
 
 /// <summary>
-///     Event args used for all Firearme related events.
+///     Event args used for all Firearm related events.
 /// </summary>
 public interface IFirearmEvent : IItemEvent
 {
