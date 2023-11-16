@@ -17,28 +17,29 @@ using System.Diagnostics;
 using Features;
 using UnityEngine.SceneManagement;
 
+#pragma warning disable SA1401 // field should be private. (it shouldn't)
+
 /// <summary>
 /// The main events api for patching and un-patching methods.
 /// </summary>
 public sealed class Events
 {
-#pragma warning disable SA1401 // literally how should this be private when to other instances outside this class use it???????
     /// <summary>
     /// Indicates whether debug patches and debug patch logs should be enabled.
     /// </summary>
-    internal const bool DebugPatches = true;
+    internal const bool DebugPatches = false;
 
     /// <summary>
     /// Indicates whether or not events should be logged on execution.
     /// </summary>
-    internal const bool LogEvent = true;
-#pragma warning restore SA1401
+    internal const bool LogEvent = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Events"/> class.
     /// </summary>
     internal Events()
     {
+        Instance = this;
         OnEnabled();
     }
 
@@ -62,8 +63,6 @@ public sealed class Events
     /// </summary>
     public void OnEnabled()
     {
-        Instance = this;
-
         Stopwatch watch = Stopwatch.StartNew();
         Patch();
         watch.Stop();

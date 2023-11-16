@@ -10,6 +10,7 @@ namespace LethalAPI.Core;
 // ReSharper disable InconsistentNaming
 // ReSharper disable MemberCanBePrivate.Global
 #pragma warning disable SA1401 // field should be made private
+#pragma warning disable SA1309 // Names should not start with an underscore. ie: _Logger.
 using System;
 using System.Diagnostics;
 using System.Reflection;
@@ -24,9 +25,9 @@ using MonoMod.RuntimeDetour;
 public class Plugin : BaseUnityPlugin
 {
     /// <summary>
-    /// Gets the singleton for a plugin.
+    /// Gets the instance for the main api.
     /// </summary>
-    public static Plugin Singleton = null!;
+    public static Plugin Instance = null!;
 
     /// <summary>
     /// Gets the <see cref="BepInEx.Logging.Logger"/>.
@@ -34,9 +35,7 @@ public class Plugin : BaseUnityPlugin
     /// <summary>
     /// The base logger.
     /// </summary>
-#pragma warning disable SA1309
     internal static ManualLogSource _Logger = null!;
-#pragma warning restore SA1309
 
     /// <summary>
     /// The harmony instance.
@@ -51,9 +50,10 @@ public class Plugin : BaseUnityPlugin
         // Hooks and fixes the exception stacktrace il.
         _ = new ILHook(typeof(StackTrace).GetMethod("AddFrames", BindingFlags.Instance | BindingFlags.NonPublic), Patches.Fixes.FixExceptionIL.IlHook);
 
+        // Events.Events contains the instance. This should become a plugin for loading and config purposes, in the future.
         // Events..cctor -> Patcher.PatchAll will do the patching. This is necessary for dynamic patching.
         _ = new Events.Events();
-        Singleton = this;
+        Instance = this;
         Events.Handlers.Server.GameOpened += InitTimings;
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
     }
