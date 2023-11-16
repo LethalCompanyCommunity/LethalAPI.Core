@@ -140,6 +140,15 @@ resharper_string_literal_typo_highlighting=none
 resharper_identifier_typo_highlighting=none
 resharper_comment_typo_highlighting=none
 
+[System/*.cs]
+# SA1633: File should have header 
+dotnet_diagnostic.SA1633.severity = none
+
+dotnet_diagnostic.SA1636.severity = none
+
+# SA1641: File should have copyright
+dotnet_diagnostic.SA1641.severity = none
+
 [Events/EventArgs/*/*.cs]
 # CS0649: Property never assigned.
 dotnet_diagnostic.CS0649.severity=error
