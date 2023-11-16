@@ -37,14 +37,9 @@ public static class EventTranspilerInjector
     /// <param name="prefixInstructions">Optional instructions that can be inject prior to the event constructor, that allow loading the stack with parameters for the constructor.</param>
     /// <param name="autoInsertConstructorParameters">When set to true, the injector will auto-determine the parameters for a patch, and add them.</param>
     /// <typeparam name="T">The <see cref="IDeniableEvent"/> to inject.</typeparam>
-    public static void InjectDeniableEvent<T>(ref IEnumerable<CodeInstruction> instructions, ref ILGenerator generator, ref MethodBase baseMethod, int index, List<CodeInstruction>? prefixInstructions = null, bool autoInsertConstructorParameters = true)
+    public static void InjectDeniableEvent<T>(ref List<CodeInstruction> instructions, ref ILGenerator generator, ref MethodBase baseMethod, int index, List<CodeInstruction>? prefixInstructions = null, bool autoInsertConstructorParameters = true)
         where T : IDeniableEvent
     {
-        if (instructions is not List<CodeInstruction> list)
-        {
-            list = instructions.ToList();
-        }
-
         types ??= typeof(Log).Assembly.DefinedTypes
             .Where(x => x.FullName?.StartsWith("LethalAPI.Core.Events.Handlers") ?? false).ToList();
 
@@ -78,14 +73,14 @@ public static class EventTranspilerInjector
             // this
             if (i == 0 && param.ParameterType == baseMethod.DeclaringType && !baseMethod.IsStatic)
             {
-                parameterStack = (List<CodeInstruction>)parameterStack.Append(new(OpCodes.Ldarg_0));
+                parameterStack.Insert(parameterStack.Count, new(OpCodes.Ldarg_0));
                 continue;
             }
 
             // IsAllowed or IsEnabled.
             if (i == parameters.Length - 1 && param.ParameterType == typeof(bool))
             {
-                parameterStack = (List<CodeInstruction>)parameterStack.Append(new(OpCodes.Ldc_I4_1));
+                parameterStack.Insert(parameterStack.Count, new(OpCodes.Ldc_I4_1));
                 continue;
             }
 
@@ -126,7 +121,7 @@ public static class EventTranspilerInjector
             new(OpCodes.Dup),
             new(OpCodes.Stloc_S, local),
             new(OpCodes.Call, PropertyGetter(propertyInfo.DeclaringType, propertyInfo.Name)),
-            new(OpCodes.Call, PropertyGetter(typeof(Event<T>), nameof(Event<T>.InvokeSafely))),
+            new(OpCodes.Call, Method(typeof(Event<T>), nameof(Event<T>.InvokeSafely))),
 
             // Handlers.{Handler}.{Event}.InvokeSafely(ev)
 
@@ -138,13 +133,13 @@ public static class EventTranspilerInjector
         };
         if (prefixInstructions is { Count: > 0 })
         {
-            list.InsertRange(index, prefixInstructions);
+            instructions.InsertRange(index, prefixInstructions);
             index += prefixInstructions.Count;
         }
 
         opcodes.InsertRange(0, parameterStack);
-        list.InsertRange(index, opcodes);
+        instructions.InsertRange(index, opcodes);
         index += opcodes.Count + parameterStack.Count + 1;
-        list[index] = list[index].WithLabels();
+        instructions[index] = instructions[index].WithLabels(rtn);
     }
 }
