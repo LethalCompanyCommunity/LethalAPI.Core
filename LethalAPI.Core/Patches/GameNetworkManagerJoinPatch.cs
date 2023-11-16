@@ -51,7 +51,7 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.LobbyDataIsJoinable))]
 [HarmonyPriority(Priority.Last)]
 [HarmonyWrapSafe]
-internal static class LobbyDataIsJoinablePrefix
+internal static class LobbyDataIsJoinablePostfix
 {
     [HarmonyPostfix]
     private static bool Postfix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
