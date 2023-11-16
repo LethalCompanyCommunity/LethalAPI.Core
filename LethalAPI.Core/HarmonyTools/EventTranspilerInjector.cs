@@ -28,7 +28,7 @@ public static class EventTranspilerInjector
     private static List<TypeInfo>? types;
 
     /// <summary>
-    /// Injects a deniable event into a transpiler add the given index, as well as any prefix args defined in <see cref="prefixInstructions"/>.
+    /// Injects a deniable event into a transpiler add the given index.
     /// </summary>
     /// <param name="instructions">The original method instructions.</param>
     /// <param name="generator">The ILGenerator in use.</param>

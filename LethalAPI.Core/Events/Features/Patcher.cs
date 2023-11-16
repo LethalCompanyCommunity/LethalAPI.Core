@@ -49,7 +49,7 @@ public class Patcher
     /// Gets a <see cref="HashSet{T}"/> that contains all patch types that haven't been patched.
     /// </summary>
     // ReSharper disable once MemberCanBePrivate.Global
-    public static HashSet<Type> UnpatchedTypes { get; private set; } = GetAllPatchTypes();
+    public static HashSet<Type> UnpatchedTypes { get; private set; } = Events.UseDynamicPatching ? GetNonEventPatchTypes() : GetAllPatchTypes();
 
     /// <summary>
     /// Gets a set of types and methods for which EXILED patches should not be run.
@@ -153,4 +153,10 @@ public class Patcher
     /// </summary>
     /// <returns>A <see cref="HashSet{T}"/> of all patch types.</returns>
     private static HashSet<Type> GetAllPatchTypes() => Assembly.GetExecutingAssembly().GetTypes().Where((type) => type.CustomAttributes.Any((customAtt) => customAtt.AttributeType == typeof(HarmonyPatch))).ToHashSet();
+
+    /// <summary>
+    /// Gets all types that have a <see cref="HarmonyPatch"/> attributed to them, but don't have an <see cref="EventPatchAttribute"/> attribute.
+    /// </summary>
+    /// <returns>A <see cref="HashSet{T}"/> of all patch types.</returns>
+    private static HashSet<Type> GetNonEventPatchTypes() => Assembly.GetExecutingAssembly().GetTypes().Where((type) => type.GetCustomAttribute<HarmonyPatch>() is not null && type.GetCustomAttribute<EventPatchAttribute>() is null).ToHashSet();
 }

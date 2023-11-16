@@ -1,13 +1,13 @@
 ﻿// -----------------------------------------------------------------------
+#pragma warning disable SA1636
 // <copyright file="SafeCoroutine.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
-// Licensed under the GPL-3.0 license.
-// </copyright>
-// Licensed under MIT.
-// Made by O5Zereth. Check out his github for tons of cool helpful modding tools:
+// Licensed under the MIT License. License:
+// https://github.com/o5zereth/ZerethAPI/blob/master/LICENSE.txt
+// Made by O5Zereth (an absolute legend). Check out his work here:
 // https://github.com/o5zereth/ZerethAPI/
+// </copyright>
 // -----------------------------------------------------------------------
-
 namespace LethalAPI.Core.MEC;
 
 using System;

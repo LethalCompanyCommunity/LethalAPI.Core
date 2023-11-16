@@ -147,6 +147,14 @@ resharper_unused_auto_property_accessor_global_highlighting=none
 resharper_class_never_instantiated_global_highlighting=none
 resharper_unassigned_get_only_auto_property_highlighting=error
 
+[HarmonyTools/{SafetyPatch,TranspilerHelper}.cs]
+# SA1633: File should have header.
+dotnet_diagnostic.SA1633.severity = none
+
+[MEC/SafeCoroutine.cs]
+# SA1633: File should have header.
+dotnet_diagnostic.SA1633.severity = none
+
 # MEC Timings
 [MEC/Timing.cs]
 # SA1633: File should have header.

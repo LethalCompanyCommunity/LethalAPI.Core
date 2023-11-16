@@ -8,8 +8,14 @@
 // ReSharper disable InconsistentNaming
 namespace LethalAPI.Core.Patches.Events;
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
+
 using Core.Events.Handlers;
 using GameNetcodeStuff;
+using HarmonyTools;
 using LethalAPI.Core.Events.Attributes;
 using LethalAPI.Core.Events.EventArgs.Player;
 
@@ -21,20 +27,15 @@ using LethalAPI.Core.Events.EventArgs.Player;
 [EventPatch(typeof(Player), nameof(Player.Healing))]
 internal static class PlayerHealingInjuringPrefix
 {
-    [HarmonyPrefix]
-    private static bool Prefix(PlayerControllerB __instance, bool enable)
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
-        if (enable)
-        {
-            CriticallyInjureEventArgs injuring = new (__instance);
-            Player.OnCriticalInjury(injuring);
-            return injuring.IsAllowed;
-        }
-        else
-        {
-            HealingEventArgs healing = new (__instance);
-            Player.OnHealing(healing);
-            return healing.IsAllowed;
-        }
+        List<CodeInstruction> newInstructions = instructions.ToList();
+
+        EventTranspilerInjector.InjectDeniableEvent<CriticallyInjureEventArgs>(ref newInstructions, ref generator, ref original, 2);
+        EventTranspilerInjector.InjectDeniableEvent<HealingEventArgs>(ref newInstructions, ref generator, ref original, 2);
+
+        for (int i = 0; i < newInstructions.Count; i++)
+            yield return newInstructions[i];
     }
 }

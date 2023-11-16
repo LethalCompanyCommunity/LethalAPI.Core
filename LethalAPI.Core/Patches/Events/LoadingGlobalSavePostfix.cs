@@ -23,7 +23,7 @@ internal static class LoadingGlobalSavePostfix
     [HarmonyPostfix]
     private static void Postfix()
     {
-        Server.OnLoadingSave(new LoadingSaveEventArgs("LCGeneralSaveData", LoadedItem.LastSelectedSave));
+        Server.LoadingSave.InvokeSafely(new LoadingSaveEventArgs("LCGeneralSaveData", LoadedItem.LastSelectedSave));
     }
 }
 
@@ -37,7 +37,7 @@ internal static class SpawnUnlockablePostfix
     [HarmonyPostfix]
     private static void Postfix(StartOfRound __instance)
     {
-        Server.OnLoadingSave(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.SpawnUnlockable));
+        Server.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.SpawnUnlockable));
     }
 }
 
@@ -51,7 +51,7 @@ internal static class LoadUnlockablesPostfix
     [HarmonyPostfix]
     private static void Postfix(StartOfRound __instance)
     {
-        Server.OnLoadingSave(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.LoadUnlockables));
+        Server.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.LoadUnlockables));
     }
 }
 
@@ -65,7 +65,7 @@ internal static class LoadShipGrabbableItemsPostfix
     [HarmonyPostfix]
     private static void Postfix(StartOfRound __instance)
     {
-        Server.OnLoadingSave(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.LoadShipGrabbableItems));
+        Server.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.LoadShipGrabbableItems));
     }
 }
 
@@ -79,6 +79,6 @@ internal static class SetTimeAndPlanetPostfix
     [HarmonyPostfix]
     private static void Postfix(StartOfRound __instance)
     {
-        Server.OnLoadingSave(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.SetTimeAndPlanetToSavedSettings));
+        Server.LoadingSave.InvokeSafely(new LoadingSaveEventArgs(GameNetworkManager.Instance.currentSaveFileName, LoadedItem.SetTimeAndPlanetToSavedSettings));
     }
 }

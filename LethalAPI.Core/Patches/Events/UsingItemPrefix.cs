@@ -24,7 +24,7 @@ internal static class UsingItemPrefix
     {
         // This needs to become a transpiler.
         UsingItemEventArgs ev = new UsingItemEventArgs(__instance);
-        Player.OnUsingItem(ev);
+        Player.UsingItem.InvokeSafely(ev);
         return ev.IsAllowed;
     }
 }

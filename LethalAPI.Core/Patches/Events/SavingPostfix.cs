@@ -22,7 +22,7 @@ internal static class SaveGameValuesPostfix
     [HarmonyPostfix]
     private static void Postfix(GameNetworkManager __instance)
     {
-         Server.OnSaving(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.GameValues));
+         Server.Saving.InvokeSafely(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.GameValues));
     }
 }
 
@@ -36,7 +36,7 @@ internal static class SaveLocalPlayerValues
     [HarmonyPostfix]
     private static void Postfix(GameNetworkManager __instance)
     {
-         Server.OnSaving(new SavingEventArgs("LCGeneralSaveData", SaveItem.LocalPlayerValues));
+         Server.Saving.InvokeSafely(new SavingEventArgs("LCGeneralSaveData", SaveItem.LocalPlayerValues));
     }
 }
 
@@ -50,7 +50,7 @@ internal static class SaveItemsInShipPostfix
     [HarmonyPostfix]
     private static void Postfix(GameNetworkManager __instance)
     {
-         Server.OnSaving(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.ShipItems));
+         Server.Saving.InvokeSafely(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.ShipItems));
     }
 }
 
@@ -64,6 +64,6 @@ internal static class SaveUnsellableItemsPostfix
     [HarmonyPostfix]
     private static void Postfix(GameNetworkManager __instance)
     {
-         Server.OnSaving(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.UnsellableItems));
+         Server.Saving.InvokeSafely(new SavingEventArgs(__instance.currentSaveFileName, SaveItem.UnsellableItems));
     }
 }

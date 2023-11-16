@@ -27,18 +27,7 @@ public static class Server
     public static Event<LoadingSaveEventArgs> LoadingSave { get; set; } = new ();
 
     /// <summary>
-    /// Called when a save is initiated.
+    ///     Gets or sets the event that is invoked when the game gets to the very first menu.
     /// </summary>
-    /// <param name="ev">
-    ///     The <see cref="SavingEventArgs"/> instance.
-    /// </param>
-    public static void OnSaving(SavingEventArgs ev) => Saving.InvokeSafely(ev);
-
-    /// <summary>
-    /// Called when a save is initiated.
-    /// </summary>
-    /// <param name="ev">
-    ///     The <see cref="LoadingSaveEventArgs"/> instance.
-    /// </param>
-    public static void OnLoadingSave(LoadingSaveEventArgs ev) => LoadingSave.InvokeSafely(ev);
+    public static Event GameOpened { get; set; } = new();
 }
