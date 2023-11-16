@@ -15,9 +15,8 @@ using Steamworks;
 using Steamworks.Data;
 
 /// <summary>
-/// Patches <see cref="GameNetworkManager.SteamMatchmaking_OnLobbyCreated"/> to add extra lobby metadata for using with the below patch.
+/// Patches GameNetworkManager.SteamMatchmaking_OnLobbyCreated to add extra lobby metadata for using with the below patch.
 /// </summary>
-/// <seealso cref="GameNetworkManager.SteamMatchmaking_OnLobbyCreated"/>
 [HarmonyPatch(typeof(GameNetworkManager), "SteamMatchmaking_OnLobbyCreated")]
 [HarmonyWrapSafe]
 [HarmonyPriority(Priority.Last)]
