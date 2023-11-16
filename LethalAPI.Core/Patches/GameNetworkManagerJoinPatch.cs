@@ -57,7 +57,7 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
 internal static class LobbyDataIsJoinablePostfix
 {
     [HarmonyPostfix]
-    private static bool Postfix(GameNetworkManager __instance, ref Lobby lobby, ref bool __result)
+    private static bool Postfix(bool __result, ref Lobby lobby, GameNetworkManager __instance)
     {
         // If original result was false, return false
         if (!__result)
