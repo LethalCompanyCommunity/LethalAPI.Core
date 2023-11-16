@@ -54,7 +54,7 @@ public class Plugin : BaseUnityPlugin
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
     }
 
-    private void InitTimings(StartScreenEventArgs ev)
+    private void InitTimings()
     {
         Timing.Instance.name = "Timing Controller";
         Timing.Instance.OnException += OnError;

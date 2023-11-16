@@ -22,6 +22,6 @@ internal static class PreInitStartScreenPostfix
     private static void Postfix(PreInitSceneScript __instance)
     {
         Timing.Instance = __instance.gameObject.AddComponent<Timing>();
-        HandlersServer.GameOpened.InvokeSafely(new StartScreenEventArgs());
+        HandlersServer.GameOpened.InvokeSafely();
     }
 }
