@@ -14,9 +14,8 @@ using System;
 
 using BepInEx;
 using BepInEx.Logging;
-using Events.EventArgs.Server;
-using global::MEC;
 using HarmonyLib;
+using MEC;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]

@@ -7,7 +7,6 @@
 
 namespace LethalAPI.Core.Events.Handlers;
 
-using EventArgs;
 using EventArgs.Server;
 using Features;
 

@@ -7,9 +7,8 @@
 
 namespace LethalAPI.Core.Patches.Events.Server;
 
-using global::MEC;
 using LethalAPI.Core.Events.Attributes;
-using LethalAPI.Core.Events.EventArgs.Server;
+using MEC;
 
 /// <summary>
 ///     Patches the <see cref="HandlersServer.GameOpened"/> event.

@@ -10,7 +10,6 @@ namespace LethalAPI.Core.Patches.Events.Server;
 
 using LethalAPI.Core.Events.Attributes;
 using LethalAPI.Core.Events.EventArgs.Server;
-using LethalAPI.Core.Events.Handlers;
 
 /// <summary>
 ///     Patches the <see cref="HandlersServer.Saving"/> event.

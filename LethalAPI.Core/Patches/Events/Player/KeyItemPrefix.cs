@@ -9,7 +9,6 @@
 namespace LethalAPI.Core.Patches.Events.Player;
 
 using LethalAPI.Core.Events.Attributes;
-using LethalAPI.Core.Events.Handlers;
 using UnityEngine;
 
 /// <summary>

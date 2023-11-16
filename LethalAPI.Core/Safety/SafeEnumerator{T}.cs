@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 #pragma warning disable SA1636
-// <copyright file="SafeCoroutine.cs" company="LethalAPI Modding Community">
+// <copyright file="SafeEnumerator{T}.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the MIT License. License:
 // https://github.com/o5zereth/ZerethAPI/blob/master/LICENSE.txt
@@ -8,7 +8,7 @@
 // https://github.com/o5zereth/ZerethAPI/
 // </copyright>
 // -----------------------------------------------------------------------
-namespace LethalAPI.Core.MEC;
+namespace LethalAPI.Core.Safety;
 
 using System;
 using System.Collections;

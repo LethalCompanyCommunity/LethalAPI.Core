@@ -8,7 +8,7 @@
 // https://github.com/o5zereth/ZerethAPI/
 // </copyright>
 // -----------------------------------------------------------------------
-namespace LethalAPI.Core.HarmonyTools;
+namespace LethalAPI.Core.Patches.HarmonyTools;
 
 using System;
 using System.Collections.Generic;

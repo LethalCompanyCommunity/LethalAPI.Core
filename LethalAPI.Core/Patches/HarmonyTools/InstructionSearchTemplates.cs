@@ -5,7 +5,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core.HarmonyTools;
+namespace LethalAPI.Core.Patches.HarmonyTools;
 
 using System.Collections.Generic;
 using System.Reflection.Emit;

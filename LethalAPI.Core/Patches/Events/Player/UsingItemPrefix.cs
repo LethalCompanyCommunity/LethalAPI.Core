@@ -10,7 +10,6 @@ namespace LethalAPI.Core.Patches.Events.Player;
 
 using LethalAPI.Core.Events.Attributes;
 using LethalAPI.Core.Events.EventArgs.Player;
-using LethalAPI.Core.Events.Handlers;
 
 /// <summary>
 ///     Patches the <see cref="HandlersPlayer.UsingItem"/> event.

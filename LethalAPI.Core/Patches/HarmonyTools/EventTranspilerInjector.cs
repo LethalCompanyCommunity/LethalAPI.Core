@@ -5,15 +5,15 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core.HarmonyTools;
+namespace LethalAPI.Core.Patches.HarmonyTools;
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-using Events.Features;
-using Events.Interfaces;
+using LethalAPI.Core.Events.Features;
+using LethalAPI.Core.Events.Interfaces;
 
 using static AccessTools;
 
