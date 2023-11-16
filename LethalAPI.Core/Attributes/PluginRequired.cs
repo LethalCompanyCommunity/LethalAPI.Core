@@ -21,7 +21,6 @@ public sealed class PluginRequired : Attribute
     /// <param name="guid"> The GUID of the plugin. </param>
     public PluginRequired(string guid)
     {
-        Plugin.Log.LogInfo("@ Attribute constructor: Adding required plugin: " + guid);   // TODO: Remove
         Guid = guid;
         PluginManager.AddRequiredPluginGuid(guid);
     }
