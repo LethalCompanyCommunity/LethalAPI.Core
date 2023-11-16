@@ -14,7 +14,7 @@ using MEC;
 ///     Patches the <see cref="HandlersServer.GameOpened"/> event.
 /// </summary>
 [EventPatch(typeof(HandlersServer), nameof(HandlersServer.GameOpened))]
-[HarmonyPatch(typeof(PreInitSceneScript), nameof(PreInitSceneScript.Start))]
+[HarmonyPatch(typeof(PreInitSceneScript), "Start")]
 internal static class PreInitStartScreenPostfix
 {
     [HarmonyPostfix]

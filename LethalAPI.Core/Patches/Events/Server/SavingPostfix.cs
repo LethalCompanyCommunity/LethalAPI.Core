@@ -14,7 +14,7 @@ using LethalAPI.Core.Events.EventArgs.Server;
 /// <summary>
 ///     Patches the <see cref="HandlersServer.Saving"/> event.
 /// </summary>
-[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveGameValues))]
+[HarmonyPatch(typeof(GameNetworkManager), "SaveGameValues")]
 [EventPatch(typeof(HandlersServer), nameof(HandlersServer.Saving))]
 internal static class SaveGameValuesPostfix
 {
@@ -28,7 +28,7 @@ internal static class SaveGameValuesPostfix
 /// <summary>
 ///     Patches the <see cref="HandlersServer.Saving"/> event.
 /// </summary>
-[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveLocalPlayerValues))]
+[HarmonyPatch(typeof(GameNetworkManager), "SaveLocalPlayerValues")]
 [EventPatch(typeof(HandlersServer), nameof(HandlersServer.Saving))]
 internal static class SaveLocalPlayerValues
 {
@@ -42,7 +42,7 @@ internal static class SaveLocalPlayerValues
 /// <summary>
 ///     Patches the <see cref="HandlersServer.Saving"/> event.
 /// </summary>
-[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveItemsInShip))]
+[HarmonyPatch(typeof(GameNetworkManager), "SaveItemsInShip")]
 [EventPatch(typeof(HandlersServer), nameof(HandlersServer.Saving))]
 internal static class SaveItemsInShipPostfix
 {
@@ -56,7 +56,7 @@ internal static class SaveItemsInShipPostfix
 /// <summary>
 ///     Patches the <see cref="HandlersServer.Saving"/> event.
 /// </summary>
-[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.ConvertUnsellableItemsToCredits))]
+[HarmonyPatch(typeof(GameNetworkManager), "ConvertUnsellableItemsToCredits")]
 [EventPatch(typeof(HandlersServer), nameof(HandlersServer.Saving))]
 internal static class SaveUnsellableItemsPostfix
 {

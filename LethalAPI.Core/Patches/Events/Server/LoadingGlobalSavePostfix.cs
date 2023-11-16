@@ -16,7 +16,7 @@ using LethalAPI.Core.Events.Handlers;
 /// <summary>
 ///     Patches the <see cref="HandlersServer.LoadingSave"/> event.
 /// </summary>
-[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.Start))]
+[HarmonyPatch(typeof(GameNetworkManager), "Start")]
 [EventPatch(typeof(HandlersServer), nameof(HandlersServer.LoadingSave))]
 internal static class LoadingGlobalSavePostfix
 {
@@ -30,7 +30,7 @@ internal static class LoadingGlobalSavePostfix
 /// <summary>
 ///     Patches the <see cref="Server.LoadingSave"/> event.
 /// </summary>
-[HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SpawnUnlockable))]
+[HarmonyPatch(typeof(StartOfRound), "SpawnUnlockable")]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
 internal static class SpawnUnlockablePostfix
 {
@@ -44,7 +44,7 @@ internal static class SpawnUnlockablePostfix
 /// <summary>
 ///     Patches the <see cref="Server.LoadingSave"/> event.
 /// </summary>
-[HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.LoadUnlockables))]
+[HarmonyPatch(typeof(StartOfRound), "LoadUnlockables")]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
 internal static class LoadUnlockablesPostfix
 {
@@ -58,7 +58,7 @@ internal static class LoadUnlockablesPostfix
 /// <summary>
 ///     Patches the <see cref="Server.LoadingSave"/> event.
 /// </summary>
-[HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.LoadShipGrabbableItems))]
+[HarmonyPatch(typeof(StartOfRound), "LoadShipGrabbableItems")]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
 internal static class LoadShipGrabbableItemsPostfix
 {
@@ -72,7 +72,7 @@ internal static class LoadShipGrabbableItemsPostfix
 /// <summary>
 ///     Patches the <see cref="Server.LoadingSave"/> event.
 /// </summary>
-[HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SetTimeAndPlanetToSavedSettings))]
+[HarmonyPatch(typeof(StartOfRound), "SetTimeAndPlanetToSavedSettings")]
 [EventPatch(typeof(Server), nameof(Server.LoadingSave))]
 internal static class SetTimeAndPlanetPostfix
 {
