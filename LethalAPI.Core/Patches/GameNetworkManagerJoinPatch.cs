@@ -110,8 +110,15 @@ internal static class LobbyDataIsJoinableTranspiler
         return new CodeMatcher(instructions)
             .SearchForward(instruction => instruction.OperandIs(LobbyMetadata.Joinable))
             .ThrowIfInvalid("Could not find joinable")
-            .RemoveInstruction()
-            .Insert(new CodeInstruction(OpCodes.Ldstr, LobbyMetadata.JoinableModded))
+            .RemoveInstructions(4)
+            .Insert(new CodeInstruction(
+                OpCodes.Call,
+                AccessTools.Method(typeof(LobbyDataIsJoinableTranspiler), nameof(IsJoinable))))
             .InstructionEnumeration();
+    }
+
+    private static bool IsJoinable(ref Lobby lobby)
+    {
+        return lobby.GetData(LobbyMetadata.JoinableModded) == "true" || lobby.GetData(LobbyMetadata.Joinable) == "true";
     }
 }
