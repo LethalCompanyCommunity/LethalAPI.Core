@@ -11,11 +11,13 @@ namespace LethalAPI.Core;
 // ReSharper disable MemberCanBePrivate.Global
 #pragma warning disable SA1401 // field should be made private
 using System;
-
+using System.Diagnostics;
+using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using MEC;
+using MonoMod.RuntimeDetour;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -45,6 +47,9 @@ public class Plugin : BaseUnityPlugin
     {
         _Logger = this.Logger;
         Harmony = new(PluginInfo.PLUGIN_GUID);
+
+        // Hooks and fixes the exception stacktrace il.
+        _ = new ILHook(typeof(StackTrace).GetMethod("AddFrames", BindingFlags.Instance | BindingFlags.NonPublic), Patches.Fixes.FixExceptionIL.IlHook);
 
         // Events..cctor -> Patcher.PatchAll will do the patching. This is necessary for dynamic patching.
         _ = new Events.Events();
