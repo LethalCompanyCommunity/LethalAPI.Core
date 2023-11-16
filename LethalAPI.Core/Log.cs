@@ -215,6 +215,17 @@ public static class Log
     }
 
     /// <summary>
+    /// Logs an exception and the respective information to the console.
+    /// </summary>
+    /// <param name="e">The exception to log.</param>
+    /// <param name="callingPlugin">The name of the calling plugin.</param>
+    public static void Error(Exception e, string callingPlugin = "")
+    {
+        string errorMsg = $"{e}";
+        Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin).Replace("{msg}", errorMsg).Replace("{type}", "Error"));
+    }
+
+    /// <summary>
     /// Used to rewrite a BepInEx log into the new method of logging, but skip several stack trace iterations.
     /// </summary>
     /// <param name="message">The previous message.</param>

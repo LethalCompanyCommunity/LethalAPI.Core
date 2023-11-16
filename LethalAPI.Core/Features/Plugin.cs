@@ -5,8 +5,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-// ReSharper disable InconsistentNaming
 namespace LethalAPI.Core.Features;
+
+// ReSharper disable InconsistentNaming
+#pragma warning disable SA1402 // file may only contain a single type
 
 using System;
 using System.Reflection;
@@ -30,7 +32,6 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
 
     /// <inheritdoc />
     public TConfig Config { get; } = new();
-
 
     /// <inheritdoc />
     public Assembly Assembly { get; init; }
@@ -69,6 +70,7 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
 /// </summary>
 /// <typeparam name="TConfig">The type of the config.</typeparam>
 internal sealed class AttributePlugin<TConfig> : Plugin<TConfig>
+#pragma warning restore SA1402
     where TConfig : IConfig, new()
 {
     private readonly string nameValue;
@@ -88,6 +90,7 @@ internal sealed class AttributePlugin<TConfig> : Plugin<TConfig>
     /// <param name="description">A description of what the plugin is and what it does.</param>
     /// <param name="author">The name(s) of the author(s).</param>
     /// <param name="version">The version of the plugin being run.</param>
+    /// <param name="requiredAPIVersion">The optional required framework version for the plugin to run.</param>
     /// <param name="onEnabled">The action that will be called when the plugin is enabled.</param>
     /// <param name="onDisabled">The action that will be called when the plugin is disabled.</param>
     /// <param name="onReloaded">The action that will be called when the plugin is reloaded.</param>

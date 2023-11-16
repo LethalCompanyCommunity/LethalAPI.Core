@@ -12,6 +12,9 @@
 
 namespace LethalAPI.Core;
 
+#pragma warning disable SA1401 // field should be private
+#pragma warning disable SA1202 // public before private fields - methods
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,8 +23,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 
-using BepInEx;
-using Events.Handlers;
 using Features;
 using Interfaces;
 
@@ -37,7 +38,6 @@ public sealed class Loader
 
     private static readonly Dictionary<string, IPlugin<IConfig>> PluginsValue = new();
 
-
     /// <summary>
     /// Initializes a new instance of the <see cref="Loader"/> class.
     /// </summary>
@@ -52,7 +52,7 @@ public sealed class Loader
     public static string BaseDirectory { get; } = string.Empty;
 
     /// <summary>
-    /// The base directory of the dependency folder.
+    /// Gets the base directory of the dependency folder.
     /// </summary>
     public static string DependencyDirectory { get; } = string.Empty;
 
@@ -74,17 +74,17 @@ public sealed class Loader
     /// <summary>
     /// Gets plugin dependencies.
     /// </summary>
+    // ReSharper disable once CollectionNeverQueried.Global
     public static List<Assembly> Dependencies { get; } = new();
-
 
     /// <summary>
     /// Gets a dictionary of all registered plugins, with the key being the plugin name.
     /// </summary>
     public static ReadOnlyDictionary<string, IPlugin<IConfig>> Plugins => new(PluginsValue);
 
+    // ReSharper disable once UnusedMember.Local
     private static void GetAllAttributePlugins()
     {
-
     }
 
     /// <summary>
@@ -115,11 +115,9 @@ public sealed class Loader
             AssemblyInformationalVersionAttribute attribute =
                 plugin.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
 
-            Log.Info(
-                $"Loaded plugin {plugin.Name}@{(plugin.Version is not null ? $"{plugin.Version.Major}.{plugin.Version.Minor}.{plugin.Version.Build}" : attribute is not null ? attribute.InformationalVersion : string.Empty)}");
-
-            HandlersServer.PluginAssemblies.Add(assembly, plugin);
-            Plugins.Add(plugin);
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            Log.Info($"Loaded plugin {plugin.Name}@{(plugin.Version is not null ? $"{plugin.Version.Major}.{plugin.Version.Minor}.{plugin.Version.Build}" : attribute is not null ? attribute.InformationalVersion : string.Empty)}");
+            PluginsValue.Add(plugin.Name, plugin);
         }
     }
 
@@ -132,7 +130,7 @@ public sealed class Loader
     {
         try
         {
-            Assembly? assembly = Assembly.Load(File.ReadAllBytes(path));
+            Assembly assembly = Assembly.Load(File.ReadAllBytes(path));
 
             ResolveAssemblyEmbeddedResources(assembly);
 
@@ -171,9 +169,9 @@ public sealed class Loader
 
                 Log.Debug($"Loading type {type.FullName}");
 
-                IPlugin<IConfig> plugin = null;
+                IPlugin<IConfig>? plugin = null;
 
-                ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes);
+                ConstructorInfo? constructor = type.GetConstructor(new[] { typeof(Assembly) }) ?? type.GetConstructor(Type.EmptyTypes);
                 if (constructor is not null)
                 {
                     Log.Debug("Public default constructor found, creating instance...");
@@ -184,8 +182,9 @@ public sealed class Loader
                 {
                     Log.Debug($"Constructor wasn't found, searching for a property with the {type.FullName} type...");
 
-                    object value = Array
-                        .Find(type.GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public),
+                    object? value = Array
+                        .Find(
+                            type.GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public),
                             property => property.PropertyType == type)?.GetValue(null);
 
                     if (value is not null)
@@ -194,8 +193,7 @@ public sealed class Loader
 
                 if (plugin is null)
                 {
-                    Log.Error(
-                        $"{type.FullName} is a valid plugin, but it cannot be instantiated! It either doesn't have a public default constructor without any arguments or a static property of the {type.FullName} type!");
+                    Log.Error($"{type.FullName} is a valid plugin, but it cannot be instantiated! It either doesn't have a public default constructor without any arguments or a static property of the {type.FullName} type!");
 
                     continue;
                 }
@@ -335,7 +333,7 @@ public sealed class Loader
 
                     Log.Debug($"Loading resource {name}");
 
-                    Stream dataStream = target.GetManifestResourceStream(name);
+                    Stream? dataStream = target.GetManifestResourceStream(name);
 
                     if (dataStream == null)
                     {
@@ -351,7 +349,7 @@ public sealed class Loader
                 }
                 else if (name.EndsWith(".dll.compressed", StringComparison.OrdinalIgnoreCase))
                 {
-                    Stream dataStream = target.GetManifestResourceStream(name);
+                    Stream? dataStream = target.GetManifestResourceStream(name);
 
                     if (dataStream == null)
                     {
@@ -389,15 +387,16 @@ public sealed class Loader
     /// <summary>
     /// Loads all dependencies.
     /// </summary>
+    // ReSharper disable once UnusedMember.Local
     private static void LoadDependencies()
     {
         try
         {
-            Log.Info($"Loading dependencies at {Paths.Dependencies}");
+            Log.Info($"Loading dependencies at {DependencyDirectory}");
 
-            foreach (string dependency in Directory.GetFiles(Paths.Dependencies, "*.dll"))
+            foreach (string dependency in Directory.GetFiles(DependencyDirectory, "*.dll"))
             {
-                Assembly assembly = LoadAssembly(dependency);
+                Assembly? assembly = LoadAssembly(dependency);
 
                 if (assembly is null)
                     continue;
