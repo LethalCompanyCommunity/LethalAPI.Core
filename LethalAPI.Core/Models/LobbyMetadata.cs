@@ -7,7 +7,6 @@
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable CommentTypo
-
 namespace LethalAPI.Core.Models;
 
 /// <summary>
