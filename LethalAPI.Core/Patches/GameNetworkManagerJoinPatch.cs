@@ -7,6 +7,9 @@
 
 namespace LethalAPI.Core.Patches;
 
+using System.Collections.Generic;
+using System.Reflection.Emit;
+
 using HarmonyLib;
 using Models;
 using Steamworks;
@@ -78,5 +81,28 @@ internal static class LobbyDataIsJoinablePostfix
         }
 
         return PluginManager.MatchesTargetRequirements(PluginManager.ParseLobbyPluginsMetadata(lobbyPluginString));
+    }
+}
+
+/// <summary>
+///     Patches <see cref="GameNetworkManager.LobbyDataIsJoinable" />.
+///     Overrides the joinable to use __joinable instead. This is necessary in case there are required plugins in the
+///     lobby, since the API will then disable joining for vanilla clients.
+/// </summary>
+/// <seealso cref="GameNetworkManager.LobbyDataIsJoinable" />
+[HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.LobbyDataIsJoinable))]
+[HarmonyPriority(Priority.Last)]
+[HarmonyWrapSafe]
+internal static class LobbyDataIsJoinableTranspiler
+{
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            .SearchBack(instruction => instruction.operand.Equals(LobbyMetadata.Joinable))
+            .ThrowIfInvalid("Could not find joinable")
+            .RemoveInstruction()
+            .Insert(new CodeInstruction(OpCodes.Ldstr, LobbyMetadata.JoinableModded))
+            .InstructionEnumeration();
     }
 }
