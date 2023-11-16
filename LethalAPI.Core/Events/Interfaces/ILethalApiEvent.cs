@@ -12,7 +12,7 @@
 namespace LethalAPI.Core.Events.Interfaces;
 
 /// <summary>
-///     The base Exiled Event Args interface to be used by all other event arg interfaces/classes.
+///     The base LethalAPI Args interface to be used by all other event arg interfaces/classes.
 /// </summary>
 public interface ILethalApiEvent
 {

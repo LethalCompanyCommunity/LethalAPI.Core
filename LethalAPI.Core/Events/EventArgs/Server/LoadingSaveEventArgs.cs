@@ -62,27 +62,27 @@ public enum LoadedItem
     Mods,
 
     /// <summary>
-    /// Round stats are loaded. Called after <see cref="StartOfRound.SetTimeAndPlanetToSavedSettings"/>.
+    /// Round stats are loaded. Called after StartOfRound.SetTimeAndPlanetToSavedSettings.
     /// </summary>
     SetTimeAndPlanetToSavedSettings,
 
     /// <summary>
-    /// Grabbable Items are loaded. Called after <see cref="StartOfRound.LoadShipGrabbableItems"/>.
+    /// Grabbable Items are loaded. Called after StartOfRound.LoadShipGrabbableItems.
     /// </summary>
     LoadShipGrabbableItems,
 
     /// <summary>
-    /// Unlockables are spawned. Called after <see cref="StartOfRound.SpawnUnlockable"/>.
+    /// Unlockables are spawned. Called after StartOfRound.SpawnUnlockable.
     /// </summary>
     SpawnUnlockable,
 
     /// <summary>
-    /// Unlockables are loaded. Called after <see cref="StartOfRound.LoadUnlockables"/>.
+    /// Unlockables are loaded. Called after StartOfRound.LoadUnlockables.
     /// </summary>
     LoadUnlockables,
 
     /// <summary>
-    /// Last selected save is loaded. Called after <see cref="GameNetworkManager.Start"/>.
+    /// Last selected save is loaded. Called after GameNetworkManager.Start.
     /// </summary>
     LastSelectedSave,
 }

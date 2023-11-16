@@ -27,8 +27,8 @@ internal class EventPatchAttribute : Attribute
     /// <summary>
     /// Initializes a new instance of the <see cref="EventPatchAttribute"/> class.
     /// </summary>
-    /// <param name="eventName">The <see cref="Type"/> of the handler class that contains the event.</param>
-    /// <param name="handlerType">The name of the event.</param>
+    /// <param name="handlerType">The <see cref="Type"/> of the handler class that contains the event.</param>
+    /// <param name="eventName">The name of the event.</param>
     internal EventPatchAttribute(Type handlerType, string eventName)
     {
         this.handlerType = handlerType;

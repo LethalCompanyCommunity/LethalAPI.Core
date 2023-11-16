@@ -23,7 +23,7 @@ internal static class SceneUnloaded
 {
     /// <summary>
     ///     Called once when the server changes the scene.
-    /// </summary>p
+    /// </summary>
     public static void OnSceneUnloaded(Scene _)
     {
     }
