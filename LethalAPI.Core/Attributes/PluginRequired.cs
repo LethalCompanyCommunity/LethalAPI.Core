@@ -22,7 +22,6 @@ public sealed class PluginRequired : Attribute
     public PluginRequired(string guid)
     {
         Guid = guid;
-        PluginManager.AddRequiredPluginGuid(guid);
     }
 
     /// <summary>

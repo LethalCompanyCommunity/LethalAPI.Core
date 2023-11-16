@@ -10,6 +10,7 @@ namespace LethalAPI.Core;
 using System.Collections.Generic;
 using System.Linq;
 
+using Attributes;
 using BepInEx.Bootstrap;
 using Models;
 using UnityEngine;
@@ -30,8 +31,23 @@ internal static class PluginManager
     /// <param name="pluginGuid"> The plugin guid to add. </param>
     public static void AddRequiredPluginGuid(string pluginGuid)
     {
-        Plugin.Log.LogInfo("Adding required plugin: " + pluginGuid);    // TODO REMOVE
+        Plugin.Log.LogDebug("Adding required plugin: " + pluginGuid);
         RequiredPluginGuids.Add(pluginGuid);
+    }
+
+    /// <summary>
+    ///     Populates the required plugin guid list.
+    /// </summary>
+    internal static void PopulateRequiredPlugins()
+    {
+        Plugin.Log.LogDebug("Populating required plugins...");
+        foreach (BepInEx.PluginInfo plugin in Chainloader.PluginInfos.Values)
+        {
+            if (plugin.Instance.GetType().GetCustomAttributes(typeof(PluginRequired), false).Any())
+            {
+                AddRequiredPluginGuid(plugin.Metadata.GUID);
+            }
+        }
     }
 
     /// <summary>
