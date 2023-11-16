@@ -120,7 +120,7 @@ public static class EventTranspilerInjector
         List<CodeInstruction> opcodes = new()
         {
             // TEventArgs ev = new()
-            new(OpCodes.Callvirt),
+            // new(OpCodes.Callvirt),
             new(OpCodes.Newobj, GetDeclaredConstructors(typeof(T))[0]),
             new(OpCodes.Dup),
             new(OpCodes.Dup),
@@ -142,8 +142,9 @@ public static class EventTranspilerInjector
             index += prefixInstructions.Count;
         }
 
+        opcodes.InsertRange(0, parameterStack);
         list.InsertRange(index, opcodes);
-        index += opcodes.Count + 1;
+        index += opcodes.Count + parameterStack.Count + 1;
         list[index] = list[index].WithLabels();
     }
 }
