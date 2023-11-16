@@ -35,7 +35,7 @@ public class Patcher
     /// </summary>
     internal Patcher()
     {
-        Harmony = new($"exiled.events.{++patchesCounter}");
+        Harmony = new($"lethalapi.events.{++patchesCounter}");
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class Patcher
     public static HashSet<Type> UnpatchedTypes { get; private set; } = Events.UseDynamicPatching ? GetNonEventPatchTypes() : GetAllPatchTypes();
 
     /// <summary>
-    /// Gets a set of types and methods for which EXILED patches should not be run.
+    /// Gets a set of types and methods for which LethalAPI patches should not be run.
     /// </summary>
     // ReSharper disable once CollectionNeverUpdated.Global
     // ReSharper disable once MemberCanBePrivate.Global
@@ -121,7 +121,7 @@ public class Patcher
     }
 
     /// <summary>
-    /// Checks the <see cref="DisabledPatchesHashSet"/> list and un-patches any methods that have been defined there. Once un-patching has been done, they can be patched by plugins, but will not be re-patchable by Exiled until a server reboot.
+    /// Checks the <see cref="DisabledPatchesHashSet"/> list and un-patches any methods that have been defined there. Once un-patching has been done, they can be patched by plugins, but will not be re-patchable by LethalAPI until a server reboot.
     /// </summary>
     // ReSharper disable once MemberCanBePrivate.Global
     public void ReloadDisabledPatches()
