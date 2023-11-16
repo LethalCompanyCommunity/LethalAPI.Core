@@ -450,11 +450,11 @@ public sealed class Loader
         if (requiredVersion.Major != actualVersion.Major)
         {
             // Assume that if the Required Major version is greater than the Actual Major version,
-            // Exiled is outdated
+            // LethalAPI is outdated
             if (requiredVersion.Major > actualVersion.Major)
             {
                 Log.Error(
-                    $"You're running an older version of Exiled ({Version.ToString(3)})! {plugin.Name} won't be loaded! " +
+                    $"You're running an older version of LethalAPI ({Version.ToString(3)})! {plugin.Name} won't be loaded! " +
                     $"Required version to load it: {plugin.RequiredAPIVersion.ToString(3)}");
 
                 return true;
