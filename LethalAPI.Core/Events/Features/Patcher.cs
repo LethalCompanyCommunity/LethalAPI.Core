@@ -25,6 +25,13 @@ using Interfaces;
 public class Patcher
 {
     /// <summary>
+    /// Indicates whether or not events should be logged on execution.
+    /// </summary>
+#pragma warning disable SA1401 // literally how should this be private when to other instances outside this class use it???????
+    internal static bool LogEvent = true;
+#pragma warning restore SA1401
+
+    /// <summary>
     /// The below variable is used to increment the name of the harmony instance, otherwise harmony will not work upon a plugin reload.
     /// </summary>
     // ReSharper disable once InconsistentNaming

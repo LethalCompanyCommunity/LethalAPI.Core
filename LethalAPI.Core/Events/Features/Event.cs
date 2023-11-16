@@ -107,6 +107,7 @@ public class Event : ILethalApiEvent
     /// </summary>
     public void InvokeSafely()
     {
+        Log.Debug($"Blank Event Invoked", Patcher.LogEvent, "LethalAPI-Events");
         if (InnerEvent is null)
             return;
 

@@ -180,9 +180,12 @@ namespace MEC
 
                     if (instanceHome == null)
                     {
-                        instanceHome = new GameObject { name = "Timing Controller" };
+                         //instanceHome = GameObject.FindGameObjectWithTag("BepInEx_Manager");
+                         instanceHome = GameObject.FindObjectsOfType<GameObject>()
+                             .First(x => x.name == "BepInEx_Manager");
+                        // instanceHome = new GameObject { name = "Timing Controller" };
 
-                        DontDestroyOnLoad(instanceHome);
+                        //DontDestroyOnLoad(instanceHome);
                     }
 
                     _instance = instanceHome.GetComponent<Timing>() ?? instanceHome.AddComponent<Timing>();
@@ -192,7 +195,11 @@ namespace MEC
 
                 return _instance;
             }
-            set { _instance = value; }
+            set
+            {
+                _instance = value;
+                _instance.InitializeInstanceID();
+            }
         }
 
         void OnDestroy()
@@ -205,7 +212,7 @@ namespace MEC
         {
             if (MainThread == null)
                 MainThread = System.Threading.Thread.CurrentThread;
-
+            
             InitializeInstanceID();
         }
 
@@ -255,6 +262,8 @@ namespace MEC
 
         void Update()
         {
+            //todo remove this
+            // LethalAPI.Core.Log.Debug("-");
             if (OnPreExecute != null)
                 OnPreExecute();
 
@@ -2202,7 +2211,10 @@ namespace MEC
 
         private IEnumerator<float> _DelayedCall(float delay, System.Action action, GameObject cancelWith)
         {
+            // todo delete this
+            // LethalAPI.Core.Log.Debug("Delayed Call.");
             yield return WaitForSecondsOnInstance(delay);
+            LethalAPI.Core.Log.Debug("Delayed Call callback.");
 
             if(ReferenceEquals(cancelWith, null) || cancelWith != null)
                 action();

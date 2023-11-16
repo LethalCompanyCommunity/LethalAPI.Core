@@ -11,18 +11,11 @@ namespace LethalAPI.Core;
 // ReSharper disable MemberCanBePrivate.Global
 #pragma warning disable SA1401 // field should be made private
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
 
 using BepInEx;
 using BepInEx.Logging;
-using GameNetcodeStuff;
 using global::MEC;
 using HarmonyLib;
-using HarmonyTools;
-using UnityEngine;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -50,18 +43,16 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        Timing.Instance.OnException += OnError;
+        _Logger = this.Logger;
         Harmony = new(PluginInfo.PLUGIN_GUID);
         Harmony.PatchAll(typeof(Plugin).Assembly);
-        _Logger = this.Logger;
         Singleton = this;
 
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
 
-        Timing.CallDelayed(1f, () =>
-        {
-            Log.Debug("Timings");
-        });
+        Timing.Instance = this.gameObject.AddComponent<Timing>();
+        Timing.Instance.name = "Timing Controller";
+        Timing.Instance.OnException += OnError;
     }
 
     // ReSharper disable once ParameterHidesMember

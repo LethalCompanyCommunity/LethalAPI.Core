@@ -109,6 +109,8 @@ public class Event<T> : ILethalApiEvent
     /// <exception cref="ArgumentNullException">Event or its arg is <see langword="null"/>.</exception>
     public void InvokeSafely(T arg)
     {
+        Log.Debug($"Event {typeof(T).Name} Invoked", Patcher.LogEvent, "LethalAPI-Events");
+
         if (InnerEvent is null)
             return;
 
