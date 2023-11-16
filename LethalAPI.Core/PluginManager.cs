@@ -30,6 +30,7 @@ internal static class PluginManager
     /// <param name="pluginGuid"> The plugin guid to add. </param>
     public static void AddRequiredPluginGuid(string pluginGuid)
     {
+        Plugin.Log.LogInfo("Adding required plugin: " + pluginGuid);    // TODO REMOVE
         RequiredPluginGuids.Add(pluginGuid);
     }
 
