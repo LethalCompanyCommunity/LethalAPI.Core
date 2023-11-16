@@ -59,7 +59,7 @@ internal static class FixLoggerPrefix
         // Get variables and default output.
         Type consoleManager = AccessTools.TypeByName("BepInEx.ConsoleManager");
         MethodInfo setConsoleColor = AccessTools.Method(consoleManager, "SetConsoleColor", new[] { typeof(ConsoleColor) });
-        TextWriter instance = (TextWriter)AccessTools.Property(consoleManager, "ConsoleStream")?.GetMethod.Invoke(null, null);
+        TextWriter instance = (TextWriter)AccessTools.Property(consoleManager, "ConsoleStream")?.GetMethod.Invoke(null, null)!;
 
         /* BepInEx.ConsoleManager.SetConsoleColor(eventArgs.Level.GetConsoleColor());
            BepInEx.ConsoleStream?.Write((string)eventArgs.Data);
@@ -92,11 +92,11 @@ internal static class FixLoggerPrefix
             }
             else
             {
-                instance!.Write(text[i]);
+                instance.Write(text[i]);
             }
         }
 
-        instance!.Write('\n');
+        instance.Write('\n');
 
         // revert default color.
         // instance!.Write((string)eventArgs.Data);

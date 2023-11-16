@@ -18,7 +18,7 @@ using Interfaces;
 /// </summary>
 // ReSharper disable once ClassNeverInstantiated.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
-public sealed class SavingEventArgs : ILcApiEvent
+public sealed class SavingEventArgs : ILethalApiEvent
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SavingEventArgs"/> class.

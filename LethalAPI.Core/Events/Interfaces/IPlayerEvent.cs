@@ -16,7 +16,7 @@ using UnityEngine;
 /// <summary>
 ///     Event args used for all Player related events.
 /// </summary>
-public interface IPlayerEvent : ILcApiEvent
+public interface IPlayerEvent : ILethalApiEvent
 {
     /// <summary>
     /// Gets the Player.

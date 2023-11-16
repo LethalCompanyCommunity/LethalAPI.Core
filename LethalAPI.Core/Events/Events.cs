@@ -25,7 +25,7 @@ public sealed class Events
     /// <summary>
     /// Gets the plugin instance.
     /// </summary>
-    public static Events Instance { get; private set; }
+    public static Events Instance { get; private set; } = null!;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not dynamic patching will be used.
@@ -35,7 +35,7 @@ public sealed class Events
     /// <summary>
     /// Gets the <see cref="Features.Patcher"/> used to employ all patches.
     /// </summary>
-    public Patcher Patcher { get; private set; }
+    public Patcher Patcher { get; private set; } = null!;
 
     /// <summary>
     /// Patches all methods.
@@ -89,7 +89,6 @@ public sealed class Events
     {
         Log.Debug("Unpatching events...");
         Patcher.UnpatchAll();
-        Patcher = null;
         Log.Debug("All events have been unpatched complete. Goodbye!");
     }
 }

@@ -16,7 +16,7 @@ using UnityEngine;
 /// <summary>
 /// Event args for all Hazard related events.
 /// </summary>
-public interface IHazardEvent : ILcApiEvent
+public interface IHazardEvent : ILethalApiEvent
 {
     /// <summary>
     /// Gets the hazard.

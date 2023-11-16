@@ -16,7 +16,7 @@ using UnityEngine;
 /// <summary>
 ///     Event args used for all Ragdoll related events.
 /// </summary>
-public interface IRagdollEvent : ILcApiEvent
+public interface IRagdollEvent : ILethalApiEvent
 {
     /// <summary>
     /// Gets the Ragdoll.

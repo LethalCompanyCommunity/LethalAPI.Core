@@ -26,6 +26,8 @@ using UnityEngine.Assertions;
 
 namespace MEC
 {
+    using System;
+    using System.Linq;
     using UnityEngine.Profiling;
 
     public class Timing : MonoBehaviour
@@ -213,6 +215,20 @@ namespace MEC
                 ActiveInstances[_instanceID] = null;
         }
 
+        public event Action<Exception, string> OnException;
+
+        private void InvokeException(Exception e, string name )//= "Unknown")
+        {
+            try
+            {
+                OnException.Invoke(e, name);
+            }
+            catch (Exception)
+            {
+                // unused;
+            }
+        }
+
         private void InitializeInstanceID()
         {
             if (ActiveInstances[_instanceID] == null)
@@ -250,12 +266,13 @@ namespace MEC
 
                 for (coindex.i = 0; coindex.i < _lastSlowUpdateProcessSlot; coindex.i++)
                 {
+                    string name = "Unknown";
                     try
                     {
                         if (!SlowUpdatePaused[coindex.i] && !SlowUpdateHeld[coindex.i] && SlowUpdateProcesses[coindex.i] != null && !(localTime < SlowUpdateProcesses[coindex.i].Current))
                         {
                             currentCoroutine = _indexToHandle[coindex];
-
+                            name = _taggedProcesses.FirstOrDefault(x => x.Value.Any(handle => handle == currentCoroutine)).Key ?? "Unknown";
                             if (ProfilerDebugAmount != DebugInfoType.None && _indexToHandle.ContainsKey(coindex))
                             {
                                 Profiler.BeginSample(ProfilerDebugAmount == DebugInfoType.SeperateTags ? ("Processing Coroutine (Slow Update)" +
@@ -284,6 +301,7 @@ namespace MEC
                     }
                     catch (System.Exception ex)
                     {
+                        InvokeException(ex, name);
                         Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
@@ -301,11 +319,13 @@ namespace MEC
 
                 for (coindex.i = 0; coindex.i < _lastUpdateProcessSlot; coindex.i++)
                 {
+                    string name = String.Empty;
                     try
                     {
                         if (!UpdatePaused[coindex.i] && !UpdateHeld[coindex.i] && UpdateProcesses[coindex.i] != null && !(localTime < UpdateProcesses[coindex.i].Current))
                         {
                             currentCoroutine = _indexToHandle[coindex];
+                            name = _taggedProcesses.FirstOrDefault(x => x.Value.Any(handle => handle == currentCoroutine)).Key ?? "Unknown";
 
                             if (ProfilerDebugAmount != DebugInfoType.None && _indexToHandle.ContainsKey(coindex))
                             {
@@ -335,6 +355,7 @@ namespace MEC
                     }
                     catch (System.Exception ex)
                     {
+                        InvokeException(ex, name);
                         Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
@@ -373,12 +394,13 @@ namespace MEC
 
                 for (coindex.i = 0; coindex.i < _lastFixedUpdateProcessSlot; coindex.i++)
                 {
+                    string name = String.Empty;
                     try
                     {
                         if (!FixedUpdatePaused[coindex.i] && !FixedUpdateHeld[coindex.i] && FixedUpdateProcesses[coindex.i] != null && !(localTime < FixedUpdateProcesses[coindex.i].Current))
                         {
                             currentCoroutine = _indexToHandle[coindex];
-
+                            name = _taggedProcesses.FirstOrDefault(x => x.Value.Any(handle => handle == currentCoroutine)).Key ?? "Unknown";
 
                             if (ProfilerDebugAmount != DebugInfoType.None && _indexToHandle.ContainsKey(coindex))
                             {
@@ -408,6 +430,7 @@ namespace MEC
                     }
                     catch (System.Exception ex)
                     {
+                        InvokeException(ex, name);
                         Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
@@ -433,12 +456,13 @@ namespace MEC
 
                 for (coindex.i = 0; coindex.i < _lastLateUpdateProcessSlot; coindex.i++)
                 {
+                    string name = String.Empty;
                     try
                     {
                         if (!LateUpdatePaused[coindex.i] && !LateUpdateHeld[coindex.i] && LateUpdateProcesses[coindex.i] != null && !(localTime < LateUpdateProcesses[coindex.i].Current))
                         {
                             currentCoroutine = _indexToHandle[coindex];
-
+                            name = _taggedProcesses.FirstOrDefault(x => x.Value.Any(handle => handle == currentCoroutine)).Key ?? "Unknown";
 
                             if (ProfilerDebugAmount != DebugInfoType.None && _indexToHandle.ContainsKey(coindex))
                             {
@@ -468,6 +492,7 @@ namespace MEC
                     }
                     catch (System.Exception ex)
                     {
+                        InvokeException(ex, name);
                         Debug.LogException(ex);
 
                         if (ex is MissingReferenceException)
@@ -2500,43 +2525,43 @@ namespace MEC
         public new void StopAllCoroutines() { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void Destroy(Object obj) { }
+        public new static void Destroy(UObject obj) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void Destroy(Object obj, float f) { }
+        public new static void Destroy(UObject obj, float f) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void DestroyObject(Object obj) { }
+        public new static void DestroyObject(UObject obj) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void DestroyObject(Object obj, float f) { }
+        public new static void DestroyObject(UObject obj, float f) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void DestroyImmediate(Object obj) { }
+        public new static void DestroyImmediate(UObject obj) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void DestroyImmediate(Object obj, bool b) { }
+        public new static void DestroyImmediate(UObject obj, bool b) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void Instantiate(Object obj) { }
+        public new static void Instantiate(UObject obj) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void Instantiate(Object original, Vector3 position, Quaternion rotation) { }
+        public new static void Instantiate(UObject original, Vector3 position, Quaternion rotation) { }
 
         [System.Obsolete("Use your own GameObject for this.", true)]
-        public new static void Instantiate<T>(T original) where T : Object { }
+        public new static void Instantiate<T>(T original) where T : UObject { }
 
         [System.Obsolete("Just.. no.", true)]
-        public new static T FindObjectOfType<T>() where T : Object { return null; }
+        public new static T FindObjectOfType<T>() where T : UObject { return null; }
 
         [System.Obsolete("Just.. no.", true)]
-        public new static Object FindObjectOfType(System.Type t) { return null; }
+        public new static UObject FindObjectOfType(System.Type t) { return null; }
 
         [System.Obsolete("Just.. no.", true)]
-        public new static T[] FindObjectsOfType<T>() where T : Object { return null; }
+        public new static T[] FindObjectsOfType<T>() where T : UObject { return null; }
 
         [System.Obsolete("Just.. no.", true)]
-        public new static Object[] FindObjectsOfType(System.Type t) { return null; }
+        public new static UObject[] FindObjectsOfType(System.Type t) { return null; }
 
         [System.Obsolete("Just.. no.", true)]
         public new static void print(object message) { }

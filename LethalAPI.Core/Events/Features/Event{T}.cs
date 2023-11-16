@@ -27,10 +27,10 @@ using Interfaces;
 public delegate void CustomEventHandler<in TEventArgs>(TEventArgs ev);
 
 /// <summary>
-/// An implementation of the <see cref="ILcApiEvent"/> interface that encapsulates an event with arguments.
+/// An implementation of the <see cref="ILethalApiEvent"/> interface that encapsulates an event with arguments.
 /// </summary>
 /// <typeparam name="T">The specified <see cref="EventArgs"/> that the event will use.</typeparam>
-public class Event<T> : ILcApiEvent
+public class Event<T> : ILethalApiEvent
 {
     private static readonly Dictionary<Type, Event<T>> TypeToEvent = new();
 
@@ -47,7 +47,7 @@ public class Event<T> : ILcApiEvent
         TypeToEvent.Add(typeof(T), this);
     }
 
-    private event CustomEventHandler<T> InnerEvent;
+    private event CustomEventHandler<T>? InnerEvent;
 
     /// <summary>
     /// Gets a <see cref="IReadOnlyCollection{T}"/> of <see cref="Event{T}"/> which contains all the <see cref="Event{T}"/> instances.

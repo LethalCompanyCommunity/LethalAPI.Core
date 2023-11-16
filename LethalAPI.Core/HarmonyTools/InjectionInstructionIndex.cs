@@ -38,7 +38,7 @@ public class InjectionInstructionIndex
     /// <summary>
     /// Gets the instructions that will be injected.
     /// </summary>
-    public IEnumerable<CodeInstruction> InstructionsToInject { get; init; }
+    public IEnumerable<CodeInstruction> InstructionsToInject { get; init; } = null!;
 
     /// <summary>
     /// Gets the index which the instructions will be injected at.

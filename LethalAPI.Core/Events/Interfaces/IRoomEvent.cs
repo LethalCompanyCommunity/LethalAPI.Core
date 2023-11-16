@@ -16,7 +16,7 @@ using UnityEngine;
 /// <summary>
 ///     Event args used for all Room related events.
 /// </summary>
-public interface IRoomEvent : ILcApiEvent
+public interface IRoomEvent : ILethalApiEvent
 {
     /// <summary>
     /// Gets the Player.

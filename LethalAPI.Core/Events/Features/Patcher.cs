@@ -58,10 +58,10 @@ public class Patcher
     public Harmony Harmony { get; }
 
     /// <summary>
-    /// Patches all events that target a specific <see cref="ILcApiEvent"/>.
+    /// Patches all events that target a specific <see cref="ILethalApiEvent"/>.
     /// </summary>
-    /// <param name="event">The <see cref="ILcApiEvent"/> all matching patches should target.</param>
-    public void Patch(ILcApiEvent @event)
+    /// <param name="event">The <see cref="ILethalApiEvent"/> all matching patches should target.</param>
+    public void Patch(ILethalApiEvent @event)
     {
         try
         {

@@ -16,6 +16,7 @@
         <DocumentationFile>..\bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)LethalAPI.ruleset</CodeAnalysisRuleSet>
         <OutputPath>..\bin\$(Configuration)\</OutputPath>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>

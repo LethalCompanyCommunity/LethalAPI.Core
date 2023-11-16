@@ -14,7 +14,7 @@ namespace LethalAPI.Core.Events.Interfaces;
 /// <summary>
 ///     Event args used for all Item related events.
 /// </summary>
-public interface IItemEvent : ILcApiEvent
+public interface IItemEvent : ILethalApiEvent
 {
     /// <summary>
     /// Gets the item.

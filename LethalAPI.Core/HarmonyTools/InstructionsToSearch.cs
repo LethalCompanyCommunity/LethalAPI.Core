@@ -7,6 +7,7 @@
 
 namespace LethalAPI.Core.HarmonyTools;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -39,7 +40,7 @@ public readonly struct InstructionsToSearch
     /// <summary>
     /// Gets the instructions that are being searched for.
     /// </summary>
-    public List<List<OpCode>> InstructionsToFind { get; init; }
+    public List<List<OpCode>> InstructionsToFind { get; init; } = null!;
 
     /// <summary>
     /// Gets the index of these instructions to find.
@@ -60,6 +61,7 @@ public readonly struct InstructionsToSearch
         int foundIndex = 0;
         bool trailFound = false;
         List<OpCode> firstItem = this.InstructionsToFind[0];
+
         for (int i = 0; i < list.Count; i++)
         {
             if (trailFound)
@@ -80,6 +82,8 @@ public readonly struct InstructionsToSearch
 
                 if (!this.InstructionsToFind[foundIndex].Contains(list[i].opcode))
                 {
+                    // debug += $"incorrect index {foundIndex}\n";
+                    i = startIndex;
                     startIndex = -1;
                     foundIndex = 0;
                     trailFound = false;
@@ -94,6 +98,7 @@ public readonly struct InstructionsToSearch
             {
                 trailFound = true;
                 startIndex = i;
+                foundIndex++;
             }
         }
 

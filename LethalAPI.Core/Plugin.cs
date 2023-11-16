@@ -15,11 +15,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+
 using BepInEx;
 using BepInEx.Logging;
 using GameNetcodeStuff;
+using global::MEC;
 using HarmonyLib;
 using HarmonyTools;
+using UnityEngine;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -28,25 +31,26 @@ public class Plugin : BaseUnityPlugin
     /// <summary>
     /// Gets the singleton for a plugin.
     /// </summary>
-    public static Plugin Singleton;
+    public static Plugin Singleton = null!;
 
     /// <summary>
-    /// Gets the <see cref="Logger"/>.
+    /// Gets the <see cref="BepInEx.Logging.Logger"/>.
     /// </summary>
     /// <summary>
     /// The base logger.
     /// </summary>
 #pragma warning disable SA1309
-    internal static ManualLogSource _Logger;
+    internal static ManualLogSource _Logger = null!;
 #pragma warning restore SA1309
 
     /// <summary>
     /// The harmony instance.
     /// </summary>
-    internal static Harmony Harmony;
+    internal static Harmony Harmony = null!;
 
     private void Awake()
     {
+        Timing.Instance.OnException += OnError;
         Harmony = new(PluginInfo.PLUGIN_GUID);
         Harmony.PatchAll(typeof(Plugin).Assembly);
         _Logger = this.Logger;
@@ -54,34 +58,15 @@ public class Plugin : BaseUnityPlugin
 
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
 
+        Timing.CallDelayed(1f, () =>
+        {
+            Log.Debug("Timings");
+        });
     }
 
-    private static void Test()
+    // ReSharper disable once ParameterHidesMember
+    private void OnError(Exception exception, string tag)
     {
-        List<Type> typesToGet = new()
-        {
-            typeof(PlayerControllerB),
-        };
-        foreach (Type type in typesToGet)
-        {
-            foreach (MethodInfo method in type.GetMethods(BindingFlags.Instance | BindingFlags.Static |
-                                                          BindingFlags.Public | BindingFlags.NonPublic |
-                                                          BindingFlags.CreateInstance | BindingFlags.GetProperty))
-            {
-                Harmony.Patch(method, null, null, new HarmonyMethod(typeof(Plugin), nameof(Transpiler)));
-            }
-        }
-    }
-
-    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        List<CodeInstruction> codeInstructions = instructions.ToList();
-        int i0 = InstructionSearchTemplates.ForLoop.Static.FindIndex(codeInstructions);
-        int i1 = InstructionSearchTemplates.ForLoop.NonStatic.FindIndex(codeInstructions);
-        Log.Debug($"Found {i0} {i1} ({i0 + i1})");
-        for (int i = 0; i < codeInstructions.Count; i++)
-        {
-            yield return codeInstructions[i];
-        }
+        Log.Error($"Timings has caught an error during the execution of a coroutine{(tag == "Unknown" ? string.Empty : $" [{tag}]")}. Exception: \n" + exception.Message, "MEC Timings");
     }
 }

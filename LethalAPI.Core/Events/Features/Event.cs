@@ -27,9 +27,9 @@ using Interfaces;
 public delegate void CustomEventHandler();
 
 /// <summary>
-/// An implementation of <see cref="ILcApiEvent"/> that encapsulates a no-argument event.
+/// An implementation of <see cref="ILethalApiEvent"/> that encapsulates a no-argument event.
 /// </summary>
-public class Event : ILcApiEvent
+public class Event : ILethalApiEvent
 {
     private static readonly List<Event> EventsValue = new();
 
@@ -47,7 +47,7 @@ public class Event : ILcApiEvent
         EventsValue.Add(this);
     }
 
-    private event CustomEventHandler InnerEvent;
+    private event CustomEventHandler? InnerEvent;
 
     /// <summary>
     /// Gets a <see cref="IReadOnlyList{T}"/> of <see cref="Event{T}"/> which contains all the <see cref="Event{T}"/> instances.

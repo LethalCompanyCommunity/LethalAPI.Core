@@ -25,7 +25,7 @@ public class UsingKeyEventArgs : IDeniableEvent, IItemEvent, ILockableDoor
     public UsingKeyEventArgs(GameObject target, GrabbableObject item,  bool isAllowed = true)
     {
         this.GrabbableItem = item;
-        this.Key = item as KeyItem;
+        this.Key = (item as KeyItem)!;
         this.Lock = target.transform.GetComponent<DoorLock>();
         this.Door = target.transform.GetComponent<Door>();
         this.IsAllowed = isAllowed;

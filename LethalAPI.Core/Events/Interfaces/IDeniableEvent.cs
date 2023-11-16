@@ -14,7 +14,7 @@ namespace LethalAPI.Core.Events.Interfaces;
 /// <summary>
 ///     Event args for events that can be allowed or denied.
 /// </summary>
-public interface IDeniableEvent : ILcApiEvent
+public interface IDeniableEvent : ILethalApiEvent
 {
     /// <summary>
     ///     Gets or sets a value indicating whether or not the event is allowed to continue.

@@ -36,7 +36,7 @@ internal class EventPatchAttribute : Attribute
     }
 
     /// <summary>
-    /// Gets the <see cref="ILcApiEvent"/> that will be raised by this patch.
+    /// Gets the <see cref="ILethalApiEvent"/> that will be raised by this patch.
     /// </summary>
-    internal ILcApiEvent Event => (ILcApiEvent)handlerType.GetProperty(eventName)?.GetValue(null);
+    internal ILethalApiEvent? Event => (ILethalApiEvent?)handlerType.GetProperty(eventName)?.GetValue(null);
 }

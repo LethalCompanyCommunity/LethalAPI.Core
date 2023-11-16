@@ -12,7 +12,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 
 using BepInEx.Logging;
@@ -76,51 +75,81 @@ public static class Log
 
     private static string GetCallingPlugin(MethodBase method, string input, bool includeMethod)
     {
-        if (!string.IsNullOrEmpty(input))
+        try
         {
-            return input;
-        }
+            if (!string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
 
-        Assembly assembly = method.DeclaringType?.Assembly;
-        Type type = method.DeclaringType;
-
-        BepInEx.PluginInfo plugin =
-            BepInEx.Bootstrap.Chainloader.PluginInfos.FirstOrDefault(x =>
-                x.Value.Instance.GetType().Assembly == assembly).Value;
-        if (plugin is null)
-        {
-            input = assembly?.GetName().Name;
-            if (input is "" or null)
+            if (method.DeclaringType?.Assembly is null)
+            {
                 return "Unknown";
+            }
 
-            if (AssemblyNameReplacements.ContainsKey(input))
-                AssemblyNameReplacements.TryGetValue(input, out input);
-        }
-        else
-        {
-            input = plugin.Metadata.Name;
-        }
+            Type type = method.DeclaringType!;
+            Assembly assembly = method.DeclaringType.Assembly;
 
-        if (!includeMethod)
+            BepInEx.PluginInfo? plugin = null;
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos is not null)
+            {
+                // FirstOrDefault keeps throwing a NullReferenceException. This doesnt throw an exception so we will use it.
+                foreach (KeyValuePair<string, BepInEx.PluginInfo> x in BepInEx.Bootstrap.Chainloader.PluginInfos)
+                {
+                    if (x.Value?.Instance is null)
+                    {
+                        continue;
+                    }
+
+                    if (x.Value.Instance.GetType().Assembly != assembly)
+                    {
+                        continue;
+                    }
+
+                    plugin = x.Value;
+                    break;
+                }
+            }
+
+            if (plugin is null)
+            {
+                input = assembly.GetName().Name;
+                if (input is "" or null)
+                    return "Unknown";
+
+                if (AssemblyNameReplacements.ContainsKey(input))
+                    AssemblyNameReplacements.TryGetValue(input, out input);
+            }
+            else
+            {
+                input = plugin.Metadata.Name;
+            }
+
+            if (!includeMethod)
+                return input!;
+
+            string args = string.Empty;
+
+            if (ShowCallingMethodArgs)
+            {
+                foreach (ParameterInfo x in method.GetParameters())
+                {
+                    args += $"&g{x.ParameterType.Name} &h{x.Name}, ";
+                }
+
+                if (args != string.Empty)
+                {
+                    args = args.Substring(0, args.Length - 2) + "&7";
+                }
+            }
+
+            input += $"&h::{type.FullName}.&6{method.Name}&7({args})";
             return input;
-
-        string args = string.Empty;
-
-        if (ShowCallingMethodArgs)
-        {
-            foreach (ParameterInfo x in method.GetParameters())
-            {
-                args += $"&g{x.ParameterType.Name} &h{x.Name}, ";
-            }
-
-            if (args != string.Empty)
-            {
-                args = args.Substring(0, args.Length - 2) + "&7";
-            }
         }
-
-        input += $"&h::{type?.FullName}.&6{method.Name}&7({args})";
-        return input;
+        catch (Exception e)
+        {
+            return $"Unknown {e}";
+        }
     }
 
     /// <summary>

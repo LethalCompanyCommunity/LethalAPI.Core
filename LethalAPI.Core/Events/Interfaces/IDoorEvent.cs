@@ -16,7 +16,7 @@ using DunGen;
 /// <summary>
 ///     Event args used for all Door related events.
 /// </summary>
-public interface IDoorEvent : ILcApiEvent
+public interface IDoorEvent : ILethalApiEvent
 {
     /// <summary>
     /// Gets the door.

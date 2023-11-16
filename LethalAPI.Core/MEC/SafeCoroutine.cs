@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="SafeCoroutine.cs" company="Lethal Company Modding Community">
-// Copyright (c) Lethal Company Modding Community. All rights reserved.
+// <copyright file="SafeCoroutine.cs" company="LethalAPI Modding Community">
+// Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
 // Licensed under MIT.
@@ -8,7 +8,7 @@
 // https://github.com/o5zereth/ZerethAPI/
 // -----------------------------------------------------------------------
 
-namespace LCAPI.Core.MEC;
+namespace LethalAPI.Core.MEC;
 
 using System;
 using System.Collections;
@@ -39,7 +39,7 @@ public readonly struct SafeEnumerator<T> : IEnumerator<T>
     /// <param name="enumerator">The original enumerator to enumerate safely.</param>
     /// <param name="onException">The action to call upon an exception being thrown.</param>
     /// <exception cref="ArgumentNullException">Enumerator cannot be null.</exception>
-    public SafeEnumerator(IEnumerator<T> enumerator, Action<Exception> onException = null)
+    public SafeEnumerator(IEnumerator<T> enumerator, Action<Exception>? onException = null)
     {
         this.enumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
         this.onException = onException ?? DoNothing;
@@ -49,7 +49,7 @@ public readonly struct SafeEnumerator<T> : IEnumerator<T>
     public readonly T Current => this.enumerator.Current;
 
     /// <inheritdoc/>
-    readonly object IEnumerator.Current => this.Current;
+    readonly object IEnumerator.Current => this.Current!;
 
     /// <inheritdoc/>
     public void Dispose() => this.enumerator.Dispose();
@@ -109,7 +109,7 @@ public readonly struct SafeEnumeratorIgnoreException<T> : IEnumerator<T>
     public readonly T Current => this.enumerator.Current;
 
     /// <inheritdoc/>
-    readonly object IEnumerator.Current => this.Current;
+    readonly object IEnumerator.Current => this.Current!;
 
     /// <inheritdoc/>
     public void Dispose() => this.enumerator.Dispose();
