@@ -32,10 +32,12 @@ public static class EventTranspilerInjector
     /// </summary>
     /// <param name="instructions">The original method instructions.</param>
     /// <param name="generator">The ILGenerator in use.</param>
+    /// <param name="baseMethod">The base method of the patch.</param>
     /// <param name="index">The index to inject the instructions at.</param>
     /// <param name="prefixInstructions">Optional instructions that can be inject prior to the event constructor, that allow loading the stack with parameters for the constructor.</param>
+    /// <param name="autoInsertConstructorParameters">When set to true, the injector will auto-determine the parameters for a patch, and add them.</param>
     /// <typeparam name="T">The <see cref="IDeniableEvent"/> to inject.</typeparam>
-    public static void InjectDeniableEvent<T>(ref IEnumerable<CodeInstruction> instructions, ref ILGenerator generator, int index, List<CodeInstruction>? prefixInstructions = null)
+    public static void InjectDeniableEvent<T>(ref IEnumerable<CodeInstruction> instructions, ref ILGenerator generator, ref MethodBase baseMethod, int index, List<CodeInstruction>? prefixInstructions = null, bool autoInsertConstructorParameters = true)
         where T : IDeniableEvent
     {
         if (instructions is not List<CodeInstruction> list)
@@ -63,6 +65,53 @@ public static class EventTranspilerInjector
         {
             Log.Warn($"Could not find an acceptable event handler for event {typeof(T).FullName}! No injection will occur for this event.");
             return;
+        }
+
+        List<CodeInstruction> parameterStack = new ();
+
+        List<ParameterInfo> baseParameters = baseMethod.GetParameters().ToList();
+        ParameterInfo[] parameters = typeof(T).GetConstructors()[0].GetParameters();
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            ParameterInfo param = parameters[i];
+
+            // this
+            if (i == 0 && param.ParameterType == baseMethod.DeclaringType && !baseMethod.IsStatic)
+            {
+                parameterStack = (List<CodeInstruction>)parameterStack.Append(new(OpCodes.Ldarg_0));
+                continue;
+            }
+
+            // IsAllowed or IsEnabled.
+            if (i == parameters.Length - 1 && param.ParameterType == typeof(bool))
+            {
+                parameterStack = (List<CodeInstruction>)parameterStack.Append(new(OpCodes.Ldc_I4_1));
+                continue;
+            }
+
+            CodeInstruction? opCode = null;
+            for (int j = 0; j < baseParameters.Count; j++)
+            {
+                if (baseParameters[j].ParameterType != param.ParameterType || baseParameters[j].Name != param.Name)
+                {
+                    continue;
+                }
+
+                opCode = (j + (baseMethod.IsStatic ? 0 : 1)) switch
+                {
+                    0 => new CodeInstruction(OpCodes.Ldarg_0),
+                    1 => new CodeInstruction(OpCodes.Ldarg_1),
+                    2 => new CodeInstruction(OpCodes.Ldarg_2),
+                    3 => new CodeInstruction(OpCodes.Ldarg_3),
+                    _ => new CodeInstruction(OpCodes.Ldarg_S, j),
+                };
+                break;
+            }
+
+            if (opCode is null)
+                continue;
+
+            parameterStack.Insert(i, opCode);
         }
 
         LocalBuilder local = generator.DeclareLocal(typeof(T));
