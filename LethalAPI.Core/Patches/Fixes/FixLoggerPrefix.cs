@@ -9,6 +9,7 @@ namespace LethalAPI.Core.Patches.Fixes;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
 
@@ -24,9 +25,34 @@ using BepInEx.Logging;
 // ReSharper disable UnusedParameter.Local
 #pragma warning disable SA1313
 [HarmonyPatch(typeof(ConsoleLogListener), nameof(ConsoleLogListener.LogEvent))]
+[HarmonyPriority(Priority.HigherThanNormal)]
 internal static class FixLoggerPrefix
 {
-    private static readonly Dictionary<char, ConsoleColor> ConsoleText = new ()
+    /// <summary>
+    /// Contains a list of colorcodes that can be used.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// Use &amp; in front of a code for the color. IE: &amp;1 red text &amp;2 green text.
+    /// &amp;0 - Black
+    /// &amp;1 - Red
+    /// &amp;2 - Green
+    /// &amp;3 - Yellow
+    /// &amp;4 - Blue
+    /// &amp;5 - Magenta
+    /// &amp;6 - Cyan
+    /// &amp;7 - White
+    /// &amp;a - Dark Gray
+    /// &amp;b - Dark Red
+    /// &amp;c - Dark Green
+    /// &amp;d - Dark Yellow
+    /// &amp;e - Dark Blue
+    /// &amp;f - Dark Magenta
+    /// &amp;g - Dark Cyan
+    /// &amp;h - Gray
+    /// </code>
+    /// </example>
+    internal static readonly ReadOnlyDictionary<char, ConsoleColor> ConsoleText = new (new Dictionary<char, ConsoleColor>()
     {
         { '0', ConsoleColor.Black }, // black
         { '1', ConsoleColor.Red }, // red
@@ -44,7 +70,7 @@ internal static class FixLoggerPrefix
         { 'f', ConsoleColor.DarkMagenta }, // dark magenta
         { 'g', ConsoleColor.DarkCyan }, // dark cyan
         { 'h', ConsoleColor.Gray }, // gray
-    };
+    });
 
     [HarmonyPrefix]
     private static bool Prefix(ConsoleLogListener __instance, object sender, LogEventArgs eventArgs)

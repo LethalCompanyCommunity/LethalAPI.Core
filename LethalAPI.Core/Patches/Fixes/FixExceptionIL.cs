@@ -14,24 +14,28 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-using HarmonyTools;
 using MonoMod.Cil;
 
 /// <summary>
 /// Patches the stacktrace to prevent the module id from showing up.
 /// </summary>
 [HarmonyPatch(typeof(StackTrace), "AddFrames")]
+[HarmonyPriority(Priority.First)]
 internal static class FixExceptionIL
 {
     [HarmonyTranspiler]
-    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         List<CodeInstruction> list = instructions as List<CodeInstruction> ?? instructions.ToList();
-        int index = list.FindNthInstructionReverse(1, x => x.opcode == OpCodes.Ldstr);
-        list[index].operand = " in {1} ";
-        list.RemoveRange(index + 1, 1);
+        int index = list.FindLastIndex(x => x.opcode == OpCodes.Ldstr);
+        int ogILReplacement = list.FindLastIndex(x => x.opcode == OpCodes.Ldstr && (string)x.operand == " [0x{0:x5}]");
+        list[ogILReplacement].operand = string.Empty;
+        list[index].operand = " at {1} ";
+        list[index + 1] = new CodeInstruction(OpCodes.Ldstr, string.Empty);
         for (int i = 0; i < list.Count; i++)
+        {
             yield return list[i];
+        }
     }
 
     /// <summary>
@@ -40,7 +44,7 @@ internal static class FixExceptionIL
     /// <param name="il">The IL Context.</param>
     internal static void IlHook(ILContext il)
     {
-        ILCursor cursor = new ILCursor(il);
+        ILCursor cursor = new (il);
         cursor.GotoNext(x => x.MatchCallvirt(typeof(StackFrame).GetMethod("GetFileLineNumber", BindingFlags.Instance | BindingFlags.Public)));
 
         cursor.RemoveRange(2);
@@ -57,9 +61,12 @@ internal static class FixExceptionIL
         int line = instance.GetFileLineNumber();
         if (line is StackFrame.OFFSET_UNKNOWN or 0)
         {
-            return "IL_" + instance.GetILOffset().ToString("X4");
+            return Log.Templates["LineLocNotFound"]
+                .Replace("{il}", instance.GetILOffset().ToString("X4"));
         }
 
-        return line.ToString();
+        return Log.Templates["LineLocFound"]
+            .Replace("{line}", line.ToString())
+            .Replace("{il}", instance.GetILOffset().ToString("X4"));
     }
 }

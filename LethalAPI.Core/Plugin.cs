@@ -14,6 +14,7 @@ namespace LethalAPI.Core;
 using System;
 using System.Diagnostics;
 using System.Reflection;
+
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -47,15 +48,29 @@ public class Plugin : BaseUnityPlugin
         _Logger = this.Logger;
         Harmony = new(PluginInfo.PLUGIN_GUID);
 
-        // Hooks and fixes the exception stacktrace il.
-        _ = new ILHook(typeof(StackTrace).GetMethod("AddFrames", BindingFlags.Instance | BindingFlags.NonPublic), Patches.Fixes.FixExceptionIL.IlHook);
-
         // Events.Events contains the instance. This should become a plugin for loading and config purposes, in the future.
         // Events..cctor -> Patcher.PatchAll will do the patching. This is necessary for dynamic patching.
         _ = new Events.Events();
+
+        // Hooks and fixes the exception stacktrace il.
+        _ = new ILHook(typeof(StackTrace).GetMethod("AddFrames", BindingFlags.Instance | BindingFlags.NonPublic), Patches.Fixes.FixExceptionIL.IlHook);
+
         Instance = this;
         Events.Handlers.Server.GameOpened += InitTimings;
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
+        try
+        {
+            ExceptionTest();
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"{e}");
+        }
+    }
+
+    private void ExceptionTest()
+    {
+        throw new Exception("Testing patches.");
     }
 
     private void InitTimings()
