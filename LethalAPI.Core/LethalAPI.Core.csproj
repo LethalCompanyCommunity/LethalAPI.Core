@@ -19,10 +19,6 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <DebugType>embedded</DebugType>
-    </PropertyGroup>
-
     <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" ExcludeAssets="RUNTIME" />
         <PackageReference Include="BepInEx.Core" Version="5.*" ExcludeAssets="RUNTIME" />
