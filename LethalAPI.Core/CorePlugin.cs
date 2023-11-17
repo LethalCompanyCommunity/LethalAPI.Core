@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="Plugin.cs" company="LethalAPI Modding Community">
+// <copyright file="CorePlugin.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
@@ -12,6 +12,7 @@ namespace LethalAPI.Core;
 #pragma warning disable SA1401 // field should be made private
 #pragma warning disable SA1309 // Names should not start with an underscore. ie: _Logger.
 using System;
+using System.IO;
 
 using BepInEx;
 using BepInEx.Logging;
@@ -20,12 +21,12 @@ using MEC;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-public class Plugin : BaseUnityPlugin
+public class CorePlugin : BaseUnityPlugin
 {
     /// <summary>
     /// Gets the instance for the main api.
     /// </summary>
-    public static Plugin Instance = null!;
+    public static CorePlugin Instance = null!;
 
     /// <summary>
     /// Gets the <see cref="BepInEx.Logging.Logger"/>.
@@ -49,6 +50,12 @@ public class Plugin : BaseUnityPlugin
         // Events..cctor -> Patcher.PatchAll will do the patching. This is necessary for dynamic patching.
         _ = new Events.Events();
         Instance = this;
+
+        Loader.PluginDirectory = Paths.PluginPath;
+        Loader.DependencyDirectory = Path.GetFullPath(Path.Combine(Paths.PluginPath, "../", "Dependencies"));
+        Loader.ConfigDirectory = Paths.ConfigPath;
+        _ = new Loader();
+
         Events.Handlers.Server.GameOpened += InitTimings;
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
     }

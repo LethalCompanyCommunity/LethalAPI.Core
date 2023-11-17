@@ -8,6 +8,7 @@
 // https://github.com/Exiled-Team/EXILED/blob/master/LICENSE.md
 // Changes: Namespace adjustments. Loader has been adjusted to use our custom plugin types.
 // It also now includes the attribute based plugin loading.
+// Some new features have also been added for better plugin loading.
 // -----------------------------------------------------------------------
 
 namespace LethalAPI.Core;
@@ -39,16 +40,29 @@ public sealed class Loader
 
     private static readonly Dictionary<string, IPlugin<IConfig>> PluginsValue = new();
 
+    private static readonly bool ShowDebug = false;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Loader"/> class.
     /// </summary>
     public Loader()
     {
         Singleton = this;
+        Log.Debug("Initializing Loader.");
+        if(!Directory.Exists(PluginDirectory))
+            Directory.CreateDirectory(PluginDirectory);
+
+        if(!Directory.Exists(DependencyDirectory))
+            Directory.CreateDirectory(DependencyDirectory);
+
+        if(!Directory.Exists(ConfigDirectory))
+            Directory.CreateDirectory(ConfigDirectory);
+
         try
         {
             LoadDependencies();
             LoadPlugins();
+            EnablePlugins();
         }
         catch (Exception e)
         {
@@ -60,12 +74,17 @@ public sealed class Loader
     /// <summary>
     /// Gets the base directory to load plugins from.
     /// </summary>
-    public static string BaseDirectory { get; } = string.Empty;
+    public static string PluginDirectory { get; internal set; } = string.Empty;
 
     /// <summary>
     /// Gets the base directory of the dependency folder.
     /// </summary>
-    public static string DependencyDirectory { get; } = string.Empty;
+    public static string DependencyDirectory { get; internal set; } = string.Empty;
+
+    /// <summary>
+    /// Gets the base directory for configs.
+    /// </summary>
+    public static string ConfigDirectory { get; internal set; } = string.Empty;
 
     /// <summary>
     /// Gets a dictionary containing the file paths of assemblies.
@@ -94,260 +113,11 @@ public sealed class Loader
     public static ReadOnlyDictionary<string, IPlugin<IConfig>> Plugins => new(PluginsValue);
 
     /// <summary>
-    /// Loads all plugins.
-    /// </summary>
-    public static void LoadPlugins()
-    {
-        foreach (string assemblyPath in Directory.GetFiles(BaseDirectory, "*.dll"))
-        {
-            Assembly? assembly = LoadAssembly(assemblyPath);
-
-            if (assembly is null)
-                continue;
-
-            Locations[assembly] = assemblyPath;
-        }
-
-        foreach (Assembly assembly in Locations.Keys)
-        {
-            if (Locations[assembly].Contains("dependencies"))
-                continue;
-
-            IPlugin<IConfig>? plugin = CreatePlugin(assembly);
-
-            plugin ??= CreatePluginFromAttributes(assembly);
-
-            if (plugin is null)
-                continue;
-
-            AssemblyInformationalVersionAttribute attribute =
-                plugin.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            Log.Info($"Loaded plugin {plugin.Name}@{(plugin.Version is not null ? $"{plugin.Version.Major}.{plugin.Version.Minor}.{plugin.Version.Build}" : attribute is not null ? attribute.InformationalVersion : string.Empty)}");
-            PluginsValue.Add(plugin.Name, plugin);
-        }
-    }
-
-    /// <summary>
-    /// Loads an assembly.
-    /// </summary>
-    /// <param name="path">The path to load the assembly from.</param>
-    /// <returns>Returns the loaded assembly or <see langword="null"/>.</returns>
-    public static Assembly? LoadAssembly(string path)
-    {
-        try
-        {
-            Assembly assembly = Assembly.Load(File.ReadAllBytes(path));
-
-            ResolveAssemblyEmbeddedResources(assembly);
-
-            return assembly;
-        }
-        catch (Exception exception)
-        {
-            Log.Error($"Error while loading an assembly at {path}! {exception}");
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Create a plugin instance.
-    /// </summary>
-    /// <param name="assembly">The plugin assembly.</param>
-    /// <returns>Returns the created plugin instance or <see langword="null"/>.</returns>
-    public static IPlugin<IConfig>? CreatePlugin(Assembly assembly)
-    {
-        try
-        {
-            foreach (Type type in assembly.GetTypes())
-            {
-                if (type.IsAbstract || type.IsInterface)
-                {
-                    Log.Debug($"\"{type.FullName}\" is an interface or abstract class, skipping.");
-                    continue;
-                }
-
-                if (!IsDerivedFromPlugin(type))
-                {
-                    Log.Debug($"\"{type.FullName}\" does not inherit from Plugin<TConfig>, skipping.");
-                    continue;
-                }
-
-                Log.Debug($"Loading type {type.FullName}");
-
-                IPlugin<IConfig>? plugin = null;
-
-                ConstructorInfo? constructor = type.GetConstructor(new[] { typeof(Assembly) }) ?? type.GetConstructor(Type.EmptyTypes);
-                if (constructor is not null)
-                {
-                    Log.Debug("Public default constructor found, creating instance...");
-
-                    plugin = constructor.Invoke(null) as IPlugin<IConfig>;
-                }
-                else
-                {
-                    Log.Debug($"Constructor wasn't found, searching for a property with the {type.FullName} type...");
-
-                    object? value = Array
-                        .Find(
-                            type.GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public),
-                            property => property.PropertyType == type)?.GetValue(null);
-
-                    if (value is not null)
-                        plugin = value as IPlugin<IConfig>;
-                }
-
-                if (plugin is null)
-                {
-                    Log.Error($"{type.FullName} is a valid plugin, but it cannot be instantiated! It either doesn't have a public default constructor without any arguments or a static property of the {type.FullName} type!");
-
-                    continue;
-                }
-
-                Log.Debug($"Instantiated type {type.FullName}");
-
-                if (CheckPluginRequiredAPIVersion(plugin))
-                    continue;
-
-                return plugin;
-            }
-        }
-        catch (ReflectionTypeLoadException reflectionTypeLoadException)
-        {
-            Log.Error(
-                $"Error while initializing plugin {assembly.GetName().Name} (at {assembly.Location})! {reflectionTypeLoadException}");
-
-            foreach (Exception loaderException in reflectionTypeLoadException.LoaderExceptions)
-            {
-                Log.Error(loaderException);
-            }
-        }
-        catch (Exception exception)
-        {
-            Log.Error(
-                $"Error while initializing plugin {assembly.GetName().Name} (at {assembly.Location})! {exception}");
-        }
-
-        return null;
-    }
-
-    private static IPlugin<IConfig>? CreatePluginFromAttributes(Assembly assembly)
-    {
-        foreach (Type type in assembly.GetTypes())
-        {
-            LethalPluginAttribute? pluginInfo = type.GetCustomAttribute<LethalPluginAttribute>();
-            if (pluginInfo is null)
-            {
-                continue;
-            }
-
-            Version? version = pluginInfo.Version;
-            if (version is null && type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion is { } versionString)
-            {
-                if (!Version.TryParse(versionString, out version))
-                {
-                    Log.Error($"Plugin '{type.FullName}' does not have a valid version. Please define a version in the plugin attribute.\n" +
-                              "The assembly version string must be a parsable version to be used for plugin versioning. https://semver.org/");
-                    continue;
-                }
-            }
-
-            if(version is null)
-            {
-                Log.Error($"Plugin '{type.FullName}' must have a valid version. This can be manually defined in the attribute, or defined in the assembly before being built.");
-                continue;
-            }
-
-            FieldInfo? configField = null;
-            foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
-            {
-                if (field.GetCustomAttribute<LethalConfigAttribute>() is null && field.Name != "Config")
-                {
-                    continue;
-                }
-
-                if (!field.FieldType.IsSubclassOf(typeof(IConfig)))
-                {
-                    Log.Warn($"Found a config for plugin '{type.FullName}', but it wasn't a IConfig, therefore it was skipped.");
-                    continue;
-                }
-
-                configField = field;
-                break;
-            }
-
-            if (configField is null)
-            {
-                Log.Warn($"Couldn't find a valid config for plugin '{type.FullName}'. Please include a field that has a type inheriting the IConfig interface. Either use the [LethalConfig] attribute on the field, or name the field 'Config'.");
-                continue;
-            }
-
-            Action? enableHandler = null;
-            Action? disableHandler = null;
-            Action? reloadHandler = null;
-            foreach (MethodInfo methodInfo in type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
-            {
-                if (methodInfo.GetParameters().Length > 0)
-                    continue;
-
-                if (enableHandler is null && (methodInfo.GetCustomAttribute<LethalEntrypointAttribute>() is not null || methodInfo.Name == "OnEnabled"))
-                {
-                    enableHandler = (Action)Delegate.CreateDelegate(typeof(Action), methodInfo);
-                    continue;
-                }
-
-                if (disableHandler is null && (methodInfo.GetCustomAttribute<LethalDisableHandlerAttribute>() is not null || methodInfo.Name == "OnDisabled"))
-                {
-                    disableHandler = (Action)Delegate.CreateDelegate(typeof(Action), methodInfo);
-                    continue;
-                }
-
-                if (reloadHandler is null && (methodInfo.GetCustomAttribute<LethalReloadHandlerAttribute>() is not null || methodInfo.Name == "OnReloaded"))
-                    reloadHandler = (Action)Delegate.CreateDelegate(typeof(Action), methodInfo);
-            }
-
-            if (enableHandler is null)
-            {
-                Log.Debug($"Plugin '{type.FullName}' could not be registered because there wasn't an entrypoint method. Try adding the [LethalEntrypoint] attribute, or naming a method OnEnabled." +
-                          $"Also ensure that the method has no arguments.");
-                continue;
-            }
-
-            Version requiredApiVersion = type.GetCustomAttribute<LethalRequiredFrameworkVersionAttribute>()?.Version ?? new Version(1, 0, 0);
-
-            try
-            {
-                object? x = typeof(AttributePlugin<>).MakeGenericType(configField.FieldType).GetConstructors()[0]
-                    .Invoke(new object[]
-                    {
-                        pluginInfo.Name,
-                        pluginInfo.Description,
-                        pluginInfo.Author,
-                        version,
-                        enableHandler,
-                        requiredApiVersion,
-                        disableHandler!,
-                        reloadHandler!,
-                    });
-                return (IPlugin<IConfig>)x;
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Could not initialize plugin \'{type.FullName}\' due to an error.");
-                Log.Debug($"{e}");
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Enables all plugins.
     /// </summary>
     public static void EnablePlugins()
     {
+        Log.Debug("Enabling plugins", ShowDebug);
         List<IPlugin<IConfig>> toLoad = Plugins.Values.ToList();
 
         foreach (IPlugin<IConfig> plugin in toLoad.ToList())
@@ -358,11 +128,12 @@ public sealed class Loader
                 {
                     plugin.OnEnabled();
                     toLoad.Remove(plugin);
+                    Log.Info($"Successfully Enabled LethalAPI Core Feature &3{plugin.Name} &gv{plugin.Version}&7, by &6{plugin.Author}&7");
                 }
             }
             catch (Exception exception)
             {
-                Log.Error($"Plugin \"{plugin.Name}\" threw an exception while enabling: {exception}");
+                Log.Error($"Plugin \"{plugin.Name}\" threw an exception while enabling: \n{exception}");
             }
         }
 
@@ -370,14 +141,16 @@ public sealed class Loader
         {
             try
             {
+                Log.Debug($"LethalPlugin Loaded. {plugin.Name}", ShowDebug);
                 if (plugin.Config.IsEnabled)
                 {
                     plugin.OnEnabled();
+                    Log.Info($"Successfully Enabled Plugin &3{plugin.Name} &gv{plugin.Version}&7, by &6{plugin.Author}&7");
                 }
             }
             catch (Exception exception)
             {
-                Log.Error($"Plugin \"{plugin.Name}\" threw an exception while enabling: {exception}");
+                Log.Error($"Plugin \"{plugin.Name}\" threw an exception while enabling: \n{exception}");
             }
         }
     }
@@ -430,6 +203,263 @@ public sealed class Loader
     }
 
     /// <summary>
+    /// Loads all plugins.
+    /// </summary>
+    public static void LoadPlugins()
+    {
+        foreach (string assemblyPath in Directory.GetFiles(PluginDirectory, "*.dll"))
+        {
+            Assembly? assembly = LoadAssembly(assemblyPath);
+
+            if (assembly is null)
+                continue;
+
+            Locations[assembly] = assemblyPath;
+        }
+
+        foreach (Assembly assembly in Locations.Keys)
+        {
+            if (Locations[assembly].Contains("dependencies"))
+                continue;
+
+            IPlugin<IConfig>? plugin = CreatePlugin(assembly);
+
+            plugin ??= CreatePluginFromAttributes(assembly);
+
+            if (plugin is null)
+                continue;
+
+            AssemblyInformationalVersionAttribute attribute =
+                plugin.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            Log.Info($"Loaded plugin {plugin.Name}@{(plugin.Version is not null ? $"{plugin.Version.Major}.{plugin.Version.Minor}.{plugin.Version.Build}" : attribute is not null ? attribute.InformationalVersion : string.Empty)}");
+            PluginsValue.Add(plugin.Name, plugin);
+        }
+    }
+
+    /// <summary>
+    /// Loads an assembly.
+    /// </summary>
+    /// <param name="path">The path to load the assembly from.</param>
+    /// <returns>Returns the loaded assembly or <see langword="null"/>.</returns>
+    private static Assembly? LoadAssembly(string path)
+    {
+        try
+        {
+            Assembly assembly = Assembly.Load(File.ReadAllBytes(path));
+
+            ResolveAssemblyEmbeddedResources(assembly);
+
+            return assembly;
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"Error while loading an assembly at {path}! {exception}");
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Create a plugin instance.
+    /// </summary>
+    /// <param name="assembly">The plugin assembly.</param>
+    /// <returns>Returns the created plugin instance or <see langword="null"/>.</returns>
+    private static IPlugin<IConfig>? CreatePlugin(Assembly assembly)
+    {
+        try
+        {
+            foreach (Type type in assembly.GetTypes())
+            {
+                if (type.IsAbstract || type.IsInterface)
+                {
+                    Log.Debug($"\"{type.FullName}\" is an interface or abstract class, skipping.", ShowDebug);
+                    continue;
+                }
+
+                if (!IsDerivedFromPlugin(type))
+                {
+                    Log.Debug($"\"{type.FullName}\" does not inherit from Plugin<TConfig>, skipping.", ShowDebug);
+                    continue;
+                }
+
+                Log.Debug($"Loading type {type.FullName}", ShowDebug);
+
+                IPlugin<IConfig>? plugin = null;
+
+                ConstructorInfo? constructor = type.GetConstructor(new[] { typeof(Assembly) }) ?? type.GetConstructor(Type.EmptyTypes);
+                if (constructor is not null)
+                {
+                    Log.Debug("Public default constructor found, creating instance...", ShowDebug);
+
+                    plugin = constructor.Invoke(null) as IPlugin<IConfig>;
+                }
+                else
+                {
+                    Log.Debug($"Constructor wasn't found, searching for a property with the {type.FullName} type...", ShowDebug);
+
+                    object? value = Array
+                        .Find(
+                            type.GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public),
+                            property => property.PropertyType == type)?.GetValue(null);
+
+                    if (value is not null)
+                        plugin = value as IPlugin<IConfig>;
+                }
+
+                if (plugin is null)
+                {
+                    Log.Warn($"{type.FullName} is a valid plugin, but it cannot be instantiated! It either doesn't have a public default constructor without any arguments or a static property of the {type.FullName} type!");
+
+                    continue;
+                }
+
+                Log.Debug($"Instantiated type {type.FullName}", ShowDebug);
+
+                if (CheckPluginRequiredAPIVersion(plugin))
+                    continue;
+
+                return plugin;
+            }
+        }
+        catch (ReflectionTypeLoadException reflectionTypeLoadException)
+        {
+            Log.Error($"Error while initializing plugin {assembly.GetName().Name} (at {assembly.Location})! {reflectionTypeLoadException}");
+
+            foreach (Exception loaderException in reflectionTypeLoadException.LoaderExceptions)
+            {
+                Log.Error(loaderException);
+            }
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"Error while initializing plugin {assembly.GetName().Name} (at {assembly.Location})! {exception}");
+        }
+
+        return null;
+    }
+
+    private static IPlugin<IConfig>? CreatePluginFromAttributes(Assembly assembly)
+    {
+        foreach (Type type in assembly.GetTypes())
+        {
+            LethalPluginAttribute? pluginInfo = type.GetCustomAttribute<LethalPluginAttribute>();
+            if (pluginInfo is null)
+            {
+                continue;
+            }
+
+            Version? version = pluginInfo.Version;
+            if (version is null && type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion is { } versionString)
+            {
+                if (!Version.TryParse(versionString, out version))
+                {
+                    Log.Warn($"Plugin '{type.FullName}' does not have a valid version. Please define a version in the plugin attribute.\n" +
+                             "The assembly version string must be a parsable version to be used for plugin versioning. https://semver.org/");
+                    continue;
+                }
+            }
+
+            if(version is null)
+            {
+                Log.Warn($"Plugin '{type.FullName}' must have a valid version. This can be manually defined in the attribute, or defined in the assembly before being built.");
+                continue;
+            }
+
+            FieldInfo? configField = null;
+            foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                if (field.GetCustomAttribute<LethalConfigAttribute>() is null && field.Name != "Config")
+                {
+                    continue;
+                }
+
+                if (field.FieldType.GetInterface(nameof(IConfig)) is null)
+                {
+                    Log.Warn($"Found a config for plugin '{type.FullName}', but it didn't inherit an IConfig, therefore it was skipped.");
+                    continue;
+                }
+
+                configField = field;
+                break;
+            }
+
+            if (configField is null)
+            {
+                Log.Warn($"Couldn't find a valid config for plugin '{type.FullName}'. Please include a field that has a type inheriting the IConfig interface. Either use the [LethalConfig] attribute on the field, or name the field 'Config'.");
+                continue;
+            }
+
+            MethodInfo? onEnabled = null;
+            MethodInfo? onDisabled = null;
+            MethodInfo? onReloaded = null;
+            foreach (MethodInfo methodInfo in type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                if (methodInfo.GetParameters().Length > 0)
+                    continue;
+
+                if (onEnabled is null && (methodInfo.GetCustomAttribute<LethalEntrypointAttribute>() is not null || methodInfo.Name == "OnEnabled"))
+                {
+                    onEnabled = methodInfo;
+                    continue;
+                }
+
+                if (onDisabled is null && (methodInfo.GetCustomAttribute<LethalDisableHandlerAttribute>() is not null || methodInfo.Name == "OnDisabled"))
+                {
+                    onDisabled = methodInfo;
+                    continue;
+                }
+
+                if (onReloaded is null && (methodInfo.GetCustomAttribute<LethalReloadHandlerAttribute>() is not null || methodInfo.Name == "OnReloaded"))
+                    onReloaded = methodInfo;
+            }
+
+            if (onEnabled is null)
+            {
+                Log.Warn($"Plugin '{type.FullName}' could not be registered because there wasn't an entrypoint method. Try adding the [LethalEntrypoint] attribute, or naming a method OnEnabled." +
+                          $"Also ensure that the method has no arguments.");
+                continue;
+            }
+
+            Version requiredApiVersion = type.GetCustomAttribute<LethalRequiredFrameworkVersionAttribute>()?.Version ?? new Version(1, 0, 0);
+
+            ConstructorInfo? constructor = type.GetConstructor(Type.EmptyTypes);
+            if (constructor is null)
+            {
+                Log.Warn($"Found valid plugin '{type.FullName}' but couldn't find the constructor to use. Ensure a constructor is present which has no arguments.");
+                continue;
+            }
+
+            try
+            {
+                object typeInstance = constructor.Invoke(null);
+                object? pluginInstance = typeof(AttributePlugin<,>).MakeGenericType(type, configField.FieldType).GetConstructors()[0]
+                    .Invoke(new object[]
+                    {
+                        typeInstance,
+                        pluginInfo.Name,
+                        pluginInfo.Description,
+                        pluginInfo.Author,
+                        version,
+                        (Action)Delegate.CreateDelegate(typeof(Action), typeInstance, onEnabled),
+                        requiredApiVersion,
+                        onDisabled is null ? () => { } : (Action)Delegate.CreateDelegate(typeof(Action), typeInstance, onDisabled),
+                        onReloaded is null ? () => { } : (Action)Delegate.CreateDelegate(typeof(Action), typeInstance, onReloaded),
+                    });
+                return (IPlugin<IConfig>)pluginInstance;
+            }
+            catch (Exception e)
+            {
+                Log.Warn($"Could not initialize plugin \'{type.FullName}\' due to an error.");
+                Log.Debug($"{e}", ShowDebug);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Attempts to load Embedded (compressed) assemblies from specified Assembly.
     /// </summary>
     /// <param name="target">Assembly to check for embedded assemblies.</param>
@@ -437,19 +467,19 @@ public sealed class Loader
     {
         try
         {
-            Log.Debug($"Attempting to load embedded resources for {target.FullName}");
+            Log.Debug($"Attempting to load embedded resources for {target.FullName}", ShowDebug);
 
             string[] resourceNames = target.GetManifestResourceNames();
 
             foreach (string name in resourceNames)
             {
-                Log.Debug($"Found resource {name}");
+                Log.Debug($"Found resource {name}", ShowDebug);
 
                 if (name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
                 {
                     using MemoryStream stream = new();
 
-                    Log.Debug($"Loading resource {name}");
+                    Log.Debug($"Loading resource {name}", ShowDebug);
 
                     Stream? dataStream = target.GetManifestResourceStream(name);
 
@@ -463,7 +493,7 @@ public sealed class Loader
 
                     Dependencies.Add(Assembly.Load(stream.ToArray()));
 
-                    Log.Debug($"Loaded resource {name}");
+                    Log.Debug($"Loaded resource {name}", ShowDebug);
                 }
                 else if (name.EndsWith(".dll.compressed", StringComparison.OrdinalIgnoreCase))
                 {
@@ -484,7 +514,7 @@ public sealed class Loader
 
                     Dependencies.Add(Assembly.Load(memStream.ToArray()));
 
-                    Log.Debug($"Loaded resource {name}");
+                    Log.Debug($"Loaded resource {name}", ShowDebug);
                 }
             }
         }
@@ -524,7 +554,6 @@ public sealed class Loader
             foreach (string dependency in Directory.GetFiles(DependencyDirectory, "*.dll"))
             {
                 Assembly? assembly = LoadAssembly(dependency);
-
                 if (assembly is null)
                     continue;
 
@@ -547,7 +576,7 @@ public sealed class Loader
     /// Indicates that the passed type is derived from the plugin type.
     /// </summary>
     /// <param name="type">Type.</param>
-    /// <returns><see langword="true"/> if passed type is derived from <see cref="Plugin{TConfig}"/> or <see cref="Plugin"/>, otherwise <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> if passed type is derived from <see cref="Plugin{TConfig}"/> or <see cref="CorePlugin"/>, otherwise <see langword="false"/>.</returns>
     private static bool IsDerivedFromPlugin(Type type)
     {
         while (type?.BaseType is not null)
@@ -579,17 +608,15 @@ public sealed class Loader
             // LethalAPI is outdated
             if (requiredVersion.Major > actualVersion.Major)
             {
-                Log.Error(
-                    $"You're running an older version of LethalAPI ({Version.ToString(3)})! {plugin.Name} won't be loaded! " +
-                    $"Required version to load it: {plugin.RequiredAPIVersion.ToString(3)}");
+                Log.Error($"You're running an older version of LethalAPI ({Version.ToString(3)})! {plugin.Name} won't be loaded! " +
+                          $"Required version to load it: {plugin.RequiredAPIVersion.ToString(3)}");
 
                 return true;
             }
 
             if (requiredVersion.Major < actualVersion.Major)
             {
-                Log.Error(
-                    $"You're running an older version of {plugin.Name} ({plugin.Version.ToString(3)})! " +
+                Log.Error($"You're running an older version of {plugin.Name} ({plugin.Version.ToString(3)})! " +
                     $"Its Required Major version is {requiredVersion.Major}, but the actual version is: {actualVersion.Major}. This plugin will not be loaded!");
 
                 return true;

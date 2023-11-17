@@ -256,7 +256,7 @@ public static class Log
     {
         // if(formatConsoleColors)
         //    message = FormatText(message);
-        Plugin._Logger.Log((LogLevel)62, message);
+        CorePlugin._Logger.Log((LogLevel)62, message);
     }
 
     private static MethodBase GetCallingMethod(int skip = 0)

@@ -14,6 +14,8 @@ using System;
 using System.Reflection;
 
 using Interfaces;
+using JetBrains.Annotations;
+using UnityEngine.UIElements;
 
 /// <summary>
 /// Creates a new instance of a plugin.
@@ -27,7 +29,11 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     /// </summary>
     public Plugin()
     {
-        this.Assembly = this.GetType().Assembly;
+        this.Assembly = Assembly.GetCallingAssembly();
+        this.Name = Assembly.GetName().Name;
+        this.Description = string.Empty;
+        this.Author = Assembly.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
+        this.Version = Assembly.GetName().Version;
     }
 
     /// <inheritdoc />
@@ -37,22 +43,24 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     public Assembly Assembly { get; init; }
 
     /// <inheritdoc />
-    public abstract string Name { get; }
+    public virtual string Name { get; }
 
     /// <inheritdoc />
-    public abstract string Description { get; }
+    public virtual string Description { get; }
 
     /// <inheritdoc />
-    public abstract string Author { get; }
+    public virtual string Author { get; }
 
     /// <inheritdoc />
-    public abstract Version Version { get; }
+    public virtual Version Version { get; }
 
     /// <inheritdoc />
     public virtual Version RequiredAPIVersion { get; } = new(1, 0, 0);
 
     /// <inheritdoc />
-    public abstract void OnEnabled();
+    public virtual void OnEnabled()
+    {
+    }
 
     /// <inheritdoc />
     public virtual void OnDisabled()
@@ -68,8 +76,9 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
 /// <summary>
 /// An implementation for creating a plugin via attributes.
 /// </summary>
+/// <typeparam name="TPlugin">The type of the class..</typeparam>
 /// <typeparam name="TConfig">The type of the config.</typeparam>
-internal sealed class AttributePlugin<TConfig> : Plugin<TConfig>
+internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
 #pragma warning restore SA1402
     where TConfig : IConfig, new()
 {
@@ -84,8 +93,9 @@ internal sealed class AttributePlugin<TConfig> : Plugin<TConfig>
     private readonly Action? onReload;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AttributePlugin{TConfig}"/> class.
+    /// Initializes a new instance of the <see cref="AttributePlugin{TPlugin,TConfig}"/> class.
     /// </summary>
+    /// <param name="instance">The instance of the class..</param>
     /// <param name="name">The name of the plugin.</param>
     /// <param name="description">A description of what the plugin is and what it does.</param>
     /// <param name="author">The name(s) of the author(s).</param>
@@ -94,8 +104,9 @@ internal sealed class AttributePlugin<TConfig> : Plugin<TConfig>
     /// <param name="onEnabled">The action that will be called when the plugin is enabled.</param>
     /// <param name="onDisabled">The action that will be called when the plugin is disabled.</param>
     /// <param name="onReloaded">The action that will be called when the plugin is reloaded.</param>
-    public AttributePlugin(string name, string description, string author, Version version, Action onEnabled, Version? requiredAPIVersion = null, Action? onDisabled = null, Action? onReloaded = null)
+    public AttributePlugin(object instance, string name, string description, string author, Version version, Action onEnabled, Version? requiredAPIVersion = null, Action? onDisabled = null, Action? onReloaded = null)
     {
+        this.Instance = (TPlugin)instance;
         this.nameValue = name;
         this.descriptionValue = description;
         this.authorValue = author;
@@ -105,6 +116,11 @@ internal sealed class AttributePlugin<TConfig> : Plugin<TConfig>
         this.onReload = onReloaded;
         this.onDisable = onDisabled;
     }
+
+    /// <summary>
+    /// Gets the main instance of the class.
+    /// </summary>
+    public TPlugin Instance { get; init; }
 
     /// <inheritdoc/>
     public override string Name => this.nameValue;
