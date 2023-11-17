@@ -27,7 +27,7 @@ public sealed class Events
     /// <summary>
     /// Indicates whether debug patches and debug patch logs should be enabled.
     /// </summary>
-    internal const bool DebugPatches = true;
+    internal const bool DebugPatches = false;
 
     /// <summary>
     /// Indicates whether or not events should be logged on execution.
