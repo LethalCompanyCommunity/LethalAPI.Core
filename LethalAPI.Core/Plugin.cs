@@ -58,19 +58,6 @@ public class Plugin : BaseUnityPlugin
         Instance = this;
         Events.Handlers.Server.GameOpened += InitTimings;
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
-        try
-        {
-            ExceptionTest();
-        }
-        catch (Exception e)
-        {
-            Log.Debug($"{e}");
-        }
-    }
-
-    private void ExceptionTest()
-    {
-        throw new Exception("Testing patches.");
     }
 
     private void InitTimings()
