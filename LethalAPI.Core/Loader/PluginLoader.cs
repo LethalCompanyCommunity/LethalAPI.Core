@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="Loader.cs" company="LethalAPI Modding Community">
+// <copyright file="PluginLoader.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
@@ -11,43 +11,51 @@
 // Some new features have also been added for better plugin loading.
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core;
+// ReSharper disable MemberCanBePrivate.Global
+namespace LethalAPI.Core.Loader;
 
 #pragma warning disable SA1401 // field should be private
 #pragma warning disable SA1202 // public before private fields - methods
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 
 using Attributes;
 using Features;
 using Interfaces;
+using Resources;
 
 /// <summary>
 /// Loads plugins.
 /// </summary>
-public sealed class Loader
+public sealed class PluginLoader
 {
     /// <summary>
-    /// Gets the main instance of the <see cref="Loader"/>.
+    /// Gets the main instance of the <see cref="PluginLoader"/>.
     /// </summary>
-    public static Loader Singleton = null!;
+    public static PluginLoader Singleton = null!;
 
     private static readonly Dictionary<string, IPlugin<IConfig>> PluginsValue = new();
 
     private static readonly bool ShowDebug = false;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Loader"/> class.
+    /// Initializes a new instance of the <see cref="PluginLoader"/> class.
     /// </summary>
-    public Loader()
+    public PluginLoader()
     {
         Singleton = this;
+
+        // Ensure that these are registered by loading the reference.
+        _ = new UnknownResourceParser();
+        _ = new DllParser();
+
+        // Instance is stored in the type.
+        _ = new EmbeddedResourceLoader();
+
         Log.Debug("Initializing Loader.");
         if(!Directory.Exists(PluginDirectory))
             Directory.CreateDirectory(PluginDirectory);
@@ -217,6 +225,72 @@ public sealed class Loader
             Locations[assembly] = assemblyPath;
         }
 
+        // This is where we ensure we load the highest version dependencies first.
+        Dictionary<string, EmbeddedResourceData> competingAssemblies = new ();
+        List<EmbeddedResourceData> lowPriorityAssemblies = new();
+        foreach (EmbeddedResourceData challengingAssembly in ResourceParser.CachedResources[DllParser.Instance.ExtensionName])
+        {
+            // Assembly must have AssemblyName info to be compared.
+            if (challengingAssembly.AssemblyName is not { } depInfo)
+            {
+                lowPriorityAssemblies.Add(challengingAssembly);
+                continue;
+            }
+
+            // Can't override a loaded assembly.
+            Assembly? loadedAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(ass => ass.FullName == depInfo.FullName);
+            if (loadedAssembly is { })
+            {
+                string loadedAssemblyVersion = loadedAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? string.Empty;
+                Log.Warn($"Embedded Dependency '{challengingAssembly.AssemblyName.FullName}' (v{challengingAssembly.AssemblyName.Version}) will be ignored because has already been loaded." +
+                         $"{(loadedAssemblyVersion == string.Empty ? string.Empty : $" Loaded Assembly Version: (v{loadedAssemblyVersion}).")} In most cases, this won't cause problems, but in some cases it will cause errors.");
+                lowPriorityAssemblies.Add(challengingAssembly);
+                continue;
+            }
+
+            competingAssemblies.TryGetValue(depInfo.FullName, out EmbeddedResourceData? competingAssembly);
+
+            if (competingAssembly?.AssemblyName is null)
+            {
+                competingAssemblies.Add(depInfo.FullName, challengingAssembly);
+                Log.Debug($"Loaded a competing embedded assembly {depInfo.FullName}, (v{depInfo.Version})", ShowDebug);
+                continue;
+            }
+
+            // Comparable?
+            if (challengingAssembly.AssemblyName.Version > competingAssembly.AssemblyName.Version)
+            {
+                lowPriorityAssemblies.Add(competingAssembly);
+                competingAssemblies.Remove(challengingAssembly.AssemblyName.FullName);
+                competingAssemblies.Add(challengingAssembly.AssemblyName.FullName, challengingAssembly);
+                Log.Debug($"Competing embedded assembly '{challengingAssembly.FileName}' ({challengingAssembly.AssemblyName.Version}) has beat embedded assembly '{competingAssembly.FileName}' (v{competingAssembly.AssemblyName!.Version}).");
+            }
+            else
+            {
+                lowPriorityAssemblies.Add(challengingAssembly);
+                Log.Debug($"Competing embedded assembly '{competingAssembly.FileName}' ({challengingAssembly.AssemblyName.Version}) has beat embedded assembly '{challengingAssembly.FileName}' (v{challengingAssembly.AssemblyName.Version}).");
+            }
+        }
+
+        // Now load the higher priority assemblies first.
+        int i = 0;
+        foreach (EmbeddedResourceData highPriorityAssembly in competingAssemblies.Values)
+        {
+            i++;
+            highPriorityAssembly.Parser?.Parse(highPriorityAssembly.GetStream());
+        }
+
+        Log.Debug($"Loaded {i} high priority resources.", ShowDebug);
+        i = 0;
+
+        // Now load the lower priority assemblies first.
+        foreach (EmbeddedResourceData lowPriorityAssembly in lowPriorityAssemblies)
+        {
+            lowPriorityAssembly.Parser?.Parse(lowPriorityAssembly.GetStream());
+        }
+
+        Log.Debug($"Loaded {i} low priority resources.", ShowDebug);
+
         foreach (Assembly assembly in Locations.Keys)
         {
             if (Locations[assembly].Contains("dependencies"))
@@ -249,7 +323,8 @@ public sealed class Loader
         {
             Assembly assembly = Assembly.Load(File.ReadAllBytes(path));
 
-            ResolveAssemblyEmbeddedResources(assembly);
+            // ResolveAssemblyEmbeddedResources(assembly);
+            EmbeddedResourceLoader.Instance.GetEmbeddedObjects(assembly);
 
             return assembly;
         }
@@ -435,7 +510,7 @@ public sealed class Loader
             {
                 object typeInstance = constructor.Invoke(null);
                 object? pluginInstance = typeof(AttributePlugin<,>).MakeGenericType(type, configField.FieldType).GetConstructors()[0]
-                    .Invoke(new object[]
+                    .Invoke(new[]
                     {
                         typeInstance,
                         pluginInfo.Name,
@@ -457,71 +532,6 @@ public sealed class Loader
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Attempts to load Embedded (compressed) assemblies from specified Assembly.
-    /// </summary>
-    /// <param name="target">Assembly to check for embedded assemblies.</param>
-    private static void ResolveAssemblyEmbeddedResources(Assembly target)
-    {
-        try
-        {
-            Log.Debug($"Attempting to load embedded resources for {target.FullName}", ShowDebug);
-
-            string[] resourceNames = target.GetManifestResourceNames();
-
-            foreach (string name in resourceNames)
-            {
-                Log.Debug($"Found resource {name}", ShowDebug);
-
-                if (name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                {
-                    using MemoryStream stream = new();
-
-                    Log.Debug($"Loading resource {name}", ShowDebug);
-
-                    Stream? dataStream = target.GetManifestResourceStream(name);
-
-                    if (dataStream == null)
-                    {
-                        Log.Error($"Unable to resolve resource {name} Stream was null");
-                        continue;
-                    }
-
-                    dataStream.CopyTo(stream);
-
-                    Dependencies.Add(Assembly.Load(stream.ToArray()));
-
-                    Log.Debug($"Loaded resource {name}", ShowDebug);
-                }
-                else if (name.EndsWith(".dll.compressed", StringComparison.OrdinalIgnoreCase))
-                {
-                    Stream? dataStream = target.GetManifestResourceStream(name);
-
-                    if (dataStream == null)
-                    {
-                        Log.Error($"Unable to resolve resource {name} Stream was null");
-                        continue;
-                    }
-
-                    using DeflateStream stream = new(dataStream, CompressionMode.Decompress);
-                    using MemoryStream memStream = new();
-
-                    Log.Debug($"Loading resource {name}");
-
-                    stream.CopyTo(memStream);
-
-                    Dependencies.Add(Assembly.Load(memStream.ToArray()));
-
-                    Log.Debug($"Loaded resource {name}", ShowDebug);
-                }
-            }
-        }
-        catch (Exception exception)
-        {
-            Log.Error($"Failed to load embedded resources from {target.FullName}: {exception}");
-        }
     }
 
     /// <summary>

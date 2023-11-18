@@ -14,8 +14,6 @@ using System;
 using System.Reflection;
 
 using Interfaces;
-using JetBrains.Annotations;
-using UnityEngine.UIElements;
 
 /// <summary>
 /// Creates a new instance of a plugin.

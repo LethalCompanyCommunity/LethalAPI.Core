@@ -133,7 +133,6 @@ dotnet_diagnostic.SA1649.severity = none
 # SA1402: Only one class should be in a file.
 dotnet_diagnostic.SA1402.severity = none
 
-resharper_inconsistent_naming_highlighting=none
 resharper_unused_parameter_local_highlighting=none
 resharper_unused_member_local_highlighting=none
 resharper_string_literal_typo_highlighting=none
@@ -173,6 +172,7 @@ dotnet_diagnostic.SA1633.severity = none
 #### Naming styles ####
 
 # Naming rules
+resharper_inconsistent_naming_highlighting=none
 
 dotnet_naming_rule.interface_should_be_begins_with_i.severity = suggestion
 dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface

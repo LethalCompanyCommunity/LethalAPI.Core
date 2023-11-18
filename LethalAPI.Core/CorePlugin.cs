@@ -17,6 +17,7 @@ using System.IO;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using Loader;
 using MEC;
 
 /// <inheritdoc />
@@ -51,10 +52,10 @@ public class CorePlugin : BaseUnityPlugin
         _ = new Events.Events();
         Instance = this;
 
-        Loader.PluginDirectory = Paths.PluginPath;
-        Loader.DependencyDirectory = Path.GetFullPath(Path.Combine(Paths.PluginPath, "../", "Dependencies"));
-        Loader.ConfigDirectory = Paths.ConfigPath;
-        _ = new Loader();
+        PluginLoader.PluginDirectory = Paths.PluginPath;
+        PluginLoader.DependencyDirectory = Path.GetFullPath(Path.Combine(Paths.PluginPath, "../", "Dependencies"));
+        PluginLoader.ConfigDirectory = Paths.ConfigPath;
+        _ = new PluginLoader();
 
         Events.Handlers.Server.GameOpened += InitTimings;
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
