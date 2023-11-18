@@ -45,6 +45,11 @@ public class Patcher
     public static HashSet<Type> UnpatchedTypes { get; private set; } = Events.UseDynamicPatching ? GetNonEventPatchTypes() : GetAllPatchTypes();
 
     /// <summary>
+    /// Gets a <see cref="HashSet{T}"/> that contains all patch types that have been patched.
+    /// </summary>
+    public static HashSet<Type> PatchedTypes { get; } = new();
+
+    /// <summary>
     /// Gets a set of types and methods for which LethalAPI patches should not be run.
     /// </summary>
     // ReSharper disable once CollectionNeverUpdated.Global
@@ -70,6 +75,13 @@ public class Patcher
             Log.Debug($"Patching event for {types.Count} types.", Events.DebugPatches, "LethalAPI-Patcher");
             foreach (Type type in types)
             {
+                if (PatchedTypes.Contains(type))
+                {
+                    Log.Debug($"Type {type.FullName} has already been patched.", Events.DebugPatches, "LethalAPI-Patcher");
+                    continue;
+                }
+
+                PatchedTypes.Add(type);
                 List<MethodInfo> methodInfos = new PatchClassProcessor(Harmony, type).Patch();
                 if (DisabledPatchesHashSet.Any(x => methodInfos.Contains(x)))
                     ReloadDisabledPatches();
@@ -100,6 +112,7 @@ public class Patcher
                 totalPatches++;
                 try
                 {
+                    PatchedTypes.Add(patch);
                     Harmony.CreateClassProcessor(patch).Patch();
                     UnpatchedTypes.Remove(patch);
                     Log.Debug($"Patching type '{patch.FullName}'", Events.DebugPatches, "LethalAPI-Patcher");
@@ -142,6 +155,7 @@ public class Patcher
         Log.Debug("Un-patching events...");
         Harmony.UnpatchID(Harmony.Id);
         UnpatchedTypes = GetAllPatchTypes();
+        PatchedTypes.Clear();
 
         Log.Debug("All events have been unpatched. Goodbye!");
     }
