@@ -18,8 +18,6 @@ using HarmonyTools;
 using LethalAPI.Core.Events.Attributes;
 using LethalAPI.Core.Events.EventArgs.Player;
 
-using static AccessTools;
-
 /// <summary>
 ///     Patches the <see cref="HandlersPlayer.Healing"/> and <see cref="HandlersPlayer.CriticallyInjure"/> event.
 /// </summary>
@@ -28,8 +26,6 @@ using static AccessTools;
 [EventPatch(typeof(HandlersPlayer), nameof(HandlersPlayer.Healing))]
 internal static class PlayerHealingInjuringTranspiler
 {
-    private static readonly FieldInfo CriticallyInjuredField = Field(typeof(PlayerControllerB), nameof(PlayerControllerB.criticallyInjured));
-
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
