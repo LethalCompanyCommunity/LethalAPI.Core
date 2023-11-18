@@ -166,7 +166,16 @@ public static class EventTranspilerInjector
                     continue;
                 }
 
-                parameterStack.Insert(parameterStack.Count, new CodeInstruction(OpCodes.Ldarg_S, j));
+                CodeInstruction instruction = (j + (originalMethod.IsStatic ? 0 : 1)) switch
+                    {
+                        0 => new CodeInstruction(OpCodes.Ldarg_0),
+                        1 => new CodeInstruction(OpCodes.Ldarg_1),
+                        2 => new CodeInstruction(OpCodes.Ldarg_2),
+                        3 => new CodeInstruction(OpCodes.Ldarg_3),
+                        var n => new CodeInstruction(OpCodes.Ldarg_S, n),
+                    };
+
+                parameterStack.Insert(parameterStack.Count, instruction);
             }
         }
 
