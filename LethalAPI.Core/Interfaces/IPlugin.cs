@@ -14,13 +14,13 @@ using System.Reflection;
 /// The main interface for implementing a plugin.
 /// </summary>
 /// <typeparam name="TConfig">The config type of the plugin.</typeparam>
-public interface IPlugin<out TConfig>
+public interface IPlugin<TConfig>
     where TConfig : IConfig
 {
     /// <summary>
-    /// Gets the config.
+    /// Gets or sets the config.
     /// </summary>
-    public TConfig Config { get; }
+    public TConfig Config { get; set; }
 
     /// <summary>
     /// Gets the assembly that the plugin is located in.

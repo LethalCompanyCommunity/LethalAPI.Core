@@ -35,7 +35,11 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     }
 
     /// <inheritdoc />
-    public TConfig Config { get; } = new();
+    /// <remarks>
+    /// DO NOT OVERRIDE THIS UNLESS YOU KNOW WHAT YOU ARE DOING.
+    /// It should only be utilized for extremely specific implementations.
+    /// </remarks>
+    public virtual TConfig Config { get; set; } = new();
 
     /// <inheritdoc />
     public Assembly Assembly { get; init; }
@@ -85,6 +89,7 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
     private readonly string descriptionValue;
     private readonly Version versionValue;
     private readonly Action onEnable;
+    private readonly FieldInfo configField;
 
     private readonly Version requiredAPIVersionValue;
     private readonly Action? onDisable;
@@ -98,11 +103,12 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
     /// <param name="description">A description of what the plugin is and what it does.</param>
     /// <param name="author">The name(s) of the author(s).</param>
     /// <param name="version">The version of the plugin being run.</param>
+    /// <param name="configField">The field that represents the config.</param>
     /// <param name="requiredAPIVersion">The optional required framework version for the plugin to run.</param>
     /// <param name="onEnabled">The action that will be called when the plugin is enabled.</param>
     /// <param name="onDisabled">The action that will be called when the plugin is disabled.</param>
     /// <param name="onReloaded">The action that will be called when the plugin is reloaded.</param>
-    public AttributePlugin(object instance, string name, string description, string author, Version version, Action onEnabled, Version? requiredAPIVersion = null, Action? onDisabled = null, Action? onReloaded = null)
+    public AttributePlugin(object instance, string name, string description, string author, Version version, Action onEnabled, FieldInfo configField, Version? requiredAPIVersion = null, Action? onDisabled = null, Action? onReloaded = null)
     {
         this.Instance = (TPlugin)instance;
         this.nameValue = name;
@@ -110,6 +116,7 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
         this.authorValue = author;
         this.versionValue = version;
         this.onEnable = onEnabled;
+        this.configField = configField;
         this.requiredAPIVersionValue = requiredAPIVersion ?? new Version(1, 0, 0);
         this.onReload = onReloaded;
         this.onDisable = onDisabled;
@@ -119,6 +126,13 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
     /// Gets the main instance of the class.
     /// </summary>
     public TPlugin Instance { get; init; }
+
+    /// <inheritdoc/>
+    public override TConfig Config
+    {
+        get => (TConfig)this.configField.GetValue(this.Instance);
+        set => this.configField.SetValue(this.Instance, value);
+    }
 
     /// <inheritdoc/>
     public override string Name => this.nameValue;

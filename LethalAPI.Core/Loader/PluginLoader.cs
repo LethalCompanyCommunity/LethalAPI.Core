@@ -22,8 +22,10 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 using Attributes;
+using Configs;
 using Features;
 using Interfaces;
 using Resources;
@@ -66,10 +68,13 @@ public sealed class PluginLoader
         if(!Directory.Exists(ConfigDirectory))
             Directory.CreateDirectory(ConfigDirectory);
 
+        ConfigLoader.ConfigDirectory = ConfigDirectory;
+
         try
         {
             LoadDependencies();
             LoadPlugins();
+            ConfigLoader.LoadAllConfigs();
             EnablePlugins();
         }
         catch (Exception e)
@@ -278,11 +283,19 @@ public sealed class PluginLoader
         int i = 0;
         foreach (EmbeddedResourceData highPriorityAssembly in competingAssemblies.Values)
         {
-            i++;
-            Assembly assembly = (Assembly)highPriorityAssembly.Parser?.Parse(highPriorityAssembly.GetStream())!;
-            string version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? assembly.GetName().Version?.ToString() ?? string.Empty;
-            string versionString = version == string.Empty ? $" (&gv{version}&7)" : string.Empty;
-            Log.Info($"Loaded &fEmbedded Dependency &7'&3{assembly.GetName().Name}&7'{versionString}", "LethalAPI-Loader");
+            try
+            {
+                i++;
+                Assembly assembly = (Assembly)highPriorityAssembly.Parser?.Parse(highPriorityAssembly.GetStream())!;
+                Dependencies.Add(assembly);
+                Locations[assembly] = highPriorityAssembly.FileLocation;
+                Log.Info($"Loaded &fEmbedded Dependency &h'&3{assembly.GetName().Name}&h'&7@&gv{assembly.GetName().Version.ToString(3)}&7", "LethalAPI-Loader");
+            }
+            catch (Exception e)
+            {
+                Log.Warn($"An error has occured while loading dependencies.", "LethalAPI-Loader");
+                Log.Debug($"Exception: \n{e}", ShowDebug, "LethalAPI-Loader");
+            }
         }
 
         Log.Debug($"Loaded {i} high priority resources.", ShowDebug);
@@ -291,11 +304,19 @@ public sealed class PluginLoader
         // Now load the lower priority assemblies first.
         foreach (EmbeddedResourceData lowPriorityAssembly in lowPriorityAssemblies)
         {
-            i++;
-            Assembly assembly = (Assembly)lowPriorityAssembly.Parser?.Parse(lowPriorityAssembly.GetStream())!;
-            string version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? assembly.GetName().Version?.ToString() ?? string.Empty;
-            string versionString = version == string.Empty ? $" (&gv{version}&7)" : string.Empty;
-            Log.Info($"Loaded &fEmbedded Dependency &7'&3{assembly.GetName().Name}&7'{versionString}", "LethalAPI-Loader");
+            try
+            {
+                i++;
+                Assembly assembly = (Assembly)lowPriorityAssembly.Parser?.Parse(lowPriorityAssembly.GetStream())!;
+                Locations[assembly] = lowPriorityAssembly.FileLocation;
+                Log.Info($"Loaded &fEmbedded Dependency &h'&3{assembly.GetName().Name}&h'&7@&gv{assembly.GetName().Version.ToString(3)}&7", "LethalAPI-Loader");
+                Dependencies.Add(assembly);
+            }
+            catch (Exception e)
+            {
+                Log.Warn($"An error has occured while loading dependencies.", "LethalAPI-Loader");
+                Log.Debug($"Exception: \n{e}", ShowDebug, "LethalAPI-Loader");
+            }
         }
 
         Log.Debug($"Loaded {i} low priority resources.", ShowDebug);
@@ -527,6 +548,7 @@ public sealed class PluginLoader
                         pluginInfo.Author,
                         version,
                         (Action)Delegate.CreateDelegate(typeof(Action), typeInstance, onEnabled),
+                        configField,
                         requiredApiVersion,
                         onDisabled is null ? () => { } : (Action)Delegate.CreateDelegate(typeof(Action), typeInstance, onDisabled),
                         onReloaded is null ? () => { } : (Action)Delegate.CreateDelegate(typeof(Action), typeInstance, onReloaded),
@@ -570,6 +592,15 @@ public sealed class PluginLoader
         {
             Log.Info($"Loading dependencies at {DependencyDirectory}");
 
+            // todo remove this.
+            StringBuilder builder = new ();
+            builder.AppendLine("Dependencies: ");
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                builder.AppendLine($" - &h'&3{assembly.GetName().Name}&h'&7@&gv{assembly.GetName().Version.ToString(3)}&7");
+            }
+
+            Log.Debug(builder.ToString(), EmbeddedResourceLoader.Debug);
             foreach (string dependency in Directory.GetFiles(DependencyDirectory, "*.dll"))
             {
                 Assembly? assembly = LoadAssembly(dependency);
@@ -580,7 +611,7 @@ public sealed class PluginLoader
 
                 Dependencies.Add(assembly);
 
-                Log.Info($"Loaded dependency {assembly.GetName().Name}@{assembly.GetName().Version.ToString(3)}");
+                Log.Info($"Loaded &fDependency &h'&3{assembly.GetName().Name}&h'&7@&gv{assembly.GetName().Version.ToString(3)}&7");
             }
 
             Log.Info("Dependencies loaded successfully!");
