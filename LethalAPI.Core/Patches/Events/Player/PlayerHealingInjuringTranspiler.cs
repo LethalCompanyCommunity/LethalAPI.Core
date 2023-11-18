@@ -18,6 +18,8 @@ using HarmonyTools;
 using LethalAPI.Core.Events.Attributes;
 using LethalAPI.Core.Events.EventArgs.Player;
 
+using static AccessTools;
+
 /// <summary>
 ///     Patches the <see cref="HandlersPlayer.Healing"/> and <see cref="HandlersPlayer.CriticallyInjure"/> event.
 /// </summary>
@@ -26,16 +28,18 @@ using LethalAPI.Core.Events.EventArgs.Player;
 [EventPatch(typeof(HandlersPlayer), nameof(HandlersPlayer.Healing))]
 internal static class PlayerHealingInjuringTranspiler
 {
+    private static readonly FieldInfo CriticallyInjuredField = Field(typeof(PlayerControllerB), nameof(PlayerControllerB.criticallyInjured));
+
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
         List<CodeInstruction> newInstructions = instructions.ToList();
 
-        int index = TranspilerHelper.FindNthInstruction(newInstructions, 2, instruction => instruction.opcode == OpCodes.Ret);
+        int index = newInstructions.FindNthInstruction(2, instruction => instruction.opcode == OpCodes.Ret);
+        EventTranspilerInjector.InjectDeniableEvent<HealingEventArgs>(ref newInstructions, ref generator, ref original, index + 1);
         EventTranspilerInjector.InjectDeniableEvent<CriticallyInjureEventArgs>(ref newInstructions, ref generator, ref original, 2);
-        EventTranspilerInjector.InjectDeniableEvent<HealingEventArgs>(ref newInstructions, ref generator, ref original, index);
 
-        for (int i = 0; i < newInstructions.Count; i++)
-            yield return newInstructions[i];
+        foreach (CodeInstruction? instruction in newInstructions)
+            yield return instruction;
     }
 }

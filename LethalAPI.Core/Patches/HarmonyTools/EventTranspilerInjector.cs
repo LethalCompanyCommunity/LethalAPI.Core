@@ -7,6 +7,7 @@
 
 namespace LethalAPI.Core.Patches.HarmonyTools;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -40,21 +41,7 @@ public static class EventTranspilerInjector
     public static void InjectDeniableEvent<T>(ref List<CodeInstruction> instructions, ref ILGenerator generator, ref MethodBase baseMethod, int index, List<CodeInstruction>? prefixInstructions = null, bool autoInsertConstructorParameters = true)
         where T : IDeniableEvent
     {
-        types ??= typeof(Log).Assembly.DefinedTypes
-            .Where(x => x.FullName?.StartsWith("LethalAPI.Core.Events.Handlers") ?? false).ToList();
-
-        PropertyInfo? propertyInfo = null;
-        foreach (TypeInfo type in types)
-        {
-            propertyInfo = type
-                .GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                .FirstOrDefault(pty => pty.PropertyType == typeof(Event<T>));
-
-            if (propertyInfo is not null)
-            {
-                break;
-            }
-        }
+        PropertyInfo? propertyInfo = GetEventPropertyInfo<T>();
 
         if (propertyInfo is null)
         {
@@ -62,74 +49,21 @@ public static class EventTranspilerInjector
             return;
         }
 
-        List<CodeInstruction> parameterStack = new ();
+        CodeInstruction originalInstruction = instructions[index];
 
-        List<ParameterInfo> baseParameters = baseMethod.GetParameters().ToList();
-        ParameterInfo[] parameters = typeof(T).GetConstructors()[0].GetParameters();
-        for (int i = 0; i < parameters.Length; i++)
-        {
-            ParameterInfo param = parameters[i];
+        List<CodeInstruction> parameterStack = autoInsertConstructorParameters
+            ? CreateEventParameters<T>(baseMethod)
+            : new List<CodeInstruction>();
 
-            // this
-            if (i == 0 && param.ParameterType == baseMethod.DeclaringType && !baseMethod.IsStatic)
-            {
-                parameterStack.Insert(parameterStack.Count, new(OpCodes.Ldarg_0));
-                continue;
-            }
-
-            // IsAllowed or IsEnabled.
-            if (i == parameters.Length - 1 && param.ParameterType == typeof(bool))
-            {
-                parameterStack.Insert(parameterStack.Count, new(OpCodes.Ldc_I4_1));
-                continue;
-            }
-
-            CodeInstruction? opCode = null;
-            for (int j = 0; j < baseParameters.Count; j++)
-            {
-                if (baseParameters[j].ParameterType != param.ParameterType || baseParameters[j].Name != param.Name)
-                {
-                    continue;
-                }
-
-                opCode = (j + (baseMethod.IsStatic ? 0 : 1)) switch
-                {
-                    0 => new CodeInstruction(OpCodes.Ldarg_0),
-                    1 => new CodeInstruction(OpCodes.Ldarg_1),
-                    2 => new CodeInstruction(OpCodes.Ldarg_2),
-                    3 => new CodeInstruction(OpCodes.Ldarg_3),
-                    _ => new CodeInstruction(OpCodes.Ldarg_S, j),
-                };
-                break;
-            }
-
-            if (opCode is null)
-                continue;
-
-            parameterStack.Insert(i, opCode);
-        }
-
-        LocalBuilder local = generator.DeclareLocal(typeof(T));
         Label rtn = generator.DefineLabel();
 
         List<CodeInstruction> opcodes = new()
         {
-            // TEventArgs ev = new()
-            // new(OpCodes.Callvirt),
-            new(OpCodes.Newobj, GetDeclaredConstructors(typeof(T))[0]),
+            parameterStack,
+            CreateEventArgsObject<T>(),
             new(OpCodes.Dup),
-            new(OpCodes.Dup),
-            new(OpCodes.Stloc_S, local),
-            new(OpCodes.Call, PropertyGetter(propertyInfo.DeclaringType, propertyInfo.Name)),
-            new(OpCodes.Call, Method(typeof(Event<T>), nameof(Event<T>.InvokeSafely))),
-
-            // Handlers.{Handler}.{Event}.InvokeSafely(ev)
-
-            // if (!ev.IsAllowed)
-            //   return
-            new(OpCodes.Callvirt, PropertyGetter(typeof(T), nameof(IDeniableEvent.IsAllowed))),
-            new(OpCodes.Brfalse, rtn),
-            new(OpCodes.Ret),
+            CreateEventAction<T>(),
+            CreateEventDenyReturn<T>(rtn),
         };
         if (prefixInstructions is { Count: > 0 })
         {
@@ -137,9 +71,123 @@ public static class EventTranspilerInjector
             index += prefixInstructions.Count;
         }
 
-        opcodes.InsertRange(0, parameterStack);
         instructions.InsertRange(index, opcodes);
-        index += opcodes.Count + parameterStack.Count + 1;
-        instructions[index] = instructions[index].WithLabels(rtn);
+        instructions[instructions.Count - 1].WithLabels(rtn);
+
+        if (originalInstruction.labels.Count > 0)
+        {
+            instructions[index].labels.AddRange(originalInstruction.labels);
+            originalInstruction.labels.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Create instructions which return if the given <see cref="IDeniableEvent"/> is not allowed.
+    /// </summary>
+    /// <param name="ret">The return label to branch to.</param>
+    /// <typeparam name="T">An <see cref="IDeniableEvent"/>; event.</typeparam>
+    /// <returns>A list of <see cref="CodeInstruction"/>s that return if the event is not allowed.</returns>
+    internal static IEnumerable<CodeInstruction> CreateEventDenyReturn<T>(Label ret)
+        where T : IDeniableEvent
+    {
+        return new List<CodeInstruction>
+        {
+            new(OpCodes.Callvirt, PropertyGetter(typeof(T), nameof(IDeniableEvent.IsAllowed))),
+            new(OpCodes.Brfalse, ret),
+        };
+    }
+
+    /// <summary>
+    /// Create instructions to construct the given <see cref="ILethalApiEvent"/>.
+    /// </summary>
+    /// <typeparam name="T">An <see cref="ILethalApiEvent"/>; event.</typeparam>
+    /// <returns>A <see cref="CodeInstruction"/> that constructs the event.</returns>
+    internal static CodeInstruction CreateEventArgsObject<T>()
+        where T : ILethalApiEvent
+    {
+        return new CodeInstruction(OpCodes.Newobj, GetDeclaredConstructors(typeof(T))[0]);
+    }
+
+    /// <summary>
+    /// Create instruction to call the delegate for the given <see cref="ILethalApiEvent"/>.
+    /// </summary>
+    /// <typeparam name="T">An <see cref="ILethalApiEvent"/>; event.</typeparam>
+    /// <returns>A <see cref="CodeInstruction"/> that calls the event delegate.</returns>
+    /// <exception cref="Exception">Thrown if the event delegate could not be found.</exception>
+    internal static CodeInstruction CreateEventAction<T>()
+        where T : ILethalApiEvent
+    {
+        PropertyInfo? propertyInfo = GetEventPropertyInfo<T>();
+        if (propertyInfo?.GetValue(null) is not Event<T> @event)
+        {
+            throw new Exception($"Failed to get event {typeof(T).Name}!");
+        }
+
+        return Transpilers.EmitDelegate((Action<T>)Action);
+
+        void Action(T eventArgs) => @event.InvokeSafely(eventArgs);
+    }
+
+    /// <summary>
+    /// Creates instructions to load event parameters for the given <see cref="ILethalApiEvent"/>.
+    /// </summary>
+    /// <param name="originalMethod">The original method being transpiled.</param>
+    /// <typeparam name="T">An <see cref="ILethalApiEvent"/> event.</typeparam>
+    /// <returns>A list of <see cref="CodeInstruction"/>s that load the event parameters.</returns>
+    internal static List<CodeInstruction> CreateEventParameters<T>(MethodBase originalMethod)
+        where T : ILethalApiEvent
+    {
+        ParameterInfo[] originalMethodParameters = originalMethod.GetParameters();
+        ParameterInfo[] eventConstructorParameters = GetDeclaredConstructors(typeof(T))[0].GetParameters();
+
+        List<CodeInstruction> parameterStack = new();
+        for (int i = 0; i < eventConstructorParameters.Length; i++)
+        {
+            ParameterInfo parameter = eventConstructorParameters[i];
+
+            if (i == 0 && parameter.ParameterType == originalMethod.DeclaringType && !originalMethod.IsStatic)
+            {
+                parameterStack.Insert(parameterStack.Count, new CodeInstruction(OpCodes.Ldarg_0));
+                continue;
+            }
+
+            if (i == eventConstructorParameters.Length - 1 && parameter.ParameterType == typeof(bool))
+            {
+                parameterStack.Insert(parameterStack.Count, new CodeInstruction(OpCodes.Ldc_I4_1));
+                continue;
+            }
+
+            for (int j = 0; j < originalMethodParameters.Length; j++)
+            {
+                ParameterInfo originalMethodParameter = originalMethodParameters[j];
+                if (originalMethodParameter.ParameterType != parameter.ParameterType ||
+                    originalMethodParameter.Name != parameter.Name)
+                {
+                    continue;
+                }
+
+                parameterStack.Insert(parameterStack.Count, new CodeInstruction(OpCodes.Ldarg_S, j));
+            }
+        }
+
+        return parameterStack;
+    }
+
+    /// <summary>
+    /// Finds the <see cref="Event{T}"/> property for the given <see cref="ILethalApiEvent"/>.
+    /// </summary>
+    /// <typeparam name="T">An <see cref="ILethalApiEvent"/> event.</typeparam>
+    /// <returns>The <see cref="Event{T}"/> property info for the given <see cref="ILethalApiEvent"/>.</returns>
+    private static PropertyInfo? GetEventPropertyInfo<T>()
+        where T : ILethalApiEvent
+    {
+        types ??= typeof(Log).Assembly.DefinedTypes
+            .Where(x => x.FullName?.StartsWith("LethalAPI.Core.Events.Handlers") ?? false).ToList();
+
+        return types
+            .Select(type => type
+                .GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                .FirstOrDefault(pty => pty.PropertyType == typeof(Event<T>)))
+            .FirstOrDefault(propertyInfo => propertyInfo is not null);
     }
 }
