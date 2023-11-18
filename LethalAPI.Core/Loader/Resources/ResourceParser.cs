@@ -33,7 +33,7 @@ public abstract class ResourceParser
     /// <summary>
     /// Gets a dictionary containing any cached embedded resources.
     /// </summary>
-    public static Dictionary<string, List<EmbeddedResourceData>> CachedResources => new()
+    public static Dictionary<string, List<EmbeddedResourceData>> CachedResources { get; private set; } = new()
     {
         { "unknown", new List<EmbeddedResourceData>() },
         { "dll", new List<EmbeddedResourceData>() },
@@ -100,10 +100,10 @@ public abstract class ResourceParser
     /// <param name="resourceData">The embedded resource information.</param>
     public virtual void ResourceFound(EmbeddedResourceData resourceData)
     {
-        string key = resourceData.FileExtension == string.Empty ? "unknown" : resourceData.FileExtension;
-        if (!CachedResources.ContainsKey(key))
-            CachedResources.Add(key, new List<EmbeddedResourceData>());
+        if (!CachedResources.ContainsKey(this.ExtensionName))
+            CachedResources.Add(this.ExtensionName, new List<EmbeddedResourceData>());
 
-        CachedResources[key].Add(resourceData);
+        CachedResources[this.ExtensionName].Add(resourceData);
+        Log.Debug($"Added '{resourceData.FileName}' to cache {this.ExtensionName} [{CachedResources[this.ExtensionName].Count}]", EmbeddedResourceLoader.Debug);
     }
 }

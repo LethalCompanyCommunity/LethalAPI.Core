@@ -43,7 +43,7 @@ public sealed class DllParser : ResourceParser
     {
         try
         {
-            resourceData.AssemblyName = AssemblyName.GetAssemblyName(resourceData.FileLocation);
+            // resourceData.AssemblyName = AssemblyName.GetAssemblyName(resourceData.FileLocation);
         }
         catch (Exception e)
         {

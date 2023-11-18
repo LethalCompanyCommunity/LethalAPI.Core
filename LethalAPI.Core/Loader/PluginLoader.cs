@@ -215,6 +215,7 @@ public sealed class PluginLoader
     /// </summary>
     public static void LoadPlugins()
     {
+        Log.Debug("Now loading plugins.", ShowDebug);
         foreach (string assemblyPath in Directory.GetFiles(PluginDirectory, "*.dll"))
         {
             Assembly? assembly = LoadAssembly(assemblyPath);
@@ -228,6 +229,7 @@ public sealed class PluginLoader
         // This is where we ensure we load the highest version dependencies first.
         Dictionary<string, EmbeddedResourceData> competingAssemblies = new ();
         List<EmbeddedResourceData> lowPriorityAssemblies = new();
+        Log.Debug($"Loading {ResourceParser.CachedResources[DllParser.Instance.ExtensionName].Count()} cached assemblies.");
         foreach (EmbeddedResourceData challengingAssembly in ResourceParser.CachedResources[DllParser.Instance.ExtensionName])
         {
             // Assembly must have AssemblyName info to be compared.
@@ -277,7 +279,10 @@ public sealed class PluginLoader
         foreach (EmbeddedResourceData highPriorityAssembly in competingAssemblies.Values)
         {
             i++;
-            highPriorityAssembly.Parser?.Parse(highPriorityAssembly.GetStream());
+            Assembly assembly = (Assembly)highPriorityAssembly.Parser?.Parse(highPriorityAssembly.GetStream())!;
+            string version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? assembly.GetName().Version?.ToString() ?? string.Empty;
+            string versionString = version == string.Empty ? $" (&gv{version}&7)" : string.Empty;
+            Log.Info($"Loaded &fEmbedded Dependency &7'&3{assembly.GetName().Name}&7'{versionString}", "LethalAPI-Loader");
         }
 
         Log.Debug($"Loaded {i} high priority resources.", ShowDebug);
@@ -286,7 +291,11 @@ public sealed class PluginLoader
         // Now load the lower priority assemblies first.
         foreach (EmbeddedResourceData lowPriorityAssembly in lowPriorityAssemblies)
         {
-            lowPriorityAssembly.Parser?.Parse(lowPriorityAssembly.GetStream());
+            i++;
+            Assembly assembly = (Assembly)lowPriorityAssembly.Parser?.Parse(lowPriorityAssembly.GetStream())!;
+            string version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? assembly.GetName().Version?.ToString() ?? string.Empty;
+            string versionString = version == string.Empty ? $" (&gv{version}&7)" : string.Empty;
+            Log.Info($"Loaded &fEmbedded Dependency &7'&3{assembly.GetName().Name}&7'{versionString}", "LethalAPI-Loader");
         }
 
         Log.Debug($"Loaded {i} low priority resources.", ShowDebug);

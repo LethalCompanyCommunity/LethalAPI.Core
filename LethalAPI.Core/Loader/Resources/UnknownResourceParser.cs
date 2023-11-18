@@ -7,6 +7,7 @@
 
 namespace LethalAPI.Core.Loader.Resources;
 
+using System;
 using System.IO;
 
 /// <summary>
@@ -33,5 +34,5 @@ public sealed class UnknownResourceParser : ResourceParser
     /// <inheritdoc />
     /// <exception cref="System.NotImplementedException">This method is not meant to be called for this implementation.</exception>
     public override object Parse(MemoryStream stream) =>
-        throw new System.NotImplementedException();
+        throw new Exception($"This method is not implemented for the {nameof(UnknownResourceParser)}.");
 }

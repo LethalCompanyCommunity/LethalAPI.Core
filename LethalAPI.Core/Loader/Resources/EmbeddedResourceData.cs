@@ -81,38 +81,24 @@ public class EmbeddedResourceData
     /// <remarks>If a file is compressed, this will always keep the .compressed extension.</remarks>
     public string FileLocation { get; }
 
-    /// <summary>
-    /// Gets the file name with the extension.
-    /// </summary>
-    /// <remarks>
-    /// Compressed extensions will be stripped by this point.
-    /// <code>
+    /// <summary> Gets the file name with the extension. </summary>
+    /// <remarks> Compressed extensions will be stripped by this point. <code>
     /// Original:
     ///   - picture.png.compressed
     /// FileName:
     ///   - picture.png
-    /// </code>
-    /// </remarks>
-    /// <example>
-    ///     picture.png
-    /// </example>
+    /// </code></remarks>
+    /// <example> picture.png </example>
     public string FileName { get; }
 
-    /// <summary>
-    /// Gets or sets the file extension.
-    /// </summary>
-    /// <remarks>
-    /// Compressed extensions will be stripped by this point.
-    /// <code>
+    /// <summary> Gets or sets the file extension. </summary>
+    /// <remarks> Compressed extensions will be stripped by this point. <code>
     /// Original:
     ///   - picture.png.compressed
     /// FileName:
     ///   - png
-    /// </code>
-    /// </remarks>
-    /// <example>
-    ///     png
-    /// </example>
+    /// </code></remarks>
+    /// <example> png </example>
     /// <seealso cref="IsCompressed"/>
     public string FileExtension { get; set; }
 
