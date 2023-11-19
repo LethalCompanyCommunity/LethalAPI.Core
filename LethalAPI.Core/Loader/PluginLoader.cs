@@ -28,6 +28,7 @@ using Attributes;
 using Configs;
 using Features;
 using Interfaces;
+using Patches.Fixes;
 using Resources;
 
 /// <summary>
@@ -42,14 +43,20 @@ public sealed class PluginLoader
 
     private static readonly Dictionary<string, IPlugin<IConfig>> PluginsValue = new();
 
-    private static readonly bool ShowDebug = false;
+    private static readonly bool ShowDebug = true;
+
+    private static readonly bool ShowPluginFinderDebug = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginLoader"/> class.
     /// </summary>
     public PluginLoader()
     {
+        Log.Raw("[LethalAPI-Loader] Initializing Loader.");
         Singleton = this;
+        PluginDirectory = BepInEx.Paths.PluginPath;
+        DependencyDirectory = Path.GetFullPath(Path.Combine(BepInEx.Paths.PluginPath, "../", "Dependencies"));
+        ConfigDirectory = BepInEx.Paths.ConfigPath;
 
         // Ensure that these are registered by loading the reference.
         _ = new UnknownResourceParser();
@@ -58,7 +65,6 @@ public sealed class PluginLoader
         // Instance is stored in the type.
         _ = new EmbeddedResourceLoader();
 
-        Log.Debug("Initializing Loader.");
         if(!Directory.Exists(PluginDirectory))
             Directory.CreateDirectory(PluginDirectory);
 
@@ -74,7 +80,15 @@ public sealed class PluginLoader
         {
             LoadDependencies();
             LoadPlugins();
-            ConfigLoader.LoadAllConfigs();
+            try
+            {
+                ConfigLoader.LoadAllConfigs();
+            }
+            catch (Exception e)
+            {
+                Log.Debug(e.ToString());
+            }
+
             EnablePlugins();
         }
         catch (Exception e)
@@ -102,12 +116,7 @@ public sealed class PluginLoader
     /// <summary>
     /// Gets a dictionary containing the file paths of assemblies.
     /// </summary>
-    public static Dictionary<Assembly, string> Locations { get; } = new();
-
-    /// <summary>
-    /// Gets the initialized global random class.
-    /// </summary>
-    public static Random Random { get; } = new();
+    public static Dictionary<Assembly, string> Locations { get; private set; } = new();
 
     /// <summary>
     /// Gets the version of the assembly.
@@ -118,12 +127,18 @@ public sealed class PluginLoader
     /// Gets plugin dependencies.
     /// </summary>
     // ReSharper disable once CollectionNeverQueried.Global
-    public static List<Assembly> Dependencies { get; } = new();
+    public static List<Assembly> Dependencies { get; private set; } = new();
 
     /// <summary>
     /// Gets a dictionary of all registered plugins, with the key being the plugin name.
     /// </summary>
     public static ReadOnlyDictionary<string, IPlugin<IConfig>> Plugins => new(PluginsValue);
+
+    /// <summary>
+    /// Triggers the fix for the BepInEx Logger.
+    /// </summary>
+    /// <param name="harmony">The harmony instance to use to log.</param>
+    public static void FixLoggingBepInEx(Harmony harmony) => FixBepInExLoggerPrefix.Patch(harmony);
 
     /// <summary>
     /// Enables all plugins.
@@ -286,14 +301,28 @@ public sealed class PluginLoader
             try
             {
                 i++;
+
                 Assembly assembly = (Assembly)highPriorityAssembly.Parser?.Parse(highPriorityAssembly.GetStream())!;
+                /*Stream dataStream = highPriorityAssembly.Assembly.GetManifestResourceStream(highPriorityAssembly.FileLocation)!;
+                MemoryStream stream = new();
+                if (highPriorityAssembly.IsCompressed)
+                {
+                    DeflateStream decompressionSteam = new DeflateStream(dataStream, CompressionMode.Decompress);
+                    decompressionSteam.CopyTo(stream);
+                }
+                else
+                {
+                    dataStream.CopyTo(stream);
+                }
+
+                Assembly assembly = Assembly.Load(stream.ToArray());*/
                 Dependencies.Add(assembly);
                 Locations[assembly] = highPriorityAssembly.FileLocation;
                 Log.Info($"Loaded &fEmbedded Dependency &h'&3{assembly.GetName().Name}&h'&7@&gv{assembly.GetName().Version.ToString(3)}&7", "LethalAPI-Loader");
             }
             catch (Exception e)
             {
-                Log.Warn($"An error has occured while loading dependencies.", "LethalAPI-Loader");
+                Log.Warn($"An error has occured while loading embedded dependency '{highPriorityAssembly}'.", "LethalAPI-Loader");
                 Log.Debug($"Exception: \n{e}", ShowDebug, "LethalAPI-Loader");
             }
         }
@@ -307,19 +336,52 @@ public sealed class PluginLoader
             try
             {
                 i++;
+
                 Assembly assembly = (Assembly)lowPriorityAssembly.Parser?.Parse(lowPriorityAssembly.GetStream())!;
+                /*Stream dataStream = lowPriorityAssembly.Assembly.GetManifestResourceStream(lowPriorityAssembly.FileLocation)!;
+                MemoryStream stream = new();
+                if (lowPriorityAssembly.IsCompressed)
+                {
+                    DeflateStream decompressionSteam = new DeflateStream(dataStream, CompressionMode.Decompress);
+                    decompressionSteam.CopyTo(stream);
+                }
+                else
+                {
+                    dataStream.CopyTo(stream);
+                }
+
+                Assembly assembly = Assembly.Load(stream.ToArray());
+                */
+
                 Locations[assembly] = lowPriorityAssembly.FileLocation;
                 Log.Info($"Loaded &fEmbedded Dependency &h'&3{assembly.GetName().Name}&h'&7@&gv{assembly.GetName().Version.ToString(3)}&7", "LethalAPI-Loader");
                 Dependencies.Add(assembly);
             }
             catch (Exception e)
             {
-                Log.Warn($"An error has occured while loading dependencies.", "LethalAPI-Loader");
+                Log.Warn($"An error has occured while loading embedded dependency '{lowPriorityAssembly.FileName}'.", "LethalAPI-Loader");
                 Log.Debug($"Exception: \n{e}", ShowDebug, "LethalAPI-Loader");
             }
         }
 
         Log.Debug($"Loaded {i} low priority resources.", ShowDebug);
+
+        StringBuilder builder = new StringBuilder().AppendLine("Dependencies: ");
+        foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            if (Dependencies.Contains(assembly))
+                builder.AppendLine($" - &h'&3{assembly.GetName().Name}&h'&7@&gv{assembly.GetName().Version.ToString(3)}&h [{assembly.FullName}]&7");
+        }
+
+        Log.Debug(builder.ToString(), EmbeddedResourceLoader.Debug);
+
+        foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            if (Locations.ContainsKey(assembly))
+                continue;
+
+            Locations.Add(assembly, assembly.Location);
+        }
 
         foreach (Assembly assembly in Locations.Keys)
         {
@@ -353,8 +415,14 @@ public sealed class PluginLoader
         {
             Assembly assembly = Assembly.Load(File.ReadAllBytes(path));
 
-            // ResolveAssemblyEmbeddedResources(assembly);
-            EmbeddedResourceLoader.Instance.GetEmbeddedObjects(assembly);
+            try
+            {
+                EmbeddedResourceLoader.Instance.GetEmbeddedObjects(assembly);
+            }
+            catch (Exception e)
+            {
+                Log.Warn($"Could not load embedded assemblies. Error: \n{e}");
+            }
 
             return assembly;
         }
@@ -377,19 +445,22 @@ public sealed class PluginLoader
         {
             foreach (Type type in assembly.GetTypes())
             {
+                if (type == typeof(AttributePlugin<,>) || type.IsSubclassOf(typeof(AttributePlugin<,>)))
+                    continue;
+
                 if (type.IsAbstract || type.IsInterface)
                 {
-                    Log.Debug($"\"{type.FullName}\" is an interface or abstract class, skipping.", ShowDebug);
+                    Log.Debug($"\"{type.FullName}\" is an interface or abstract class, skipping.", ShowPluginFinderDebug);
                     continue;
                 }
 
                 if (!IsDerivedFromPlugin(type))
                 {
-                    Log.Debug($"\"{type.FullName}\" does not inherit from Plugin<TConfig>, skipping.", ShowDebug);
+                    Log.Debug($"\"{type.FullName}\" does not inherit from Plugin<TConfig>, skipping.", ShowPluginFinderDebug);
                     continue;
                 }
 
-                Log.Debug($"Loading type {type.FullName}", ShowDebug);
+                Log.Debug($"Loading type {type.FullName}", ShowPluginFinderDebug);
 
                 IPlugin<IConfig>? plugin = null;
 
@@ -398,7 +469,17 @@ public sealed class PluginLoader
                 {
                     Log.Debug("Public default constructor found, creating instance...", ShowDebug);
 
-                    plugin = constructor.Invoke(null) as IPlugin<IConfig>;
+                    object obj = constructor.Invoke(null);
+
+                    // object obj = Activator.CreateInstance(type, BindingFlags.CreateInstance | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (obj is not IPlugin<IConfig> pluginI)
+                    {
+                        Log.Warn("Result is not a plugin.");
+                    }
+                    else
+                    {
+                        plugin = pluginI;
+                    }
                 }
                 else
                 {
@@ -592,15 +673,6 @@ public sealed class PluginLoader
         {
             Log.Info($"Loading dependencies at {DependencyDirectory}");
 
-            // todo remove this.
-            StringBuilder builder = new ();
-            builder.AppendLine("Dependencies: ");
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                builder.AppendLine($" - &h'&3{assembly.GetName().Name}&h'&7@&gv{assembly.GetName().Version.ToString(3)}&7");
-            }
-
-            Log.Debug(builder.ToString(), EmbeddedResourceLoader.Debug);
             foreach (string dependency in Directory.GetFiles(DependencyDirectory, "*.dll"))
             {
                 Assembly? assembly = LoadAssembly(dependency);

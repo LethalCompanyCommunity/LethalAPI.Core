@@ -41,8 +41,8 @@ public sealed class ValidatingNodeDeserializer : INodeDeserializer
         {
             if (value is null)
                 Log.Error("Yaml Deserializer Null value (ValidatingNodeDeserializer)");
-            Validator.ValidateObject(value!, new ValidationContext(value!, null, null), true);
 
+            Validator.ValidateObject(value!, new ValidationContext(value!, null, null), true);
             return true;
         }
 

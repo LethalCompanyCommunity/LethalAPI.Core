@@ -70,7 +70,7 @@ public static class Log
     private static string GetDateString()
     {
         DateTime now = DateTime.Now;
-        return $"[{now:g} ({now:ss}.{now.Millisecond:00}s)]";
+        return $"[{$"{now:g}",-19} ({$"{now:ss}",-2}.{$"{now.Millisecond:000}",-3}s)]";
     }
 
     private static string GetCallingPlugin(MethodBase method, string input, bool includeMethod)
@@ -162,7 +162,7 @@ public static class Log
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
         // &7[&b&6{type}&B&7] &7[&b&2{prefix}&B&7]&r
-        Raw(Templates["Info"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin).Replace("{msg}", message).Replace("{type}", "Info"));
+        Raw(Templates["Info"].Replace("{time}", GetDateString()).Replace("{prefix}", $"{callingPlugin,-5}").Replace("{msg}", message).Replace("{type}", "Info"));
     }
 
     /// <summary>
@@ -251,13 +251,13 @@ public static class Log
     /// Logs information to the console, without adding any text to the message.
     /// </summary>
     /// <param name="message">The message to log.</param>
-    // /// <param name="formatConsoleColors">Indicates whether or not &amp;[Color] should be formatted.</param>
-    public static void Raw(string message/*, bool formatConsoleColors = true*/)
-    {
-        // if(formatConsoleColors)
-        //    message = FormatText(message);
-        CorePlugin._Logger.Log((LogLevel)62, message);
-    }
+    // ReSharper disable once Unity.PerformanceCriticalCodeInvocation
+    public static void Raw(string message) => LogMessage.Invoke(message);
+
+    /// <summary>
+    /// Called on a message log.
+    /// </summary>
+    public static event Action<string> LogMessage = null!;
 
     private static MethodBase GetCallingMethod(int skip = 0)
     {

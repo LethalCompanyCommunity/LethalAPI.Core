@@ -123,8 +123,6 @@ public class EmbeddedResourceData
     /// <returns>The uncompressed memory stream that is retrieved.</returns>
     public MemoryStream GetStream()
     {
-        using MemoryStream stream = new();
-
         Stream? dataStream = this.Assembly.GetManifestResourceStream(this.FileLocation);
         if (dataStream == null)
         {
@@ -137,7 +135,7 @@ public class EmbeddedResourceData
         MemoryStream memStream = new();
         if (this.IsCompressed)
         {
-            using DeflateStream decompressionStream = new(dataStream, CompressionMode.Decompress);
+            DeflateStream decompressionStream = new(dataStream, CompressionMode.Decompress);
             decompressionStream.CopyTo(memStream);
         }
         else

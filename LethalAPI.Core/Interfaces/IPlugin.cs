@@ -14,13 +14,13 @@ using System.Reflection;
 /// The main interface for implementing a plugin.
 /// </summary>
 /// <typeparam name="TConfig">The config type of the plugin.</typeparam>
-public interface IPlugin<TConfig>
+public interface IPlugin<out TConfig>
     where TConfig : IConfig
 {
     /// <summary>
-    /// Gets or sets the config.
+    /// Gets the config.
     /// </summary>
-    public TConfig Config { get; set; }
+    public TConfig Config { get; }
 
     /// <summary>
     /// Gets the assembly that the plugin is located in.
@@ -51,6 +51,12 @@ public interface IPlugin<TConfig>
     /// Gets the minimum required version of the api for the plugin to load.
     /// </summary>
     public Version RequiredAPIVersion { get; }
+
+    /// <summary>
+    /// Updates a config with a new config.
+    /// </summary>
+    /// <param name="newConfig">The new config to use.</param>
+    public void UpdateConfig(IConfig newConfig);
 
     /// <summary>
     /// Occurs when the plugin is enabled.

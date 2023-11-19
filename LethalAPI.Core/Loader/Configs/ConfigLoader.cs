@@ -7,17 +7,23 @@
 
 namespace LethalAPI.Core.Loader.Configs;
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
+using System.Reflection;
 
 using Interfaces;
+using MonoMod.Utils;
+using Resources;
 using UnityEngine.UIElements;
+using YamlDotNet.Core;
+using YamlDotNet.Serialization;
 
 /// <summary>
 /// Provides the implementation for loading configs.
 /// </summary>
-public sealed class ConfigLoader
+public static class ConfigLoader
 {
     /// <summary>
     /// Gets the directory where the configs live.
@@ -30,19 +36,55 @@ public sealed class ConfigLoader
     public static bool LoadSeperatedConfigFiles { get; private set; } = true;
 
     /// <summary>
+    /// Copy all properties from the source class to the target one.
+    /// </summary>
+    /// <param name="target">The target object.</param>
+    /// <param name="source">The source object to copy properties from.</param>
+    public static void CopyProperties(this object target, object source)
+    {
+        Type type = target.GetType();
+
+        if (type != source.GetType())
+            throw new Exception("Target and source type mismatch!");
+
+        foreach (PropertyInfo sourceProperty in type.GetProperties())
+        {
+            if (type.GetProperty(sourceProperty.Name) is { } property && property.GetCustomAttribute<YamlIgnoreAttribute>() is null && property.SetMethod is not null)
+                property.SetValue(target, sourceProperty.GetValue(source, null), null);
+        }
+    }
+
+    /// <summary>
     /// Loads the config for all plugin instances.
     /// </summary>
     public static void LoadAllConfigs()
     {
-        if (LoadSeperatedConfigFiles)
-        {
-            LoadAllConfigsCombined();
-            return;
-        }
+        Log.Debug($"deps loaded: {PluginLoader.Dependencies.Count}");
 
-        foreach (IPlugin<IConfig> plugin in PluginLoader.Plugins.Values)
+        try
         {
-            LoadConfig(plugin);
+            if (!LoadSeperatedConfigFiles)
+            {
+                LoadAllConfigsCombined();
+                return;
+            }
+
+            foreach (IPlugin<IConfig> plugin in PluginLoader.Plugins.Values)
+            {
+                LoadConfig(plugin);
+            }
+        }
+        catch (TypeLoadException e)
+        {
+            if (EmbeddedResourceLoader.Debug)
+            {
+                e.LogDetailed();
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Could not load configs due to an error!", "LethalAPI-Loader");
+            Log.Debug($"Exception: \n{e}", EmbeddedResourceLoader.Debug, "LethalAPI-Loader");
         }
     }
 
@@ -53,19 +95,29 @@ public sealed class ConfigLoader
     public static void LoadConfig(IPlugin<IConfig> plugin)
     {
         if (LoadSeperatedConfigFiles)
-            plugin.Config = GetSeparatedConfigValue(plugin);
+            plugin.UpdateConfig(GetSeparatedConfigValue(plugin));
         else
-            plugin.Config = GetConfigValueForPlugin(plugin);
+            plugin.UpdateConfig(GetConfigValueForPlugin(plugin));
     }
 
     [Pure]
     private static Dictionary<string, IConfig> GetLatestCombinedConfig()
     {
-        string path = Path.Combine(ConfigDirectory, "Config.yml");
-        using StreamReader reader = new(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-        Dictionary<string, IConfig> pluginConfigs =
-            Serialization.Deserializer.Deserialize<Dictionary<string, IConfig>>(reader.ReadToEnd());
-        reader.Close();
+        string path = Path.Combine(ConfigDirectory, "lethal-api-config.yml");
+        Dictionary<string, IConfig>? pluginConfigs = null;
+        try
+        {
+            if(File.Exists(path))
+                pluginConfigs = Serialization.Deserializer.Deserialize<Dictionary<string, IConfig>>(File.ReadAllText(path));
+        }
+        catch (Exception e)
+        {
+            Log.Warn("Old config was invalid. A backup of the old config will be made.");
+            Log.Debug($"{e}");
+            MakeBackupOfConfig(path);
+        }
+
+        pluginConfigs ??= new();
 
         bool changed = false;
         foreach (IPlugin<IConfig> plugin in PluginLoader.Plugins.Values)
@@ -75,6 +127,7 @@ public sealed class ConfigLoader
                 Log.Info($"Plugin config for plugin '{plugin.Name}' is missing! Generating new config.");
                 pluginConfigs.Add(plugin.Name.ToSnakeCase(), plugin.Config);
                 changed = true;
+                continue;
             }
 
             IConfig conf = pluginConfigs[plugin.Name.ToSnakeCase()];
@@ -88,9 +141,8 @@ public sealed class ConfigLoader
 
         if (changed)
         {
-            using StreamWriter writer = new (File.Open(path, FileMode.Truncate, FileAccess.Write, FileShare.Write));
-            writer.Write(Serialization.Serializer.Serialize(pluginConfigs));
-            writer.Close();
+            MakeBackupOfConfig(path);
+            File.WriteAllText(path, Serialization.Serializer.Serialize(pluginConfigs));
         }
 
         return pluginConfigs;
@@ -104,14 +156,24 @@ public sealed class ConfigLoader
     private static IConfig GetSeparatedConfigValue(IPlugin<IConfig> plugin)
     {
         string path = Path.Combine(ConfigDirectory, plugin.Name + ".yml");
-        using StreamReader reader = new (File.Open(path, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read));
-        IConfig conf = Serialization.Deserializer.Deserialize<IConfig>(reader.ReadToEnd());
-
-        if (!conf.GetType().IsSubclassOf(plugin.Config.GetType()))
+        IConfig? conf = null;
+        try
         {
-            StreamWriter writer = new(File.Open(path, FileMode.Truncate, FileAccess.Write, FileShare.Write));
-            writer.Write(Serialization.Serializer.Serialize(conf));
-            writer.Close();
+            if(File.Exists(path))
+                conf = Serialization.Deserializer.Deserialize<IConfig>(File.ReadAllText(path));
+        }
+        catch (Exception e)
+        {
+            if (e is YamlException yE)
+                yE.LogDetailed();
+            Log.Warn($"Could not load the config for plugin '{plugin.Name}'. Exception: \n{e}");
+        }
+
+        if (conf is null || !conf.GetType().IsSubclassOf(plugin.Config.GetType()))
+        {
+            conf ??= plugin.Config;
+            MakeBackupOfConfig(path);
+            File.WriteAllText(path, Serialization.Serializer.Serialize(conf));
             Log.Warn($"Plugin config for plugin '{plugin.Name}' is invalid or missing. Generating default values.");
         }
 
@@ -129,7 +191,49 @@ public sealed class ConfigLoader
                 continue;
             }
 
-            plugin.Config = latestConf[plugin.Name.ToSnakeCase()];
+            plugin.UpdateConfig(latestConf[plugin.Name.ToSnakeCase()]);
+        }
+    }
+
+    private static void MakeBackupOfConfig(string path)
+    {
+        if (!File.Exists(path))
+            return;
+        try
+        {
+            List<string> files = new()
+            {
+                "-old.yml",
+                "-old-1.yml",
+                "-old-2.yml",
+            };
+
+            string curFile = string.Empty;
+            for (int i = files.Count; i > 0; i--)
+            {
+                curFile = path.Replace(".yml", files[i - 1]);
+                string nextFile = i == 1 ? string.Empty : path.Replace(".yml", files[i - 2]);
+
+                // copied by the prev iteration
+                if (File.Exists(curFile))
+                    File.Delete(curFile);
+
+                if (nextFile == string.Empty)
+                {
+                    continue;
+                }
+
+                if (!File.Exists(nextFile))
+                    continue;
+
+                File.Copy(nextFile, curFile);
+            }
+
+            File.Copy(path, curFile);
+        }
+        catch (Exception e)
+        {
+            Log.Warn($"A backup file could not be made of the invalid config due to an error. Error: \n{e}");
         }
     }
 }

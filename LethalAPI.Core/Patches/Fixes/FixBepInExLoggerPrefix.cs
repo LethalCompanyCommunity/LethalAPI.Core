@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="FixLoggerPrefix.cs" company="LethalAPI Modding Community">
+// <copyright file="FixBepInExLoggerPrefix.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
@@ -23,8 +23,9 @@ using BepInEx.Logging;
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedParameter.Local
 #pragma warning disable SA1313
-[HarmonyPatch(typeof(ConsoleLogListener), nameof(ConsoleLogListener.LogEvent))]
-internal static class FixLoggerPrefix
+// This now is called manually in the plugin loader.
+// [HarmonyPatch(typeof(ConsoleLogListener), nameof(ConsoleLogListener.LogEvent))]
+internal static class FixBepInExLoggerPrefix
 {
     private static readonly Dictionary<char, ConsoleColor> ConsoleText = new ()
     {
@@ -45,6 +46,15 @@ internal static class FixLoggerPrefix
         { 'g', ConsoleColor.DarkCyan }, // dark cyan
         { 'h', ConsoleColor.Gray }, // gray
     };
+
+    /// <summary>
+    /// Enables this patch.
+    /// </summary>
+    /// <param name="harmony">The harmony instance to enable it on.</param>
+    internal static void Patch(Harmony harmony)
+        => harmony.Patch(
+            AccessTools.Method(typeof(ConsoleLogListener), nameof(ConsoleLogListener.LogEvent)),
+            new HarmonyMethod(AccessTools.Method(typeof(FixBepInExLoggerPrefix), nameof(Prefix))));
 
     [HarmonyPrefix]
     private static bool Prefix(ConsoleLogListener __instance, object sender, LogEventArgs eventArgs)

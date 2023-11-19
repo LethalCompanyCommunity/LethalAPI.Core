@@ -19,6 +19,8 @@ using System.Reflection;
 using Attributes;
 using Interfaces;
 
+using Harmony = Harmony;
+
 /// <summary>
 /// A tool for patching.
 /// </summary>

@@ -14,6 +14,7 @@ using System;
 using System.Reflection;
 
 using Interfaces;
+using Loader.Configs;
 
 /// <summary>
 /// Creates a new instance of a plugin.
@@ -28,10 +29,6 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     public Plugin()
     {
         this.Assembly = Assembly.GetCallingAssembly();
-        this.Name = Assembly.GetName().Name;
-        this.Description = string.Empty;
-        this.Author = Assembly.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
-        this.Version = Assembly.GetName().Version;
     }
 
     /// <inheritdoc />
@@ -45,24 +42,28 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     public Assembly Assembly { get; init; }
 
     /// <inheritdoc />
-    public virtual string Name { get; }
+    public abstract string Name { get; }
 
     /// <inheritdoc />
-    public virtual string Description { get; }
+    public abstract string Description { get; }
 
     /// <inheritdoc />
-    public virtual string Author { get; }
+    public abstract string Author { get; }
 
     /// <inheritdoc />
-    public virtual Version Version { get; }
+    public abstract Version Version { get; }
 
     /// <inheritdoc />
     public virtual Version RequiredAPIVersion { get; } = new(1, 0, 0);
 
-    /// <inheritdoc />
-    public virtual void OnEnabled()
+    /// <inheritdoc/>
+    public void UpdateConfig(IConfig newConfig)
     {
+        Config.CopyProperties(newConfig);
     }
+
+    /// <inheritdoc />
+    public abstract void OnEnabled();
 
     /// <inheritdoc />
     public virtual void OnDisabled()

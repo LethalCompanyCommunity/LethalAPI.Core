@@ -42,6 +42,7 @@ public static class Serialization
     /// Gets or sets provides the base deserializer for configs.
     /// </summary>
     public static IDeserializer Deserializer { get; set; } = new DeserializerBuilder()
+        .EnablePrivateConstructors()
         .WithTypeConverter(new VectorsConverter())
         .WithTypeConverter(new ColorConverter())
         .WithNamingConvention(UnderscoredNamingConvention.Instance)
