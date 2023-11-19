@@ -11,6 +11,7 @@ namespace LethalAPI.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -59,13 +60,39 @@ public static class Log
 
     private static ConcurrentDictionary<string, string> AssemblyNameReplacements { get; }
 
-    private static readonly Dictionary<string, string> Templates = new()
+    /// <summary>
+    /// A dictionary containing different logging templates.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// {time}   - the time of the log.
+    /// {type}   - the type of the log.
+    /// {prefix} - the plugins prefix if applicable. Alternatively the calling method if debug info is enabled.
+    /// {msg}    - the log message.
+    /// {il}     - the il label of an error.
+    /// {line}   - the line of an error.
+    /// </code>
+    /// <code>
+    /// Info - the template for info logs.
+    /// Debug - the template for debug logs.
+    /// Warn - the template for warning logs.
+    /// Error - the template for error logs.
+    /// LineLocNotFound - Stack trace line name if the line is not found.
+    /// LineLocFound - Stack trace line name if the line is found.
+    /// </code>
+    /// </example>
+    public static readonly Dictionary<string, string> Templates = new()
     {
         { "Info", "{time} &7[&b&6{type}&B&7] &7[&b&2{prefix}&B&7]&r {msg}" },
         { "Debug", "{time} &7[&b&5{type}&B&7] &7[&b&2{prefix}&B&7]&r {msg}" },
         { "Warn", "{time} &7[&b&3{type}&B&7] &7[&b&2{prefix}&B&7]&r {msg}" },
         { "Error", "{time} &7[&b&1{type}&B&7] &7[&b&2{prefix}&B&7]&r {msg}" },
+        { "LineLocNotFound", "&1Line Unknown&7 &h[&6IL_{il}&h]&7" },
+        { "LineLocFound", "&3Line {line}&7 &h[&6IL_{il}&h]&7" },
     };
+
+    /// <inheritdoc cref ="Core.Patches.Fixes.FixLoggerPrefix.ConsoleText" />
+    public static ReadOnlyDictionary<char, ConsoleColor> ColorCodes => Patches.Fixes.FixLoggerPrefix.ConsoleText;
 
     private static string GetDateString()
     {
