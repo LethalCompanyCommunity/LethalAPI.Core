@@ -19,6 +19,7 @@ namespace LethalAPI.Core.Loader;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -28,6 +29,7 @@ using Attributes;
 using Configs;
 using Features;
 using Interfaces;
+using MonoMod.RuntimeDetour;
 using Patches.Fixes;
 using Resources;
 
@@ -57,6 +59,9 @@ public sealed class PluginLoader
         PluginDirectory = BepInEx.Paths.PluginPath;
         DependencyDirectory = Path.GetFullPath(Path.Combine(BepInEx.Paths.PluginPath, "../", "Dependencies"));
         ConfigDirectory = BepInEx.Paths.ConfigPath;
+
+        // Hooks and fixes the exception stacktrace il.
+        _ = new ILHook(typeof(StackTrace).GetMethod("AddFrames", BindingFlags.Instance | BindingFlags.NonPublic), FixExceptionIL.IlHook);
 
         // Ensure that these are registered by loading the reference.
         _ = new UnknownResourceParser();

@@ -57,7 +57,7 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     public virtual Version RequiredAPIVersion { get; } = new(1, 0, 0);
 
     /// <inheritdoc/>
-    public void UpdateConfig(IConfig newConfig)
+    public void UpdateConfig(object newConfig)
     {
         Config.CopyProperties(newConfig);
     }

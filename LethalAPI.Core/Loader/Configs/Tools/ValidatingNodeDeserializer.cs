@@ -13,7 +13,6 @@
 namespace LethalAPI.Core.Loader.Configs.Tools;
 
 using System;
-using System.ComponentModel.DataAnnotations;
 
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
@@ -42,7 +41,9 @@ public sealed class ValidatingNodeDeserializer : INodeDeserializer
             if (value is null)
                 Log.Error("Yaml Deserializer Null value (ValidatingNodeDeserializer)");
 
-            Validator.ValidateObject(value!, new ValidationContext(value!, null, null), true);
+            // tragic this doesnt work but it severely breaks things (like really really really badly)
+            // it would allow for [Required] [StringLength] etc... but it doesnt work!
+            // Validator.ValidateObject(value!, new ValidationContext(value!, null, null), true);
             return true;
         }
 

@@ -56,7 +56,7 @@ public interface IPlugin<out TConfig>
     /// Updates a config with a new config.
     /// </summary>
     /// <param name="newConfig">The new config to use.</param>
-    public void UpdateConfig(IConfig newConfig);
+    public void UpdateConfig(object newConfig);
 
     /// <summary>
     /// Occurs when the plugin is enabled.

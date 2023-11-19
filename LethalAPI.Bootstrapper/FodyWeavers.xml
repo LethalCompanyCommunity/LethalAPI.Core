@@ -2,7 +2,6 @@
   <Costura>
     <IncludeAssemblies>
       YamlDotNet
-      System.ComponentModel.Annotations
     </IncludeAssemblies>
   </Costura> 
 </Weavers>

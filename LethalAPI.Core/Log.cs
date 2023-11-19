@@ -91,8 +91,8 @@ public static class Log
         { "LineLocFound", "&3Line {line}&7 &h[&6IL_{il}&h]&7" },
     };
 
-    /// <inheritdoc cref ="Core.Patches.Fixes.FixLoggerPrefix.ConsoleText" />
-    public static ReadOnlyDictionary<char, ConsoleColor> ColorCodes => Patches.Fixes.FixLoggerPrefix.ConsoleText;
+    /// <inheritdoc cref ="Core.Patches.Fixes.FixBepInExLoggerPrefix.ConsoleText" />
+    public static ReadOnlyDictionary<char, ConsoleColor> ColorCodes => Patches.Fixes.FixBepInExLoggerPrefix.ConsoleText;
 
     private static string GetDateString()
     {
@@ -242,6 +242,43 @@ public static class Log
     }
 
     /// <summary>
+    /// Logs an exception and any relevant information to the console.
+    /// </summary>
+    /// <param name="exception">The exception being logged.</param>
+    /// <param name="callingPlugin">Displays a custom message for the plugin name. This will be automatically inferred.</param>
+    public static void Exception(Exception exception, string callingPlugin = "")
+    {
+        string message = $"An error has occured. {exception.Message}. Information: \n";
+        Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin).Replace("{msg}", message).Replace("{type}", "Error"));
+        for (Exception? e = exception; e != null; e = e.InnerException)
+        {
+            string msg1 = "Exception Information";
+            string name = e.GetType().FullName!;
+            if (name.Length > msg1.Length)
+                msg1 = msg1.PadBoth(name.Length);
+            else
+                name = name.PadBoth(msg1.Length);
+            string msg2 = $"&h[&b {msg1} &h]&a".PadBoth(100, '-');
+            string name1 = $"&h[&1 {name} &h]&a".PadBoth(100);
+            Raw($"&h[&a{msg2}&h]");
+            Raw($" {name1} ");
+            Raw("&h" + e.Message + "\n&h" + e.StackTrace);
+            if (e is ReflectionTypeLoadException typeLoadException)
+            {
+                for (int index = 0; index < typeLoadException.Types.Length; ++index)
+                    Raw("&7ReflectionTypeLoadException.Types[&3" + index + "&7]: &6" + typeLoadException.Types[index]);
+                for (int index = 0; index < typeLoadException.LoaderExceptions.Length; ++index)
+                    Exception(typeLoadException.LoaderExceptions[index]); // (tag + (tag == null ? "" : ", ") + "rtle:" + index.ToString());
+            }
+
+            if (e is TypeLoadException)
+                Raw("TypeLoadException.TypeName: " + ((TypeLoadException)e).TypeName);
+            if (e is BadImageFormatException)
+                Raw("BadImageFormatException.FileName: " + ((BadImageFormatException)e).FileName);
+        }
+    }
+
+    /// <summary>
     /// Logs an exception and the respective information to the console.
     /// </summary>
     /// <param name="e">The exception to log.</param>
@@ -291,5 +328,12 @@ public static class Log
         StackTrace stack = new (2 + skip);
 
         return stack.GetFrame(0).GetMethod();
+    }
+
+    private static string PadBoth(this string source, int length, char padChar = ' ')
+    {
+        int spaces = length - source.Length;
+        int padLeft = (spaces / 2) + source.Length;
+        return source.PadLeft(padLeft, padChar).PadRight(length, padChar);
     }
 }
