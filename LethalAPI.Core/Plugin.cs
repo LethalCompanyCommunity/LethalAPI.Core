@@ -12,11 +12,14 @@ namespace LethalAPI.Core;
 #pragma warning disable SA1401 // field should be made private
 #pragma warning disable SA1309 // Names should not start with an underscore. ie: _Logger.
 using System;
+using System.Diagnostics;
+using System.Reflection;
 
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using MEC;
+using MonoMod.RuntimeDetour;
 
 /// <inheritdoc />
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -48,6 +51,10 @@ public class Plugin : BaseUnityPlugin
         // Events.Events contains the instance. This should become a plugin for loading and config purposes, in the future.
         // Events..cctor -> Patcher.PatchAll will do the patching. This is necessary for dynamic patching.
         _ = new Events.Events();
+
+        // Hooks and fixes the exception stacktrace il.
+        _ = new ILHook(typeof(StackTrace).GetMethod("AddFrames", BindingFlags.Instance | BindingFlags.NonPublic), Patches.Fixes.FixExceptionIL.IlHook);
+
         Instance = this;
         Events.Handlers.Server.GameOpened += InitTimings;
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");

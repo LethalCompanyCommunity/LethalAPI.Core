@@ -124,6 +124,9 @@ dotnet_diagnostic.SA1633.severity = none
 resharper_unassigned_get_only_auto_property_highlighting=none
 
 [Patches/{Fixes,Events}/{*,Player/*,Server/*}.cs]
+# SA1202: Internal members before private members. - Patches should always come before helper methods.
+dotnet_diagnostic.SA1202.severity = none
+
 # SA1313: 
 dotnet_diagnostic.SA1313.severity = none
 
