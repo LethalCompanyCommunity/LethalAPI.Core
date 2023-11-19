@@ -31,11 +31,11 @@ internal static class PlayerHealingInjuringTranspiler
     {
         List<CodeInstruction> newInstructions = instructions.ToList();
 
-        int index = TranspilerHelper.FindNthInstruction(newInstructions, 2, instruction => instruction.opcode == OpCodes.Ret);
+        int index = newInstructions.FindNthInstruction(2, instruction => instruction.opcode == OpCodes.Ret);
+        EventTranspilerInjector.InjectDeniableEvent<HealingEventArgs>(ref newInstructions, ref generator, ref original, index + 1);
         EventTranspilerInjector.InjectDeniableEvent<CriticallyInjureEventArgs>(ref newInstructions, ref generator, ref original, 2);
-        EventTranspilerInjector.InjectDeniableEvent<HealingEventArgs>(ref newInstructions, ref generator, ref original, index);
 
-        for (int i = 0; i < newInstructions.Count; i++)
-            yield return newInstructions[i];
+        foreach (CodeInstruction? instruction in newInstructions)
+            yield return instruction;
     }
 }
