@@ -33,6 +33,7 @@
 
     <ItemGroup>
       <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp.dll" Private="False" />
+      <Reference Include="Newtonsoft.Json" HintPath="$(LC_REFERENCES)\Newtonsoft.Json.dll" Private="False" />
       <Reference Include="GameNetworkManager" HintPath="$(LC_REFERENCES)\Facepunch.Steamworks.Win64.dll" Private="False" />
       <Reference Include="Unity.TextMeshPro" HintPath="$(LC_REFERENCES)\Unity.TextMeshPro.dll" Private="False" />
       <Reference Include="UnityEngine" HintPath="$(LC_REFERENCES)\UnityEngine.dll" Private="False" />
@@ -56,5 +57,5 @@
         <Link>README.md</Link>
       </Content>
     </ItemGroup>
-    
+
 </Project>
