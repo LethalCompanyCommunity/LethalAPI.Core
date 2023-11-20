@@ -38,7 +38,7 @@ public sealed class CommentsObjectDescriptor : IObjectDescriptor
             if (isFirst)
                 commentBuilder.AppendLine(commentLine);
             else
-                commentBuilder.AppendLine("# " + commentLine);
+                commentBuilder.AppendLine(commentLine);
         }
 
         this.Comment = commentBuilder.ToString();

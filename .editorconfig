@@ -1,4 +1,6 @@
-﻿[*.cs]
+﻿root = true
+
+[*.cs]
 # SA1633: File should have header
 dotnet_diagnostic.SA1633.severity = error
 
@@ -104,21 +106,6 @@ dotnet_diagnostic.CS0436.severity = suggestion
 
 # SA1010: Opening square brackets should be spaced correctly
 dotnet_diagnostic.SA1010.severity = silent
-
-# Remove BepInEx auto-generated info files. (womp-womp)
-[{PluginInfo,IgnoresAccessChecksToAttribute}.cs]
-
-# SA1310: Field should not contain an underscore
-dotnet_diagnostic.SA1310.severity = none
-
-# SA1600: Elements should be documented
-dotnet_diagnostic.SA1600.severity = none
-
-# CS1591: Missing XML comment for publicly visible type or member.
-dotnet_diagnostic.CS1591.severity = none
-
-# SA1633: File should have header 
-dotnet_diagnostic.SA1633.severity = none
 
 [LethalAPI.Core/Events/Interfaces/*.cs]
 resharper_unassigned_get_only_auto_property_highlighting=none
@@ -248,3 +235,30 @@ dotnet_style_allow_multiple_blank_lines_experimental = true:silent
 dotnet_style_qualification_for_property = false:silent
 dotnet_style_qualification_for_method = false:silent
 dotnet_style_qualification_for_event = false:silent
+
+
+
+# Remove BepInEx auto-generated info files. (womp-womp)
+[PluginInfo.cs]
+
+# SA1310: Field should not contain an underscore
+dotnet_diagnostic.SA1310.severity = none
+
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = none
+
+# CS1591: Missing XML comment for publicly visible type or member.
+dotnet_diagnostic.CS1591.severity = none
+
+# SA1633: File should have header 
+dotnet_diagnostic.SA1633.severity = none
+
+[IgnoresAccessChecksToAttribute.cs]
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = none
+
+# CS1591: Missing XML comment for publicly visible type or member.
+dotnet_diagnostic.CS1591.severity = none
+
+# SA1633: File should have header 
+dotnet_diagnostic.SA1633.severity = none
