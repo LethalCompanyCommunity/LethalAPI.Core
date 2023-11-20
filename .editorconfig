@@ -106,7 +106,7 @@ dotnet_diagnostic.CS0436.severity = suggestion
 dotnet_diagnostic.SA1010.severity = silent
 
 # Remove BepInEx auto-generated info files. (womp-womp)
-[PluginInfo.cs]
+[{PluginInfo,IgnoresAccessChecksToAttribute}.cs]
 
 # SA1310: Field should not contain an underscore
 dotnet_diagnostic.SA1310.severity = none

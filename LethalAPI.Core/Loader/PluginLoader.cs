@@ -333,9 +333,6 @@ public sealed class PluginLoader
                 continue;
             }
 
-            AssemblyInformationalVersionAttribute attribute =
-                plugin.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             string debug = ShowDebug ? $"[{plugin.Assembly.GetName().Name}]" : string.Empty;
             Log.Info($"Loaded plugin '&3{plugin.Name}' &7@ &6v{plugin.Version.Major}.{plugin.Version.Minor}.{plugin.Version.Build} &r{debug}");

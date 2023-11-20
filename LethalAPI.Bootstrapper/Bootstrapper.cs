@@ -196,6 +196,11 @@ namespace LethalAPI.Bootstrapper.BepInEx
 #if Manual
 namespace Doorstop
 {
+    using System;
+    using System.IO;
+    using System.Reflection;
+    using System.Runtime.InteropServices;
+
     using LethalAPI.Bootstrapper;
     using LethalAPI.Core.Loader;
 
@@ -204,13 +209,36 @@ namespace Doorstop
     /// </summary>
     internal static class Entrypoint
     {
+        private static string basePath = string.Empty;
+        private static string configPath = string.Empty;
+        private static string pluginsPath = string.Empty;
+        private static string dependenciesPath = string.Empty;
+
         /// <summary>
         /// The doorstop start method.
         /// </summary>
-        internal static void Start()
+        public static void Start()
         {
+            Log(" [LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [Doorstop]");
+            AllocConsole();
+            basePath = Path.Combine(Assembly.GetExecutingAssembly().Location, "../../LethalAPI");
+            configPath = Path.Combine(basePath, "Configs");
+            pluginsPath = Path.Combine(basePath, "Plugins");
+            dependenciesPath = Path.Combine(basePath, "Dependencies");
+
+            if (!Directory.Exists(basePath))
+                Directory.CreateDirectory(basePath);
+
+            if (!Directory.Exists(configPath))
+                Directory.CreateDirectory(configPath);
+
+            if (!Directory.Exists(pluginsPath))
+                Directory.CreateDirectory(pluginsPath);
+
+            if (!Directory.Exists(dependenciesPath))
+                Directory.CreateDirectory(dependenciesPath);
+
             Loader.LoadMethod = LoadMethod.Doorstop;
-            UnityEngine.Debug.Log(" [LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [Doorstop]");
             Loader.Load();
         }
 
@@ -219,10 +247,24 @@ namespace Doorstop
         /// </summary>
         internal static void LoadPathsManual()
         {
-            PluginLoader.PluginDirectory = string.Empty;
-            PluginLoader.DependencyDirectory = string.Empty;
-            PluginLoader.ConfigDirectory = string.Empty;
+            PluginLoader.PluginDirectory = pluginsPath;
+            PluginLoader.DependencyDirectory = dependenciesPath;
+            PluginLoader.ConfigDirectory = configPath;
         }
+
+        /// <summary>
+        /// Logs a message to the output console.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
+        internal static void Log(string message)
+        {
+            UnityEngine.Debug.Log(message);
+            Console.WriteLine(message);
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool AllocConsole();
     }
 }
 #endif
@@ -275,7 +317,7 @@ namespace LethalAPI.Bootstrapper
             BepInEx.Bootstrapper.LogMessage(message);
 #endif
 #if Manual
-            UnityEngine.Debug.Log(message);
+            Doorstop.Entrypoint.Log(message);
 #endif
         }
 
