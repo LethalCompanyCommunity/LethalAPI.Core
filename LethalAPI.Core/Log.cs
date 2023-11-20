@@ -18,6 +18,7 @@ using System.Reflection;
 
 using Interfaces;
 using Loader;
+using MelonLoader;
 
 // ReSharper Unity.PerformanceAnalysis
 #pragma warning disable SA1201 // ordering by correct order.
@@ -86,12 +87,12 @@ public static class Log
     /// </example>
     public static readonly Dictionary<string, string> Templates = new()
     {
-        { "Info", "{time} &7[&6{type}&7] &7[&2{prefix}&7]&r {msg}" },
-        { "Debug", "{time} &7[&5{type}&7] &7[&2{prefix}&7]&r {msg}" },
-        { "Warn", "{time} &7[&3{type}&7] &7[&2{prefix}&7]&r {msg}" },
-        { "Error", "{time} &7[&1{type}&7] &7[&2{prefix}&7]&r {msg}" },
-        { "LineLocNotFound", "&1Line Unknown&7 &h[&6IL_{il}&h]&7" },
-        { "LineLocFound", "&3Line {line}&7 &h[&6IL_{il}&h]&7" },
+        { "Info", "{time} &r[&6{type}&r] &r[&2{prefix}&r]&r {msg}" },
+        { "Debug", "{time} &r[&5{type}&r] &r[&2{prefix}&r]&r {msg}" },
+        { "Warn", "{time} &r[&3{type}&r] &r[&2{prefix}&r]&r {msg}" },
+        { "Error", "{time} &r[&1{type}&r] &r[&2{prefix}&r]&r {msg}" },
+        { "LineLocNotFound", "&1Line Unknown &h[&6IL_{il}&h]&r" },
+        { "LineLocFound", "&3Line {line} &h[&6IL_{il}&h]&r" },
     };
 
     /// <summary>
@@ -182,17 +183,47 @@ public static class Log
             Type type = method.DeclaringType!;
 
             Assembly assembly = method.DeclaringType.Assembly;
-            IPlugin<IConfig>? plugin = PluginLoader.Plugins.Values.FirstOrDefault(x => x.Assembly == assembly);
+            IPlugin<IConfig>? plugin = null;
+            foreach (IPlugin<IConfig> plgn in PluginLoader.Plugins.Values)
+            {
+                if (!PluginLoader.Locations.ContainsKey(assembly))
+                    break;
+
+                if (plgn.Assembly == assembly && plgn.Assembly.DefinedTypes.Contains(method.DeclaringType))
+                {
+                    plugin = plgn;
+                    break;
+                }
+            }
+
             if (plugin is not null)
             {
                 input = plugin.Name;
                 goto skip;
             }
 
+            // Check to see if it is a bepinex mod.
             if (PluginLoader.BepInExFound)
             {
-                input = GetBepInExTypeLoadPreventor(assembly);
+                input = GetBepInExTypeLoadPreventor(method);
+                if (input != string.Empty)
+                    goto skip;
             }
+
+            // Check to see if it is a melonmod.
+            if (PluginLoader.MelonLoaderFound)
+            {
+                input = GetMelonLoaderTypeLoadPreventor(method);
+                if (input != string.Empty)
+                    goto skip;
+            }
+
+            // Use the name of the assembly.
+            input = method.DeclaringType.Assembly.GetName().Name;
+
+            // Check to see if the assembly should be called something else.
+            if (AssemblyNameReplacements.ContainsKey(input) && AssemblyNameReplacements.TryGetValue(input, out string replacementName))
+                input = replacementName!;
 
             skip:
             if (!includeMethod)
@@ -204,7 +235,7 @@ public static class Log
             {
                 foreach (ParameterInfo x in method.GetParameters())
                 {
-                    args += $"&g{x.ParameterType.Name} &h{x.Name}, ";
+                    args += $"&g{x.ParameterType.Name} &r{x.Name}&r, ";
                 }
 
                 if (args != string.Empty)
@@ -213,12 +244,13 @@ public static class Log
                 }
             }
 
-            input += $"&h::{type.FullName}.&6{method.Name}&7({args})";
+            input += $"&r::{type.FullName}.&6{method.Name}&r({args})";
             return input;
         }
         catch (Exception e)
         {
-            return $"Unknown {e}";
+            Exception(e, "LethalAPI-Logger");
+            return "Unknown";
         }
     }
 
@@ -233,7 +265,7 @@ public static class Log
 
         // &7[&b&6{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Info"].Replace("{time}", GetDateString()).Replace("{prefix}", $"{callingPlugin,-5}")
-            .Replace("{msg}", message).Replace("{type}", "Info"));
+            .Replace("{msg}", message).Replace("{type}", "Info "));
     }
 
     /// <summary>
@@ -253,7 +285,18 @@ public static class Log
             return;
         }
 
-        callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
+        MethodBase method = GetCallingMethod();
+        if (!PluginLoader.Locations.ContainsKey(method.DeclaringType!.Assembly))
+            return;
+
+        IPlugin<IConfig>? plugin = PluginLoader.Plugins.Values.FirstOrDefault(x => x.Assembly == method.DeclaringType.Assembly && x.Assembly.DefinedTypes.Contains(method.DeclaringType));
+        if (plugin is null)
+            return;
+
+        if (!plugin.Config.Debug)
+            return;
+
+        callingPlugin = GetCallingPlugin(method, callingPlugin, ShowCallingMethod);
 
         // &7[&b&5{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Debug"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
@@ -271,7 +314,7 @@ public static class Log
 
         // &7[&b&3{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Warn"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message).Replace("{type}", "Warn"));
+            .Replace("{msg}", message).Replace("{type}", "Warn "));
     }
 
     /// <summary>
@@ -306,11 +349,11 @@ public static class Log
                 msg1 = msg1.PadBoth(name.Length);
             else
                 name = name.PadBoth(msg1.Length);
-            string msg2 = $"&h[&b {msg1} &h]&a".PadBoth(100, '-');
-            string name1 = $"&h[&1 {name} &h]&a".PadBoth(100);
-            Raw($"&h[&a{msg2}&h]");
+            string msg2 = $"&r[&b {msg1} &r]&a".PadBoth(100, '-');
+            string name1 = $"&r[&1 {name} &r]&a".PadBoth(100);
+            Raw($"&r[&a{msg2}&r]");
             Raw($" {name1} ");
-            Raw("&h" + e.Message + "\n&h" + e.StackTrace);
+            Raw("&7" + e.Message + "\n&r" + e.StackTrace);
             if (e is ReflectionTypeLoadException typeLoadException)
             {
                 for (int index = 0; index < typeLoadException.Types.Length; ++index)
@@ -370,48 +413,60 @@ public static class Log
     }
 
     // Used to prevent typeload exceptions (system only checks one method deep, this checks two methods to avoid it.)
-    private static string GetBepInExTypeLoadPreventor(Assembly assembly) =>
-        GetBepInExPluginName(assembly);
+    private static string GetBepInExTypeLoadPreventor(MethodBase method) =>
+        GetBepInExPluginName(method);
 
-    private static string GetBepInExPluginName(Assembly assembly)
+    private static string GetMelonLoaderTypeLoadPreventor(MethodBase method) =>
+        GetMelonLoaderPluginName(method);
+
+    private static string GetBepInExPluginName(MethodBase method)
     {
-        BepInEx.PluginInfo? plugin = null;
+        Assembly assembly = method.DeclaringType!.Assembly;
         if (BepInEx.Bootstrap.Chainloader.PluginInfos is not null)
         {
             // FirstOrDefault keeps throwing a NullReferenceException. This doesnt throw an exception so we will use it.
-            foreach (KeyValuePair<string, BepInEx.PluginInfo> x in BepInEx.Bootstrap.Chainloader.PluginInfos)
+            foreach (KeyValuePair<string, BepInEx.PluginInfo> modInfo in BepInEx.Bootstrap.Chainloader.PluginInfos)
             {
-                if (x.Value?.Instance is null)
+                if (modInfo.Value?.Instance is null)
                 {
                     continue;
                 }
 
-                if (x.Value.Instance.GetType().Assembly != assembly)
+                if (modInfo.Value.Instance.Info.Instance.GetType().Assembly != assembly)
                 {
                     continue;
                 }
 
-                plugin = x.Value;
-                break;
+                return modInfo.Value.Metadata.Name;
             }
         }
 
-        string input;
-        if (plugin is null)
-        {
-            input = assembly.GetName().Name;
-            if (input is "" or null)
-                return "Unknown";
+        return string.Empty;
+    }
 
-            if (!AssemblyNameReplacements.ContainsKey(input) || !AssemblyNameReplacements.TryGetValue(input, out input))
-                input = "Unknown";
-        }
-        else
+    private static string GetMelonLoaderPluginName(MethodBase method)
+    {
+        Assembly assembly = method.DeclaringType!.Assembly;
+        if (MelonMod.RegisteredMelons is not null)
         {
-            input = plugin.Metadata.Name;
+            // FirstOrDefault keeps throwing a NullReferenceException. This doesnt throw an exception so we will use it.
+            foreach (MelonMod mod in MelonMod.RegisteredMelons)
+            {
+                if (mod.MelonAssembly.Assembly is null)
+                {
+                    continue;
+                }
+
+                if (mod.MelonAssembly.Assembly != assembly)
+                {
+                    continue;
+                }
+
+                return mod.Info.Name;
+            }
         }
 
-        return input;
+        return string.Empty;
     }
 
     /// <summary>

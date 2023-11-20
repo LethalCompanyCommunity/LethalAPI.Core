@@ -121,6 +121,8 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
         this.requiredAPIVersionValue = requiredAPIVersion ?? new Version(1, 0, 0);
         this.onReload = onReloaded;
         this.onDisable = onDisabled;
+        this.Config = new TConfig();
+        this.Assembly = typeof(TPlugin).Assembly;
     }
 
     /// <summary>

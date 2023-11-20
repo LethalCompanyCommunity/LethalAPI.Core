@@ -52,8 +52,10 @@ public sealed class PluginLoader
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginLoader"/> class.
     /// </summary>
-    public PluginLoader()
+    /// <param name="loadType">The type of loading method that will be used.</param>
+    public PluginLoader(LoadMethod loadType)
     {
+        LoaderType = loadType;
         Log.Raw("[LethalAPI-Loader] Initializing Loader.");
         Singleton = this;
         foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -110,6 +112,12 @@ public sealed class PluginLoader
             Log.Debug($"{e}");
         }
     }
+
+    /// <summary>
+    /// Gets the loader type for the bootstrap.
+    /// </summary>
+    // ReSharper disable once UnusedAutoPropertyAccessor.Global
+    public static LoadMethod LoaderType { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether or not BepInEx is found.
@@ -270,75 +278,14 @@ public sealed class PluginLoader
         }
 
         // This is where we ensure we load the highest version dependencies first.
-        Dictionary<string, EmbeddedResourceData> competingAssemblies = new ();
-        List<EmbeddedResourceData> lowPriorityAssemblies = new();
         Log.Debug($"Loading {ResourceParser.CachedResources[DllParser.Instance.ExtensionName].Count()} cached assemblies.");
-        foreach (EmbeddedResourceData challengingAssembly in ResourceParser.CachedResources[DllParser.Instance.ExtensionName])
-        {
-            // Assembly must have AssemblyName info to be compared.
-            if (challengingAssembly.AssemblyName is not { } depInfo)
-            {
-                lowPriorityAssemblies.Add(challengingAssembly);
-                continue;
-            }
-
-            // Can't override a loaded assembly.
-            Assembly? loadedAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(ass => ass.FullName == depInfo.FullName);
-            if (loadedAssembly is { })
-            {
-                string loadedAssemblyVersion = loadedAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? string.Empty;
-                Log.Warn($"Embedded Dependency '{challengingAssembly.AssemblyName.FullName}' (v{challengingAssembly.AssemblyName.Version}) will be ignored because has already been loaded." +
-                         $"{(loadedAssemblyVersion == string.Empty ? string.Empty : $" Loaded Assembly Version: (v{loadedAssemblyVersion}).")} In most cases, this won't cause problems, but in some cases it will cause errors.");
-                lowPriorityAssemblies.Add(challengingAssembly);
-                continue;
-            }
-
-            competingAssemblies.TryGetValue(depInfo.FullName, out EmbeddedResourceData? competingAssembly);
-
-            if (competingAssembly?.AssemblyName is null)
-            {
-                competingAssemblies.Add(depInfo.FullName, challengingAssembly);
-                Log.Debug($"Loaded a competing embedded assembly {depInfo.FullName}, (v{depInfo.Version})", ShowDebug);
-                continue;
-            }
-
-            // Comparable?
-            if (challengingAssembly.AssemblyName.Version > competingAssembly.AssemblyName.Version)
-            {
-                lowPriorityAssemblies.Add(competingAssembly);
-                competingAssemblies.Remove(challengingAssembly.AssemblyName.FullName);
-                competingAssemblies.Add(challengingAssembly.AssemblyName.FullName, challengingAssembly);
-                Log.Debug($"Competing embedded assembly '{challengingAssembly.FileName}' ({challengingAssembly.AssemblyName.Version}) has beat embedded assembly '{competingAssembly.FileName}' (v{competingAssembly.AssemblyName!.Version}).");
-            }
-            else
-            {
-                lowPriorityAssemblies.Add(challengingAssembly);
-                Log.Debug($"Competing embedded assembly '{competingAssembly.FileName}' ({challengingAssembly.AssemblyName.Version}) has beat embedded assembly '{challengingAssembly.FileName}' (v{challengingAssembly.AssemblyName.Version}).");
-            }
-        }
 
         // Now load the higher priority assemblies first.
-        int i = 0;
-        foreach (EmbeddedResourceData highPriorityAssembly in competingAssemblies.Values)
+        foreach (EmbeddedResourceData highPriorityAssembly in ResourceParser.CachedResources[DllParser.Instance.ExtensionName])
         {
             try
             {
-                i++;
-
                 Assembly assembly = (Assembly)highPriorityAssembly.Parser?.Parse(highPriorityAssembly.GetStream())!;
-                /*Stream dataStream = highPriorityAssembly.Assembly.GetManifestResourceStream(highPriorityAssembly.FileLocation)!;
-                MemoryStream stream = new();
-                if (highPriorityAssembly.IsCompressed)
-                {
-                    DeflateStream decompressionSteam = new DeflateStream(dataStream, CompressionMode.Decompress);
-                    decompressionSteam.CopyTo(stream);
-                }
-                else
-                {
-                    dataStream.CopyTo(stream);
-                }
-
-                Assembly assembly = Assembly.Load(stream.ToArray());*/
                 Dependencies.Add(assembly);
                 Locations[assembly] = highPriorityAssembly.FileLocation;
                 Log.Info($"Loaded &fEmbedded Dependency &h'&3{assembly.GetName().Name}&h'&7@&gv{assembly.GetName().Version.ToString(3)}&7", "LethalAPI-Loader");
@@ -349,45 +296,6 @@ public sealed class PluginLoader
                 Log.Debug($"Exception: \n{e}", ShowDebug, "LethalAPI-Loader");
             }
         }
-
-        Log.Debug($"Loaded {i} high priority resources.", ShowDebug);
-        i = 0;
-
-        // Now load the lower priority assemblies first.
-        foreach (EmbeddedResourceData lowPriorityAssembly in lowPriorityAssemblies)
-        {
-            try
-            {
-                i++;
-
-                Assembly assembly = (Assembly)lowPriorityAssembly.Parser?.Parse(lowPriorityAssembly.GetStream())!;
-                /*Stream dataStream = lowPriorityAssembly.Assembly.GetManifestResourceStream(lowPriorityAssembly.FileLocation)!;
-                MemoryStream stream = new();
-                if (lowPriorityAssembly.IsCompressed)
-                {
-                    DeflateStream decompressionSteam = new DeflateStream(dataStream, CompressionMode.Decompress);
-                    decompressionSteam.CopyTo(stream);
-                }
-                else
-                {
-                    dataStream.CopyTo(stream);
-                }
-
-                Assembly assembly = Assembly.Load(stream.ToArray());
-                */
-
-                Locations[assembly] = lowPriorityAssembly.FileLocation;
-                Log.Info($"Loaded &fEmbedded Dependency &h'&3{assembly.GetName().Name}&h'&7@&gv{assembly.GetName().Version.ToString(3)}&7", "LethalAPI-Loader");
-                Dependencies.Add(assembly);
-            }
-            catch (Exception e)
-            {
-                Log.Warn($"An error has occured while loading embedded dependency '{lowPriorityAssembly.FileName}'.", "LethalAPI-Loader");
-                Log.Debug($"Exception: \n{e}", ShowDebug, "LethalAPI-Loader");
-            }
-        }
-
-        Log.Debug($"Loaded {i} low priority resources.", ShowDebug);
 
         StringBuilder builder = new StringBuilder().AppendLine("Dependencies: ");
         foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -408,7 +316,8 @@ public sealed class PluginLoader
 
         foreach (Assembly assembly in Locations.Keys)
         {
-            if (Locations[assembly].Contains("dependencies"))
+            // skip dependencies.
+            if (Locations[assembly].ToLower().Contains("dependencies"))
                 continue;
 
             IPlugin<IConfig>? plugin = CreatePlugin(assembly);
@@ -418,11 +327,18 @@ public sealed class PluginLoader
             if (plugin is null)
                 continue;
 
+            if (PluginsValue.ContainsKey(plugin.Name))
+            {
+                Log.Warn($"Tried to load two plugins with the same name! This is not allowed! Plugin: '{plugin.Name}'");
+                continue;
+            }
+
             AssemblyInformationalVersionAttribute attribute =
                 plugin.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            Log.Info($"Loaded plugin {plugin.Name}@{(plugin.Version is not null ? $"{plugin.Version.Major}.{plugin.Version.Minor}.{plugin.Version.Build}" : attribute is not null ? attribute.InformationalVersion : string.Empty)}");
+            string debug = ShowDebug ? $"[{plugin.Assembly.GetName().Name}]" : string.Empty;
+            Log.Info($"Loaded plugin '&3{plugin.Name}' &7@ &6v{plugin.Version.Major}.{plugin.Version.Minor}.{plugin.Version.Build} &r{debug}");
             PluginsValue.Add(plugin.Name, plugin);
         }
     }
@@ -773,4 +689,31 @@ public sealed class PluginLoader
 
         return false;
     }
+}
+
+#pragma warning disable SA1201 // enum shouldnt follow type.
+/// <summary>
+/// Represents the different load methods that can be used.
+/// </summary>
+public enum LoadMethod
+{
+    /// <summary>
+    /// Loaded via BepInEx.
+    /// </summary>
+    BepInEx = 1,
+
+    /// <summary>
+    /// Loaded via MelonLoader.
+    /// </summary>
+    MelonLoader = 2,
+
+    /// <summary>
+    /// Loaded via Doorstop.
+    /// </summary>
+    Doorstop = 4,
+
+    /// <summary>
+    /// Loaded manually.
+    /// </summary>
+    Manual = 8,
 }

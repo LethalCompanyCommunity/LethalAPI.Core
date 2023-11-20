@@ -24,10 +24,10 @@ namespace LethalAPI.Bootstrapper.MelonLoader
     using System.Collections.ObjectModel;
     using System.Drawing;
     using System.IO;
-    using System.Reflection;
     using System.Text;
 
     using Core;
+    using Core.Loader;
     using global::MelonLoader.Pastel;
     using LethalAPI.Bootstrapper;
 
@@ -40,7 +40,7 @@ namespace LethalAPI.Bootstrapper.MelonLoader
         public override void OnEarlyInitializeMelon()
         {
             Loader.LoadMethod = LoadMethod.MelonLoader;
-            LogMessage("Loading Lethal API Bootstrapper [MelonLoader]");
+            LogMessage(" [LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [MelonLoader]");
             Loader.Load();
         }
 
@@ -96,7 +96,7 @@ namespace LethalAPI.Bootstrapper.MelonLoader
             }
 
             if (stringBuilder.Length > 0)
-                fullstring.Append(stringBuilder);
+                fullstring.Append(stringBuilder.ToString().Pastel(GetColor(oldColor)));
 
             WriteString(fullstring.ToString());
         }
@@ -106,9 +106,9 @@ namespace LethalAPI.Bootstrapper.MelonLoader
         /// </summary>
         internal static void LoadPathsMelonLoader()
         {
-            Core.Loader.PluginLoader.PluginDirectory = global::MelonLoader.Utils.MelonEnvironment.ModsDirectory;
-            Core.Loader.PluginLoader.DependencyDirectory = global::MelonLoader.Utils.MelonEnvironment.DependenciesDirectory;
-            Core.Loader.PluginLoader.ConfigDirectory = Path.Combine(global::MelonLoader.Utils.MelonEnvironment.ModsDirectory, "../", "Configs");
+            PluginLoader.PluginDirectory = global::MelonLoader.Utils.MelonEnvironment.ModsDirectory;
+            PluginLoader.DependencyDirectory = global::MelonLoader.Utils.MelonEnvironment.DependenciesDirectory;
+            PluginLoader.ConfigDirectory = Path.Combine(global::MelonLoader.Utils.MelonEnvironment.ModsDirectory, "../", "Configs");
         }
 
         private static ReadOnlyDictionary<ConsoleColor, Color> ColorTranslations => new(
@@ -149,6 +149,7 @@ namespace LethalAPI.Bootstrapper.BepInEx
 {
     using System.IO;
 
+    using Core.Loader;
     using global::BepInEx;
     using global::BepInEx.Logging;
 
@@ -175,9 +176,9 @@ namespace LethalAPI.Bootstrapper.BepInEx
         /// </summary>
         internal static void LoadPathsBepInEx()
         {
-            Core.Loader.PluginLoader.PluginDirectory = Paths.PluginPath;
-            Core.Loader.PluginLoader.DependencyDirectory = Path.GetFullPath(Path.Combine(Paths.PluginPath, "../", "Dependencies"));
-            Core.Loader.PluginLoader.ConfigDirectory = Paths.ConfigPath;
+            PluginLoader.PluginDirectory = Paths.PluginPath;
+            PluginLoader.DependencyDirectory = Path.GetFullPath(Path.Combine(Paths.PluginPath, "../", "Dependencies"));
+            PluginLoader.ConfigDirectory = Paths.ConfigPath;
         }
 
         // ReSharper disable once UnusedMember.Local
@@ -185,7 +186,7 @@ namespace LethalAPI.Bootstrapper.BepInEx
         {
             logger = this.Logger;
             Loader.LoadMethod = LoadMethod.BepInEx;
-            LogMessage("Loading Lethal API Bootstrapper [BepInEx]");
+            LogMessage(" [LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [BepInEx]");
             Loader.Load();
         }
     }
@@ -196,6 +197,7 @@ namespace LethalAPI.Bootstrapper.BepInEx
 namespace Doorstop
 {
     using LethalAPI.Bootstrapper;
+    using LethalAPI.Core.Loader;
 
     /// <summary>
     /// The bootstrapping class for Doorstop.
@@ -208,7 +210,7 @@ namespace Doorstop
         internal static void Start()
         {
             Loader.LoadMethod = LoadMethod.Doorstop;
-            UnityEngine.Debug.Log("Loading Lethal API Bootstrapper [Doorstop]");
+            UnityEngine.Debug.Log(" [LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [Doorstop]");
             Loader.Load();
         }
 
@@ -217,9 +219,9 @@ namespace Doorstop
         /// </summary>
         internal static void LoadPathsManual()
         {
-            LethalAPI.Core.Loader.PluginLoader.PluginDirectory = string.Empty;
-            LethalAPI.Core.Loader.PluginLoader.DependencyDirectory = string.Empty;
-            LethalAPI.Core.Loader.PluginLoader.ConfigDirectory = string.Empty;
+            PluginLoader.PluginDirectory = string.Empty;
+            PluginLoader.DependencyDirectory = string.Empty;
+            PluginLoader.ConfigDirectory = string.Empty;
         }
     }
 }
@@ -256,7 +258,7 @@ namespace LethalAPI.Bootstrapper
         internal static void Load()
         {
             CosturaUtility.Initialize();
-            Log($"[LethalAPI-Bootstrapper] Loading Bootstrapper [{LoadMethod}].");
+            Log($" [LethalAPI-Bootstrapper] Loading Bootstrapper [{LoadMethod}].");
             baseAssembly = typeof(Loader).Assembly;
             LoadPaths();
             LoadDependencies();
@@ -294,20 +296,20 @@ namespace LethalAPI.Bootstrapper
 
         private static void LoadDependencies()
         {
-            Log("[LethalAPI-Bootstrapper] Loading dependencies.");
+            Log(" [LethalAPI-Bootstrapper] Loading dependencies.");
             foreach (string resourcePath in baseAssembly.GetManifestResourceNames())
             {
                 if (!LoadAssembly(resourcePath, out Assembly? resultAssembly))
                     continue;
 
-                Log($"[LethalAPI-Bootstrapper] Loaded embedded dependency '{resultAssembly!.GetName().Name}'@v{resultAssembly.GetName().Version}.");
+                Log($" [LethalAPI-Bootstrapper] Loaded embedded dependency '{resultAssembly!.GetName().Name}'@v{resultAssembly.GetName().Version}.");
                 try
                 {
                     Dependencies.Add(resultAssembly);
                 }
                 catch (Exception e)
                 {
-                    Log($"[LethalAPI-Bootstrapper] An error has occured while loading dependency '{resourcePath}'. Exception: \n{e}");
+                    Log($" [LethalAPI-Bootstrapper] An error has occured while loading dependency '{resourcePath}'. Exception: \n{e}");
                 }
             }
 
@@ -320,8 +322,8 @@ namespace LethalAPI.Bootstrapper
 
                 // This is less expensive.
                 Harmony.Patch(AccessTools.Method(typeof(Core.Log), nameof(Core.Log.Raw)), null, new HarmonyMethod(AccessTools.Method(typeof(Loader), nameof(Postfix))));
-                Log("[LethalAPI-Bootstrapper] Log fix patched.");
-                _ = new PluginLoader();
+                Log(" [LethalAPI-Bootstrapper] Log fix patched.");
+                _ = new PluginLoader(LoadMethod);
                 foreach (Assembly dependency in Dependencies)
                 {
                     PluginLoader.Dependencies.Add(dependency);
@@ -329,7 +331,7 @@ namespace LethalAPI.Bootstrapper
             }
             catch (Exception e)
             {
-                Log($"[LethalAPI-Bootstrapper] An error has occured while loading the LethalAPI Core Plugin. Exception: \n{e}");
+                Log($" [LethalAPI-Bootstrapper] An error has occured while loading the LethalAPI Core Plugin. Exception: \n{e}");
             }
         }
 
@@ -361,41 +363,15 @@ namespace LethalAPI.Bootstrapper
             }
             catch (TypeLoadException e)
             {
-                Log($"Missing dependency for plugin '{resourcePath}'. Exception: {e.Message}");
+                Log($" Missing dependency for plugin '{resourcePath}'. Exception: {e.Message}");
             }
             catch (Exception e)
             {
-                Log($"Could not load a dependency or plugin. Exception: \n{e}");
+                Log($" Could not load a dependency or plugin. Exception: \n{e}");
             }
 
             assembly = null;
             return false;
         }
-    }
-
-    /// <summary>
-    /// Represents the different load methods that can be used.
-    /// </summary>
-    public enum LoadMethod
-    {
-        /// <summary>
-        /// Loaded via BepInEx.
-        /// </summary>
-        BepInEx = 1,
-
-        /// <summary>
-        /// Loaded via MelonLoader.
-        /// </summary>
-        MelonLoader = 2,
-
-        /// <summary>
-        /// Loaded via Doorstop.
-        /// </summary>
-        Doorstop = 4,
-
-        /// <summary>
-        /// Loaded manually.
-        /// </summary>
-        Manual = 8,
     }
 }

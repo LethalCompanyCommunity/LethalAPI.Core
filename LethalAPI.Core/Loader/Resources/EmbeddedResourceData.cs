@@ -55,7 +55,7 @@ public class EmbeddedResourceData
         if (this.FileExtension == string.Empty || !ResourceParser.Parsers.ContainsKey(this.FileExtension))
         {
             this.Parser = null;
-            Log.Warn($"No file parser found for file \"{this.FileName}\". Resorting to the 'unknown' file parser.");
+            Log.Debug($"No file parser found for file \"{this.FileName}\". Resorting to the 'unknown' file parser.");
             UnknownResourceParser.Instance.ResourceFound(this);
         }
         else

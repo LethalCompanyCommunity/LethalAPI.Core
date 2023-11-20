@@ -20,6 +20,7 @@ public interface IPlugin<out TConfig>
     /// <summary>
     /// Gets the config.
     /// </summary>
+    /// <remarks>If utilizing the <see cref="IConfig"/> interface, this must be = new() / not null.</remarks>
     public TConfig Config { get; }
 
     /// <summary>

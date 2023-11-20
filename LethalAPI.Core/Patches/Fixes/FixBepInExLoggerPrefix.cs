@@ -11,6 +11,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 using BepInEx.Logging;
 
@@ -60,33 +61,57 @@ internal static class FixBepInExLoggerPrefix
 
         // Set default color
         setConsoleColor.Invoke(null, new object[] { ConsoleColor.Gray });
-        bool flag = false;
+
         string text = (string)eventArgs.Data;
 
-        // Process the characters
-        // ReSharper disable once ForCanBeConvertedToForeach
-        // In case we want to ensure it isn't \& in the future, we will need a for loop.
-        for (int i = 0; i < text.Length; i++)
+        StringBuilder stringBuilder = new();
+        ConsoleColor oldColor = ConsoleColor.Gray;
+        bool previouslyEscaped = false;
+        for (int i = 1; i < text.Length; i++)
         {
-            if (text[i] == '&' && !flag)
+            char c = text[i];
+            if (c == '\\')
             {
-                flag = true;
+                stringBuilder.Append(c);
+                previouslyEscaped = true;
+                continue;
             }
-            else if (flag)
-            {
-                if (!ConsoleText.ContainsKey(text[i].ToString()))
-                {
-                    flag = false;
-                    continue;
-                }
 
-                setConsoleColor.Invoke(null, new object[] { ConsoleText[text[i].ToString()] });
-                flag = false;
-            }
-            else
+            if (c != '&' || previouslyEscaped)
             {
-                instance.Write(text[i]);
+                previouslyEscaped = false;
+                stringBuilder.Append(c);
+                continue;
             }
+
+            StringBuilder searchColor = new();
+            for (int j = 0; j < Log.LongestColor + 1; j++)
+            {
+                searchColor.Append(text[i + j]);
+            }
+
+            if (!Log.TryGetColor(searchColor.ToString(), out ConsoleColor? color, out int removeLength) || color is null)
+            {
+                stringBuilder.Append(c);
+                continue;
+            }
+
+            // Output prior text.
+            setConsoleColor.Invoke(null, new object[] { oldColor });
+            instance.Write(stringBuilder.ToString());
+            oldColor = color.Value;
+
+            // Change Color and reset for next string.
+            stringBuilder = new StringBuilder();
+
+            // Skip this many characters as they are all coloring.
+            i += removeLength;
+        }
+
+        if (stringBuilder.Length > 0)
+        {
+            setConsoleColor.Invoke(null, new object[] { oldColor });
+            instance.Write(stringBuilder.ToString());
         }
 
         instance.Write('\n');

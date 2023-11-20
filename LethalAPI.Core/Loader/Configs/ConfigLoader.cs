@@ -128,7 +128,18 @@ public static class ConfigLoader
             if (!pluginConfigs.ContainsKey(plugin.Name.ToSnakeCase()))
             {
                 Log.Info($"[Combined] Plugin config for plugin '{plugin.Name}' is missing! Generating new config.");
-                pluginConfigs.Add(plugin.Name.ToSnakeCase(), plugin.Config);
+                object? conf = plugin.Config;
+                try
+                {
+                    // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
+                    conf ??= Activator.CreateInstance(plugin.Config.GetType());
+                }
+                catch (Exception)
+                {
+                    Log.Error($"Could not find the default constructor for a config of type {plugin.Config.GetType()}.");
+                }
+
+                pluginConfigs.Add(plugin.Name.ToSnakeCase(), conf);
                 changed = true;
             }
 
@@ -175,6 +186,16 @@ public static class ConfigLoader
         if (conf is null || (!conf.GetType().IsSubclassOf(plugin.Config.GetType()) && conf.GetType() != plugin.Config.GetType()))
         {
             conf ??= plugin.Config;
+            try
+            {
+                // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
+                conf ??= Activator.CreateInstance(plugin.Config.GetType(), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance);
+            }
+            catch (Exception)
+            {
+                Log.Error($"Could not find the default constructor for a config of type {plugin.Config.GetType()}.");
+            }
+
             MakeBackupOfConfig(path);
             File.WriteAllText(path, Serialization.Serializer.Serialize(conf));
             Log.Warn($"[Seperated] Plugin config for plugin '{plugin.Name}' is invalid. Generating default values. [{plugin.Config.GetType().Name} != {conf.GetType().Name}]");
