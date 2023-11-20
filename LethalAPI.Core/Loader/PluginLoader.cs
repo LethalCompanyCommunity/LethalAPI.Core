@@ -56,9 +56,17 @@ public sealed class PluginLoader
     {
         Log.Raw("[LethalAPI-Loader] Initializing Loader.");
         Singleton = this;
-        PluginDirectory = BepInEx.Paths.PluginPath;
-        DependencyDirectory = Path.GetFullPath(Path.Combine(BepInEx.Paths.PluginPath, "../", "Dependencies"));
-        ConfigDirectory = BepInEx.Paths.ConfigPath;
+        foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            if (assembly.GetName().Name.ToLower().Contains("melonloader"))
+                MelonLoaderFound = true;
+
+            if(assembly.GetName().Name.ToLower().Contains("bepinex"))
+                BepInExFound = true;
+
+            if (BepInExFound && MelonLoaderFound)
+                break;
+        }
 
         // Hooks and fixes the exception stacktrace il.
         _ = new ILHook(typeof(StackTrace).GetMethod("AddFrames", BindingFlags.Instance | BindingFlags.NonPublic), FixExceptionIL.IlHook);
@@ -104,19 +112,29 @@ public sealed class PluginLoader
     }
 
     /// <summary>
-    /// Gets the base directory to load plugins from.
+    /// Gets a value indicating whether or not BepInEx is found.
     /// </summary>
-    public static string PluginDirectory { get; internal set; } = string.Empty;
+    public static bool BepInExFound { get; private set; }
 
     /// <summary>
-    /// Gets the base directory of the dependency folder.
+    /// Gets a value indicating whether or not MelonLoader is found.
     /// </summary>
-    public static string DependencyDirectory { get; internal set; } = string.Empty;
+    public static bool MelonLoaderFound { get; private set; }
 
     /// <summary>
-    /// Gets the base directory for configs.
+    /// Gets or sets the base directory to load plugins from.
     /// </summary>
-    public static string ConfigDirectory { get; internal set; } = string.Empty;
+    public static string PluginDirectory { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the base directory of the dependency folder.
+    /// </summary>
+    public static string DependencyDirectory { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the base directory for configs.
+    /// </summary>
+    public static string ConfigDirectory { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets a dictionary containing the file paths of assemblies.
@@ -143,7 +161,7 @@ public sealed class PluginLoader
     /// Triggers the fix for the BepInEx Logger.
     /// </summary>
     /// <param name="harmony">The harmony instance to use to log.</param>
-    public static void FixLoggingBepInEx(Harmony harmony) => FixBepInExLoggerPrefix.Patch(harmony);
+    public static void FixLoggingBepInEx(HarmonyLib.Harmony harmony) => FixBepInExLoggerPrefix.Patch(harmony);
 
     /// <summary>
     /// Enables all plugins.
@@ -680,6 +698,9 @@ public sealed class PluginLoader
 
             foreach (string dependency in Directory.GetFiles(DependencyDirectory, "*.dll"))
             {
+                if (MelonLoaderFound && Path.GetFileNameWithoutExtension(dependency) == "Bootstrap")
+                    continue;
+
                 Assembly? assembly = LoadAssembly(dependency);
                 if (assembly is null)
                     continue;

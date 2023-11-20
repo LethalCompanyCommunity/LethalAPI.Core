@@ -32,7 +32,7 @@ public class CorePlugin : Plugin<CoreConfig>
 
     /// <inheritdoc />
     // sets this so the config name isn't a mess. :)
-    public override string Name => "LethalApiCore";
+    public override string Name => "LethalApi-Core";
 
     /// <inheritdoc />
     public override string Description => "The core library for lethal api.";

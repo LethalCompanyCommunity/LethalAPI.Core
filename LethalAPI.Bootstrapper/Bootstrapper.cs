@@ -5,18 +5,32 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using LethalAPI.Bootstrapper.MelonLoader;
-using MelonLoader;
-
+#pragma warning disable SA1649 // file should match name of type
 #pragma warning disable SA1201 // enum should not follow type
 #pragma warning disable SA1403 // file can only contain one namespace.
 #pragma warning disable SA1402 // file may only contain one type.
 
-[assembly: MelonInfo(typeof(Bootstrapper), "LethalAPI-Bootstrap", "1.0.0", "LethalAPI Modding Community")]
-[assembly: MelonGame("LethalAPI Modding Community", "Lethal Company")]
+#if Melonloader
+using LethalAPI.Bootstrapper.MelonLoader;
+using MelonLoader;
 
+[assembly: MelonInfo(typeof(Bootstrapper), "LethalAPI-Bootstrap", "1.0.0", "LethalAPI Modding Community")]
+
+// ReSharper disable CheckNamespace
 namespace LethalAPI.Bootstrapper.MelonLoader
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Drawing;
+    using System.IO;
+    using System.Reflection;
+    using System.Text;
+
+    using Core;
+    using global::MelonLoader.Pastel;
+    using LethalAPI.Bootstrapper;
+
     /// <summary>
     /// The bootstrapping class for MelonLoader.
     /// </summary>
@@ -36,13 +50,105 @@ namespace LethalAPI.Bootstrapper.MelonLoader
         /// <param name="message">The message to log.</param>
         internal static void LogMessage(string message)
         {
-            MelonLogger.Msg(message);
+            StringBuilder fullstring = new();
+            StringBuilder stringBuilder = new();
+            ConsoleColor oldColor = System.ConsoleColor.Gray;
+            bool previouslyEscaped = false;
+            for (int i = 1; i < message.Length; i++)
+            {
+                char c = message[i];
+                if (c == '\\')
+                {
+                    stringBuilder.Append(c);
+                    previouslyEscaped = true;
+                    continue;
+                }
+
+                if (c != '&' || previouslyEscaped)
+                {
+                    previouslyEscaped = false;
+                    stringBuilder.Append(c);
+                    continue;
+                }
+
+                StringBuilder searchColor = new();
+                for (int j = 0; j < Log.LongestColor + 1; j++)
+                {
+                    searchColor.Append(message[i + j]);
+                }
+
+                if (!Log.TryGetColor(searchColor.ToString(), out ConsoleColor? color, out int removeLength) || color is null)
+                {
+                    stringBuilder.Append(c);
+                    continue;
+                }
+
+                // Output prior text.
+                // fullstring.Append(stringBuilder);
+                fullstring.Append(stringBuilder.ToString().Pastel(GetColor(oldColor)));
+                oldColor = color.Value;
+
+                // Change Color and reset for next string.
+                stringBuilder = new StringBuilder();
+
+                // Skip this many characters as they are all coloring.
+                i += removeLength;
+            }
+
+            if (stringBuilder.Length > 0)
+                fullstring.Append(stringBuilder);
+
+            WriteString(fullstring.ToString());
+        }
+
+        /// <summary>
+        /// Loads paths for melon loader.
+        /// </summary>
+        internal static void LoadPathsMelonLoader()
+        {
+            Core.Loader.PluginLoader.PluginDirectory = global::MelonLoader.Utils.MelonEnvironment.ModsDirectory;
+            Core.Loader.PluginLoader.DependencyDirectory = global::MelonLoader.Utils.MelonEnvironment.DependenciesDirectory;
+            Core.Loader.PluginLoader.ConfigDirectory = Path.Combine(global::MelonLoader.Utils.MelonEnvironment.ModsDirectory, "../", "Configs");
+        }
+
+        private static ReadOnlyDictionary<ConsoleColor, Color> ColorTranslations => new(
+            new Dictionary<ConsoleColor, Color>()
+            {
+                { System.ConsoleColor.Black, Color.Black },
+                { System.ConsoleColor.Red, Color.Red },
+                { System.ConsoleColor.Yellow, Color.Yellow },
+                { System.ConsoleColor.Green, Color.Green },
+                { System.ConsoleColor.Cyan, Color.Cyan },
+                { System.ConsoleColor.Blue, Color.Blue },
+                { System.ConsoleColor.Magenta, Color.Magenta },
+                { System.ConsoleColor.Gray, Color.LightGray },
+                { System.ConsoleColor.DarkRed, Color.DarkRed },
+                { System.ConsoleColor.DarkYellow, Color.DarkGoldenrod },
+                { System.ConsoleColor.DarkGreen, Color.DarkGreen },
+                { System.ConsoleColor.DarkCyan, Color.DarkCyan },
+                { System.ConsoleColor.DarkBlue, Color.DarkBlue },
+                { System.ConsoleColor.DarkMagenta, Color.DarkMagenta },
+                { System.ConsoleColor.DarkGray, Color.DarkGray },
+                { System.ConsoleColor.White, Color.White },
+            });
+
+        private static Color GetColor(ConsoleColor color) => ColorTranslations[color];
+
+        // This is patched.
+        private static void WriteString(string msg)
+        {
+            // MelonLogger.MsgDirect(GetColor(color ?? Log.ColorCodes["r"]), msg);
+            MelonLogger.MsgDirect(Color.LightGray, msg);
         }
     }
 }
+#endif
 
+#if Bepinex
 namespace LethalAPI.Bootstrapper.BepInEx
 {
+    using System.IO;
+
     using global::BepInEx;
     using global::BepInEx.Logging;
 
@@ -52,6 +158,7 @@ namespace LethalAPI.Bootstrapper.BepInEx
     [BepInPlugin("LethalAPI-Bootstrap", "LethalAPI", "1.0.0")]
     internal class Bootstrapper : BaseUnityPlugin
     {
+        // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private static ManualLogSource logger = null!;
 
         /// <summary>
@@ -63,6 +170,17 @@ namespace LethalAPI.Bootstrapper.BepInEx
             logger.Log((LogLevel)62, message);
         }
 
+        /// <summary>
+        /// Loads paths for BepInEx.
+        /// </summary>
+        internal static void LoadPathsBepInEx()
+        {
+            Core.Loader.PluginLoader.PluginDirectory = Paths.PluginPath;
+            Core.Loader.PluginLoader.DependencyDirectory = Path.GetFullPath(Path.Combine(Paths.PluginPath, "../", "Dependencies"));
+            Core.Loader.PluginLoader.ConfigDirectory = Paths.ConfigPath;
+        }
+
+        // ReSharper disable once UnusedMember.Local
         private void Awake()
         {
             logger = this.Logger;
@@ -72,7 +190,9 @@ namespace LethalAPI.Bootstrapper.BepInEx
         }
     }
 }
+#endif
 
+#if Manual
 namespace Doorstop
 {
     using LethalAPI.Bootstrapper;
@@ -91,8 +211,19 @@ namespace Doorstop
             UnityEngine.Debug.Log("Loading Lethal API Bootstrapper [Doorstop]");
             Loader.Load();
         }
+
+        /// <summary>
+        /// Loads paths for manual installations.
+        /// </summary>
+        internal static void LoadPathsManual()
+        {
+            LethalAPI.Core.Loader.PluginLoader.PluginDirectory = string.Empty;
+            LethalAPI.Core.Loader.PluginLoader.DependencyDirectory = string.Empty;
+            LethalAPI.Core.Loader.PluginLoader.ConfigDirectory = string.Empty;
+        }
     }
 }
+#endif
 
 namespace LethalAPI.Bootstrapper
 {
@@ -101,6 +232,9 @@ namespace LethalAPI.Bootstrapper
     using System.IO;
     using System.IO.Compression;
     using System.Reflection;
+
+    using Core.Loader;
+    using HarmonyLib;
 
     /// <summary>
     /// The bootstrap loader class.
@@ -117,28 +251,6 @@ namespace LethalAPI.Bootstrapper
         public static LoadMethod LoadMethod { get; internal set; } = LoadMethod.Manual;
 
         /// <summary>
-        /// Logs a message appropriately.
-        /// </summary>
-        /// <param name="message">The message to log.</param>
-        public static void Log(string message)
-        {
-            switch (LoadMethod)
-            {
-                case LoadMethod.MelonLoader:
-                    LogMelon(message);
-                    break;
-
-                case LoadMethod.BepInEx:
-                    LogBepInEx(message);
-                    break;
-
-                case LoadMethod.Doorstop or LoadMethod.Manual:
-                    UnityEngine.Debug.Log(message);
-                    break;
-            }
-        }
-
-        /// <summary>
         /// Loads the framework.
         /// </summary>
         internal static void Load()
@@ -146,19 +258,42 @@ namespace LethalAPI.Bootstrapper
             CosturaUtility.Initialize();
             Log($"[LethalAPI-Bootstrapper] Loading Bootstrapper [{LoadMethod}].");
             baseAssembly = typeof(Loader).Assembly;
+            LoadPaths();
             LoadDependencies();
         }
 
-        // TypeLoadExceptions only check so far ahead, so we can avoid them with the method.
-        private static void LogMelon(string message) => MelonLoader.Bootstrapper.LogMessage(message);
+        private static void Log(string message) => Postfix(message);
 
-        private static void LogBepInEx(string message) => BepInEx.Bootstrapper.LogMessage(message);
+        private static void Postfix(string message)
+        {
+#if Melonloader
+            MelonLoader.Bootstrapper.LogMessage(message);
+#endif
+#if Bepinex
+            BepInEx.Bootstrapper.LogMessage(message);
+#endif
+#if Manual
+            UnityEngine.Debug.Log(message);
+#endif
+        }
 
-        private static HarmonyLib.Harmony Harmony => new ("com.leathalapi.bootstrapper");
+        private static Harmony Harmony => new ("com.lethalapi.bootstrapper");
+
+        private static void LoadPaths()
+        {
+            #if Bepinex
+                BepInEx.Bootstrapper.LoadPathsBepInEx();
+            #endif
+            #if Melonloader
+                MelonLoader.Bootstrapper.LoadPathsMelonLoader();
+            #endif
+            #if Manual
+                Doorstop.Entrypoint.LoadPathsManual();
+            #endif
+        }
 
         private static void LoadDependencies()
         {
-            bool embeddedCoreFound = false;
             Log("[LethalAPI-Bootstrapper] Loading dependencies.");
             foreach (string resourcePath in baseAssembly.GetManifestResourceNames())
             {
@@ -169,15 +304,6 @@ namespace LethalAPI.Bootstrapper
                 try
                 {
                     Dependencies.Add(resultAssembly);
-                    if (resultAssembly.GetName().Name == "LethalAPI.Core")
-                    {
-                        embeddedCoreFound = true;
-                        if (LoadMethod == LoadMethod.BepInEx)
-                            Core.Loader.PluginLoader.FixLoggingBepInEx(Harmony);
-                        Core.Log.LogMessage += Log;
-                        Log("[LethalAPI-Bootstrapper] Log fix patched.");
-                        _ = new Core.Loader.PluginLoader();
-                    }
                 }
                 catch (Exception e)
                 {
@@ -185,19 +311,20 @@ namespace LethalAPI.Bootstrapper
                 }
             }
 
-            if (embeddedCoreFound)
-                return;
-
             try
             {
-                if (LoadMethod == LoadMethod.BepInEx)
-                    Core.Loader.PluginLoader.FixLoggingBepInEx(Harmony);
-                Core.Log.LogMessage += Log;
+                // Apply the patches for logging in a type load safe manner.
+#if Bepinex
+                PluginLoader.FixLoggingBepInEx(Harmony);
+#endif
+
+                // This is less expensive.
+                Harmony.Patch(AccessTools.Method(typeof(Core.Log), nameof(Core.Log.Raw)), null, new HarmonyMethod(AccessTools.Method(typeof(Loader), nameof(Postfix))));
                 Log("[LethalAPI-Bootstrapper] Log fix patched.");
-                _ = new Core.Loader.PluginLoader();
+                _ = new PluginLoader();
                 foreach (Assembly dependency in Dependencies)
                 {
-                    Core.Loader.PluginLoader.Dependencies.Add(dependency);
+                    PluginLoader.Dependencies.Add(dependency);
                 }
             }
             catch (Exception e)

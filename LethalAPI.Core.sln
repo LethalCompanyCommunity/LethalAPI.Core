@@ -6,17 +6,27 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LethalAPI.Bootstrapper", "L
 EndProject
 Global
 				GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+					Manual|Any CPU = Manual|Any CPU
+					Melonloader|Any CPU = Melonloader|Any CPU
+					Bepinex|Any CPU = Bepinex|Any CPU
+					Debug|Any CPU = Debug|Any CPU
 				EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{037047FB-A85A-4647-8D94-B9450853D09E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{037047FB-A85A-4647-8D94-B9450853D09E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{037047FB-A85A-4647-8D94-B9450853D09E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{037047FB-A85A-4647-8D94-B9450853D09E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{057E5104-1BAD-45DF-BEEA-875576F2308F}.Manual|Any CPU.ActiveCfg = Manual|Any CPU
+		{057E5104-1BAD-45DF-BEEA-875576F2308F}.Manual|Any CPU.Build.0 = Manual|Any CPU
+		{057E5104-1BAD-45DF-BEEA-875576F2308F}.Melonloader|Any CPU.ActiveCfg = Melonloader|Any CPU
+		{057E5104-1BAD-45DF-BEEA-875576F2308F}.Melonloader|Any CPU.Build.0 = Melonloader|Any CPU
+		{057E5104-1BAD-45DF-BEEA-875576F2308F}.Bepinex|Any CPU.ActiveCfg = BepInEx|Any CPU
+		{057E5104-1BAD-45DF-BEEA-875576F2308F}.Bepinex|Any CPU.Build.0 = BepInEx|Any CPU
 		{057E5104-1BAD-45DF-BEEA-875576F2308F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{057E5104-1BAD-45DF-BEEA-875576F2308F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{057E5104-1BAD-45DF-BEEA-875576F2308F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{057E5104-1BAD-45DF-BEEA-875576F2308F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Manual|Any CPU.ActiveCfg = Release|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Manual|Any CPU.Build.0 = Release|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Melonloader|Any CPU.ActiveCfg = Release|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Melonloader|Any CPU.Build.0 = Release|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Bepinex|Any CPU.ActiveCfg = Release|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Bepinex|Any CPU.Build.0 = Release|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Debug|Any CPU.ActiveCfg = Release|Any CPU
+		{037047FB-A85A-4647-8D94-B9450853D09E}.Debug|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

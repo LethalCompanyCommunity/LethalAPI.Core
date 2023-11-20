@@ -130,10 +130,9 @@ public static class ConfigLoader
                 Log.Info($"[Combined] Plugin config for plugin '{plugin.Name}' is missing! Generating new config.");
                 pluginConfigs.Add(plugin.Name.ToSnakeCase(), plugin.Config);
                 changed = true;
-                continue;
             }
 
-            object conf = pluginConfigs[plugin.Name.ToSnakeCase()];
+            // object conf = pluginConfigs[plugin.Name.ToSnakeCase()];
             /*if (!conf.GetType().IsSubclassOf(plugin.Config.GetType()) && conf.GetType() != plugin.Config.GetType())
             {
                 pluginConfigs[plugin.Name.ToSnakeCase()] = plugin.Config;
