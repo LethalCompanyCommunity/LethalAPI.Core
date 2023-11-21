@@ -1,4 +1,6 @@
-﻿[*.cs]
+﻿root = true
+
+[*.cs]
 # SA1633: File should have header
 dotnet_diagnostic.SA1633.severity = error
 
@@ -105,25 +107,10 @@ dotnet_diagnostic.CS0436.severity = suggestion
 # SA1010: Opening square brackets should be spaced correctly
 dotnet_diagnostic.SA1010.severity = silent
 
-# Remove BepInEx auto-generated info files. (womp-womp)
-[PluginInfo.cs]
-
-# SA1310: Field should not contain an underscore
-dotnet_diagnostic.SA1310.severity = none
-
-# SA1600: Elements should be documented
-dotnet_diagnostic.SA1600.severity = none
-
-# CS1591: Missing XML comment for publicly visible type or member.
-dotnet_diagnostic.CS1591.severity = none
-
-# SA1633: File should have header 
-dotnet_diagnostic.SA1633.severity = none
-
-[Events/Interfaces/*.cs]
+[LethalAPI.Core/Events/Interfaces/*.cs]
 resharper_unassigned_get_only_auto_property_highlighting=none
 
-[Patches/{Fixes,Events}/{*,Player/*,Server/*}.cs]
+[LethalAPI.Core/Patches/{Fixes,Events}/{*,Player/*,Server/*}.cs]
 # SA1202: Internal members before private members. - Patches should always come before helper methods.
 dotnet_diagnostic.SA1202.severity = none
 
@@ -136,14 +123,13 @@ dotnet_diagnostic.SA1649.severity = none
 # SA1402: Only one class should be in a file.
 dotnet_diagnostic.SA1402.severity = none
 
-resharper_inconsistent_naming_highlighting=none
 resharper_unused_parameter_local_highlighting=none
 resharper_unused_member_local_highlighting=none
 resharper_string_literal_typo_highlighting=none
 resharper_identifier_typo_highlighting=none
 resharper_comment_typo_highlighting=none
 
-[System/*.cs]
+[LethalAPI.Core/System/*.cs]
 # SA1633: File should have header 
 dotnet_diagnostic.SA1633.severity = none
 
@@ -152,22 +138,22 @@ dotnet_diagnostic.SA1636.severity = none
 # SA1641: File should have copyright
 dotnet_diagnostic.SA1641.severity = none
 
-[Events/EventArgs/*/*.cs]
+[LethalAPI.Core/Events/EventArgs/*/*.cs]
 # CS0649: Property never assigned.
 dotnet_diagnostic.CS0649.severity=error
 resharper_unused_auto_property_accessor_global_highlighting=none
 resharper_class_never_instantiated_global_highlighting=none
 resharper_unassigned_get_only_auto_property_highlighting=error
 
-[Safety/SafeEnumerator\{T\}.cs]
+[LethalAPI.Core/Safety/SafeEnumerator\{T\}.cs]
 # SA1633: File should have header.
 dotnet_diagnostic.SA1633.severity = none
 
-[Patches/HarmonyTools/{SafetyPatch,TranspilerHelper}.cs]
+[LethalAPI.Core/Patches/HarmonyTools/{SafetyPatch,TranspilerHelper}.cs]
 # SA1633: File should have header.
 dotnet_diagnostic.SA1633.severity = none
 
-[MEC/Timing.cs]
+[LethalAPI.Core/MEC/Timing.cs]
 # SA1633: File should have header.
 dotnet_diagnostic.SA1633.severity = none
 
@@ -176,6 +162,7 @@ dotnet_diagnostic.SA1633.severity = none
 #### Naming styles ####
 
 # Naming rules
+resharper_inconsistent_naming_highlighting=none
 
 dotnet_naming_rule.interface_should_be_begins_with_i.severity = suggestion
 dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface
@@ -248,3 +235,30 @@ dotnet_style_allow_multiple_blank_lines_experimental = true:silent
 dotnet_style_qualification_for_property = false:silent
 dotnet_style_qualification_for_method = false:silent
 dotnet_style_qualification_for_event = false:silent
+
+
+
+# Remove BepInEx auto-generated info files. (womp-womp)
+[PluginInfo.cs]
+
+# SA1310: Field should not contain an underscore
+dotnet_diagnostic.SA1310.severity = none
+
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = none
+
+# CS1591: Missing XML comment for publicly visible type or member.
+dotnet_diagnostic.CS1591.severity = none
+
+# SA1633: File should have header 
+dotnet_diagnostic.SA1633.severity = none
+
+[IgnoresAccessChecksToAttribute.cs]
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = none
+
+# CS1591: Missing XML comment for publicly visible type or member.
+dotnet_diagnostic.CS1591.severity = none
+
+# SA1633: File should have header 
+dotnet_diagnostic.SA1633.severity = none

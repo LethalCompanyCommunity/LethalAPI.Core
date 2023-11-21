@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="FixLoggerPrefix.cs" company="LethalAPI Modding Community">
+// <copyright file="FixBepInExLoggerPrefix.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
@@ -8,14 +8,15 @@
 namespace LethalAPI.Core.Patches.Fixes;
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 using BepInEx.Logging;
 
 #pragma warning disable SA1402
+#pragma warning disable SA1313
 
 /// <summary>
 /// Patches the <see cref="BepInEx.Logging.ConsoleLogListener.LogEvent">BepInEx.Logging.ConsoleLogListener.LogEvent</see> method to utilize a custom logger.
@@ -23,54 +24,21 @@ using BepInEx.Logging;
 // ReSharper disable UnusedMember.Local
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedParameter.Local
-#pragma warning disable SA1313
-[HarmonyPatch(typeof(ConsoleLogListener), nameof(ConsoleLogListener.LogEvent))]
-[HarmonyPriority(Priority.HigherThanNormal)]
-internal static class FixLoggerPrefix
+// This now is called manually in the plugin loader.
+// [HarmonyPatch(typeof(ConsoleLogListener), nameof(ConsoleLogListener.LogEvent))]
+internal static class FixBepInExLoggerPrefix
 {
+    /// <inheritdoc cref ="Core.Log.ColorCodes" />
+    private static ReadOnlyDictionary<string, ConsoleColor> ConsoleText => Log.ColorCodes;
+
     /// <summary>
-    /// Contains a list of colorcodes that can be used.
+    /// Enables this patch.
     /// </summary>
-    /// <example>
-    /// <code>
-    /// Use &amp; in front of a code for the color. IE: &amp;1 red text &amp;2 green text.
-    /// &amp;0 - Black
-    /// &amp;1 - Red
-    /// &amp;2 - Green
-    /// &amp;3 - Yellow
-    /// &amp;4 - Blue
-    /// &amp;5 - Magenta
-    /// &amp;6 - Cyan
-    /// &amp;7 - White
-    /// &amp;a - Dark Gray
-    /// &amp;b - Dark Red
-    /// &amp;c - Dark Green
-    /// &amp;d - Dark Yellow
-    /// &amp;e - Dark Blue
-    /// &amp;f - Dark Magenta
-    /// &amp;g - Dark Cyan
-    /// &amp;h - Gray
-    /// </code>
-    /// </example>
-    internal static readonly ReadOnlyDictionary<char, ConsoleColor> ConsoleText = new (new Dictionary<char, ConsoleColor>()
-    {
-        { '0', ConsoleColor.Black }, // black
-        { '1', ConsoleColor.Red }, // red
-        { '2', ConsoleColor.Green }, // green
-        { '3', ConsoleColor.Yellow }, // yellow
-        { '4', ConsoleColor.Blue }, // blue
-        { '5', ConsoleColor.Magenta }, // purple
-        { '6', ConsoleColor.Cyan }, // cyan
-        { '7', ConsoleColor.White }, // white
-        { 'a', ConsoleColor.DarkGray }, // dark gray
-        { 'b', ConsoleColor.DarkRed }, // dark red
-        { 'c', ConsoleColor.DarkGreen }, // dark green
-        { 'd', ConsoleColor.DarkYellow }, // dark yellow
-        { 'e', ConsoleColor.DarkBlue }, // dark blue
-        { 'f', ConsoleColor.DarkMagenta }, // dark magenta
-        { 'g', ConsoleColor.DarkCyan }, // dark cyan
-        { 'h', ConsoleColor.Gray }, // gray
-    });
+    /// <param name="harmony">The harmony instance to enable it on.</param>
+    internal static void Patch(HarmonyLib.Harmony harmony)
+        => harmony.Patch(
+            AccessTools.Method(typeof(ConsoleLogListener), nameof(ConsoleLogListener.LogEvent)),
+            new HarmonyMethod(AccessTools.Method(typeof(FixBepInExLoggerPrefix), nameof(Prefix))));
 
     [HarmonyPrefix]
     private static bool Prefix(ConsoleLogListener __instance, object sender, LogEventArgs eventArgs)
@@ -78,7 +46,7 @@ internal static class FixLoggerPrefix
         // Redirect BepInEx logs
         if ((int)eventArgs.Level != 62)
         {
-            Log.Skip(eventArgs.Data.ToString(), eventArgs.Level);
+            Skip(eventArgs.Data.ToString(), eventArgs.Level);
             return false;
         }
 
@@ -93,33 +61,57 @@ internal static class FixLoggerPrefix
 
         // Set default color
         setConsoleColor.Invoke(null, new object[] { ConsoleColor.Gray });
-        bool flag = false;
+
         string text = (string)eventArgs.Data;
 
-        // Process the characters
-        // ReSharper disable once ForCanBeConvertedToForeach
-        // In case we want to ensure it isn't \& in the future, we will need a for loop.
-        for (int i = 0; i < text.Length; i++)
+        StringBuilder stringBuilder = new();
+        ConsoleColor oldColor = ConsoleColor.Gray;
+        bool previouslyEscaped = false;
+        for (int i = 1; i < text.Length; i++)
         {
-            if (text[i] == '&' && !flag)
+            char c = text[i];
+            if (c == '\\')
             {
-                flag = true;
+                stringBuilder.Append(c);
+                previouslyEscaped = true;
+                continue;
             }
-            else if (flag)
-            {
-                if (!ConsoleText.ContainsKey(text[i]))
-                {
-                    flag = false;
-                    continue;
-                }
 
-                setConsoleColor.Invoke(null, new object[] { ConsoleText[text[i]] });
-                flag = false;
-            }
-            else
+            if (c != '&' || previouslyEscaped)
             {
-                instance.Write(text[i]);
+                previouslyEscaped = false;
+                stringBuilder.Append(c);
+                continue;
             }
+
+            StringBuilder searchColor = new();
+            for (int j = 0; j < Log.LongestColor + 1; j++)
+            {
+                searchColor.Append(text[i + j]);
+            }
+
+            if (!Log.TryGetColor(searchColor.ToString(), out ConsoleColor? color, out int removeLength) || color is null)
+            {
+                stringBuilder.Append(c);
+                continue;
+            }
+
+            // Output prior text.
+            setConsoleColor.Invoke(null, new object[] { oldColor });
+            instance.Write(stringBuilder.ToString());
+            oldColor = color.Value;
+
+            // Change Color and reset for next string.
+            stringBuilder = new StringBuilder();
+
+            // Skip this many characters as they are all coloring.
+            i += removeLength;
+        }
+
+        if (stringBuilder.Length > 0)
+        {
+            setConsoleColor.Invoke(null, new object[] { oldColor });
+            instance.Write(stringBuilder.ToString());
         }
 
         instance.Write('\n');
@@ -128,6 +120,28 @@ internal static class FixLoggerPrefix
         // instance!.Write((string)eventArgs.Data);
         setConsoleColor.Invoke(null, new object[] { ConsoleColor.Gray });
         return false;
+    }
+
+    /// <summary>
+    /// Used to rewrite a BepInEx log into the new method of logging, but skip several stack trace iterations.
+    /// </summary>
+    /// <param name="message">The previous message.</param>
+    /// <param name="level">The log level.</param>
+    private static void Skip(string message, LogLevel level)
+    {
+        string callingPlugin = Log.GetCallingPlugin(Log.GetCallingMethod(6), string.Empty, Log.ShowCallingMethod);
+        string template = level switch
+        {
+            LogLevel.Info => "Info",
+            LogLevel.Message => "Info",
+            LogLevel.Debug => "Debug",
+            LogLevel.Warning => "Warn",
+            LogLevel.Error => "Error",
+            LogLevel.Fatal => "Error",
+            _ => "Info",
+        };
+
+        Log.Raw(Log.Templates[template].Replace("{time}", Log.GetDateString()).Replace("{prefix}", callingPlugin).Replace("{msg}", message).Replace("{type}", template));
     }
 }
 
