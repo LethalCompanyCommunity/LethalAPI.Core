@@ -56,7 +56,7 @@ public class CorePlugin : Plugin<CoreConfig>
         Instance = this;
 
         Events.Handlers.Server.GameOpened += InitTimings;
-        Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
+        Log.Info($"{this.Name} is being loaded...");
     }
 
     private void InitTimings()

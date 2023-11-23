@@ -166,7 +166,7 @@ public class Patcher
     /// <returns>A <see cref="HashSet{T}"/> of all patch types.</returns>
     private static HashSet<Type> GetAllPatchTypes()
     {
-        HashSet<Type> types = new HashSet<Type>();
+        HashSet<Type> types = new ();
         foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
         {
             try
@@ -190,7 +190,7 @@ public class Patcher
     /// <returns>A <see cref="HashSet{T}"/> of all patch types.</returns>
     private static HashSet<Type> GetNonEventPatchTypes()
     {
-        HashSet<Type> types = new HashSet<Type>();
+        HashSet<Type> types = new ();
         foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
         {
             try

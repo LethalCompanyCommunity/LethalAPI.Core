@@ -10,7 +10,6 @@
 namespace LethalAPI.Core.Loader.Configs.Tools;
 
 using System;
-using System.Text;
 
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
@@ -30,18 +29,7 @@ public sealed class CommentsObjectDescriptor : IObjectDescriptor
     public CommentsObjectDescriptor(IObjectDescriptor innerDescriptor, string comment)
     {
         this.innerDescriptor = innerDescriptor;
-        StringBuilder commentBuilder = new ();
-        bool isFirst = false;
-
-        foreach (string commentLine in comment.Split('\n'))
-        {
-            if (isFirst)
-                commentBuilder.AppendLine(commentLine);
-            else
-                commentBuilder.AppendLine(commentLine);
-        }
-
-        this.Comment = commentBuilder.ToString();
+        this.Comment = comment;
     }
 
     /// <summary>

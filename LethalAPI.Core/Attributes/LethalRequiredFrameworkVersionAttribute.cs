@@ -12,6 +12,14 @@ using System;
 /// <summary>
 /// Specifies the minimum version of the lethal framework required to work. This is optional.
 /// </summary>
+/// <example>
+/// <code>
+/// [LethalRequiredFrameworkVersion(1, 0, 0)]
+/// class MyPlugin : Plugin&amp;lt;MyConfig&amp;gt;
+/// {
+/// }
+/// </code>
+/// </example>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class LethalRequiredFrameworkVersionAttribute : Attribute
 {

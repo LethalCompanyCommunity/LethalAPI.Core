@@ -2,6 +2,7 @@
   <Costura>
     <IncludeAssemblies>
       YamlDotNet
-    </IncludeAssemblies>
+      Newtonsoft.Json
+      </IncludeAssemblies>
   </Costura> 
 </Weavers>
