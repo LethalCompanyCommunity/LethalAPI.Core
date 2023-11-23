@@ -325,15 +325,15 @@ namespace LethalAPI.Bootstrapper
 
         private static void LoadPaths()
         {
-            #if Bepinex
+#if Bepinex
                 BepInEx.Bootstrapper.LoadPathsBepInEx();
-            #endif
-            #if Melonloader
+#endif
+#if Melonloader
                 MelonLoader.Bootstrapper.LoadPathsMelonLoader();
-            #endif
-            #if Manual
+#endif
+#if Manual
                 Doorstop.Entrypoint.LoadPathsManual();
-            #endif
+#endif
         }
 
         private static void LoadDependencies()

@@ -52,7 +52,7 @@ public sealed class LethalPluginAttribute : Attribute
         this.Name = name;
         this.Description = description;
         this.Author = author;
-        this.Version = null;
+        this.Version = new Version(1, 0, 0);
     }
 
     /// <summary>
@@ -73,5 +73,5 @@ public sealed class LethalPluginAttribute : Attribute
     /// <summary>
     /// Gets the version of the plugin.
     /// </summary>
-    public Version? Version { get; }
+    public Version Version { get; }
 }

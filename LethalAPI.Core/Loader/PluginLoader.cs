@@ -183,7 +183,7 @@ public sealed class PluginLoader
         {
             try
             {
-                if (plugin.Name.StartsWith("LethalAPI") && plugin.Config.IsEnabled)
+                if (plugin.Name.ToLower().StartsWith("lethalapi") && plugin.Config.IsEnabled)
                 {
                     plugin.OnEnabled();
                     toLoad.Remove(plugin);
@@ -472,22 +472,19 @@ public sealed class PluginLoader
                 continue;
             }
 
-            Version? version = pluginInfo.Version;
-            if (version is null && type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion is { } versionString)
+            Version? version = null;
+            try
             {
-                if (!Version.TryParse(versionString, out version))
-                {
-                    Log.Warn($"Plugin '{type.FullName}' does not have a valid version. Please define a version in the plugin attribute.\n" +
-                             "The assembly version string must be a parsable version to be used for plugin versioning. https://semver.org/");
-                    continue;
-                }
+                if (type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion is { } versionString)
+                    version = Version.Parse(versionString);
+            }
+            catch (Exception)
+            {
+                // unused.
             }
 
-            if(version is null)
-            {
-                Log.Warn($"Plugin '{type.FullName}' must have a valid version. This can be manually defined in the attribute, or defined in the assembly before being built.");
-                continue;
-            }
+            // if version is not defined via assembly.
+            version ??= pluginInfo.Version;
 
             FieldInfo? configField = null;
             foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))

@@ -100,24 +100,23 @@ public static class ConfigLoader
         if (LoadSeperatedConfigFiles)
             plugin.UpdateConfig(GetSeparatedConfigValue(plugin));
         else
-            plugin.UpdateConfig(GetConfigValueForPlugin(plugin));
+            plugin.UpdateConfig((IConfig)GetConfigValueForPlugin(plugin));
     }
 
     [Pure]
-    private static Dictionary<string, object> GetLatestCombinedConfig()
+    private static Dictionary<string, IConfig> GetLatestCombinedConfig()
     {
         string path = Path.Combine(ConfigDirectory, "lethal-api-config.yml");
+        Dictionary<string, IConfig> returnedConfigs = new();
         Dictionary<string, object>? pluginConfigs = null;
         try
         {
             if(File.Exists(path))
                 pluginConfigs = Serialization.Deserializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(path));
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            Log.Warn("Old config was invalid. A backup of the old config will be made.");
-            Log.Exception(e);
-            MakeBackupOfConfig(path);
+            // Unused, as the foreach will catch the missing configs.
         }
 
         pluginConfigs ??= new();
@@ -125,40 +124,36 @@ public static class ConfigLoader
         bool changed = false;
         foreach (IPlugin<IConfig> plugin in PluginLoader.Plugins.Values)
         {
-            if (!pluginConfigs.ContainsKey(plugin.Name.ToSnakeCase()))
+            object conf;
+            if (!pluginConfigs.TryGetValue(plugin.Name.ToSnakeCase(), out conf))
             {
                 Log.Info($"[Combined] Plugin config for plugin '{plugin.Name}' is missing! Generating new config.");
-                object? conf = plugin.Config;
-                try
-                {
-                    // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
-                    conf ??= Activator.CreateInstance(plugin.Config.GetType());
-                }
-                catch (Exception)
-                {
-                    Log.Error($"Could not find the default constructor for a config of type {plugin.Config.GetType()}.");
-                }
-
-                pluginConfigs.Add(plugin.Name.ToSnakeCase(), conf);
+                returnedConfigs.Add(plugin.Name.ToSnakeCase(), plugin.Config);
                 changed = true;
+                continue;
             }
 
-            // object conf = pluginConfigs[plugin.Name.ToSnakeCase()];
-            /*if (!conf.GetType().IsSubclassOf(plugin.Config.GetType()) && conf.GetType() != plugin.Config.GetType())
+            try
             {
-                pluginConfigs[plugin.Name.ToSnakeCase()] = plugin.Config;
-                Log.Warn($"Plugin config for plugin '{plugin.Name}' is invalid. Generating default values. [{plugin.Config.GetType().Name} != {conf.GetType().Name}]");
+                string rawConfigString = Serialization.Serializer.Serialize(conf);
+                IConfig configSerialized = (IConfig)Serialization.Deserializer.Deserialize(rawConfigString, plugin.Config.GetType())!;
+                returnedConfigs.Add(plugin.Name.ToSnakeCase(), configSerialized);
+            }
+            catch (Exception)
+            {
+                returnedConfigs.Add(plugin.Name.ToSnakeCase(), plugin.Config);
                 changed = true;
-            }*/
+            }
         }
 
         if (changed)
         {
             MakeBackupOfConfig(path);
-            File.WriteAllText(path, Serialization.Serializer.Serialize(pluginConfigs));
+            string output = Serialization.Serializer.Serialize(returnedConfigs);
+            File.WriteAllText(path, output);
         }
 
-        return pluginConfigs;
+        return returnedConfigs;
     }
 
     [Pure]
@@ -206,7 +201,16 @@ public static class ConfigLoader
 
     private static void LoadAllConfigsCombined()
     {
-        Dictionary<string, object> latestConf = GetLatestCombinedConfig();
+        Dictionary<string, IConfig> latestConf = new();
+        try
+        {
+            latestConf = GetLatestCombinedConfig();
+        }
+        catch (Exception e)
+        {
+            Log.Exception(e);
+        }
+
         foreach (IPlugin<IConfig> plugin in PluginLoader.Plugins.Values)
         {
             if (!latestConf.ContainsKey(plugin.Name.ToSnakeCase()))

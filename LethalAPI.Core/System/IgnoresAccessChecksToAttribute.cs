@@ -11,6 +11,7 @@ namespace System.Runtime.CompilerServices;
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
 public sealed class IgnoresAccessChecksToAttribute : Attribute
 {
+    // ReSharper disable once UnusedParameter.Local
     public IgnoresAccessChecksToAttribute(string assemblyName)
     {
     }

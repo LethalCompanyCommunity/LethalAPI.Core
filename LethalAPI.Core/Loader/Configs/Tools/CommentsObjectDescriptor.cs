@@ -10,7 +10,6 @@
 namespace LethalAPI.Core.Loader.Configs.Tools;
 
 using System;
-using System.Text;
 
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;

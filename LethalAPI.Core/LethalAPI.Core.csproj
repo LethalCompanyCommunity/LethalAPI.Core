@@ -13,9 +13,9 @@
             https://api.nuget.org/v3/index.json;
             https://nuget.bepinex.dev/v3/index.json
         </RestoreAdditionalProjectSources>
-        <DocumentationFile>..\bin\Debug\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+        <DocumentationFile>..\bin\Release\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)..\LethalAPI.ruleset</CodeAnalysisRuleSet>
-        <OutputPath>..\bin\Debug\</OutputPath>
+        <OutputPath>..\bin\Release\</OutputPath>
         <Nullable>enable</Nullable>
         <Platform>AnyCPU</Platform>
         <Configurations>Release</Configurations>
@@ -31,6 +31,7 @@
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" ExcludeAssets="runtime" />
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" ExcludeAssets="runtime" />
         <PackageReference Include="YamlDotNet" Version="13.7.1" ExcludeAssets="runtime" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" ExcludeAssets="runtime" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
