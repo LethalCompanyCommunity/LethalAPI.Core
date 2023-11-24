@@ -21,15 +21,15 @@ using System;
 /// </code>
 /// </example>
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class LethalRequiredFrameworkVersionAttribute : Attribute
+public sealed class LethalRequiredAPIVersionAttribute : Attribute
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="LethalRequiredFrameworkVersionAttribute"/> class.
+    /// Initializes a new instance of the <see cref="LethalRequiredAPIVersionAttribute"/> class.
     /// </summary>
     /// <param name="major">The major version.</param>
     /// <param name="minor">The minor version.</param>
     /// <param name="revision">The revision version.</param>
-    public LethalRequiredFrameworkVersionAttribute(int major = 1, int minor = 0, int revision = 0)
+    public LethalRequiredAPIVersionAttribute(int major = 1, int minor = 0, int revision = 0)
     {
         this.Version = new Version(major, minor, revision);
     }

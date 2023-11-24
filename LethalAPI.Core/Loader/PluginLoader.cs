@@ -541,7 +541,7 @@ public sealed class PluginLoader
                 continue;
             }
 
-            Version requiredApiVersion = type.GetCustomAttribute<LethalRequiredFrameworkVersionAttribute>()?.Version ?? new Version(1, 0, 0);
+            Version requiredApiVersion = type.GetCustomAttribute<LethalRequiredAPIVersionAttribute>()?.Version ?? new Version(1, 0, 0);
 
             ConstructorInfo? constructor = type.GetConstructor(Type.EmptyTypes);
             if (constructor is null)
