@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="LethalRequiredFrameworkVersionAttribute.cs" company="LethalAPI Modding Community">
+// <copyright file="LethalRequiredAPIVersionAttribute.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
