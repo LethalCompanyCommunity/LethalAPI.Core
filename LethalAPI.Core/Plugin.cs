@@ -57,6 +57,7 @@ public class Plugin : BaseUnityPlugin
 
         Instance = this;
         Events.Handlers.Server.GameOpened += InitTimings;
+        Events.Handlers.Server.GameOpened += InitModData;
         Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
     }
 
@@ -64,6 +65,11 @@ public class Plugin : BaseUnityPlugin
     {
         Timing.Instance.name = "Timing Controller";
         Timing.Instance.OnException += OnError;
+    }
+
+    private void InitModData()
+    {
+        ModData.ModData.PopulateModData();
     }
 
     // ReSharper disable once ParameterHidesMember

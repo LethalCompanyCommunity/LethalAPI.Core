@@ -26,4 +26,9 @@ public enum ModDataCompression
     /// Compress your data using ZLib specification.
     /// </summary>
     ZLib = 2,
+
+    /// <summary>
+    /// Compress your data using Brotli specification.
+    /// </summary>
+    Brotli = 3,
 }
