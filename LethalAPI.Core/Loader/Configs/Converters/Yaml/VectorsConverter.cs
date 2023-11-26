@@ -5,7 +5,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core.Loader.Configs.Converters;
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+namespace LethalAPI.Core.Loader.Configs.Converters.Yaml;
 
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ using YamlDotNet.Serialization;
 public sealed class VectorsConverter : IYamlTypeConverter
 {
     /// <inheritdoc cref="IYamlTypeConverter" />
-    public bool Accepts(Type type) => type == typeof(Vector2) || type == typeof(Vector3) || type == typeof(Vector4);
+    public bool Accepts(Type type) => type == typeof(Vector2) || type == typeof(Vector2Int) || type == typeof(Vector3) || type == typeof(Vector3Int) || type == typeof(Vector4);
 
     /// <inheritdoc cref="IYamlTypeConverter" />
     public object ReadYaml(IParser parser, Type type)
@@ -34,6 +35,7 @@ public sealed class VectorsConverter : IYamlTypeConverter
 
         List<object> coordinates = ListPool<object>.Get();
         int i = 0;
+        bool isInt = type == typeof(Vector2Int) || type == typeof(Vector3Int);
 
         while (!parser.TryConsume<MappingEnd>(out _))
         {
@@ -43,16 +45,25 @@ public sealed class VectorsConverter : IYamlTypeConverter
                 continue;
             }
 
+            if (!parser.TryConsume(out Scalar scalar))
+                goto invalidValue;
+
             // Nullable weirdness.
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-            if (!parser.TryConsume(out Scalar scalar) || !float.TryParse(scalar.Value, NumberStyles.Float, new CultureInfo("en-US"), out float coordinate))
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+            if (!isInt && float.TryParse(scalar.Value, NumberStyles.Float, new CultureInfo("en-US"), out float coordinate))
             {
-                ListPool<object>.Release(coordinates);
-                throw new InvalidDataException($"Invalid float value.");
+                coordinates.Add(coordinate);
+                continue;
             }
 
-            coordinates.Add(coordinate);
+            if (isInt && int.TryParse(scalar.Value, NumberStyles.Integer, new CultureInfo("en-US"), out int coordinateInt))
+            {
+                coordinates.Add(coordinateInt);
+                continue;
+            }
+
+            invalidValue:
+            ListPool<object>.Release(coordinates);
+            throw new InvalidDataException($"Invalid {(isInt ? "Integer" : "Float")} value.");
         }
 
         object vector = Activator.CreateInstance(type, coordinates.ToArray());
@@ -67,23 +78,32 @@ public sealed class VectorsConverter : IYamlTypeConverter
     {
         Dictionary<string, float> coordinates = DictionaryPool<string, float>.Get();
 
-        if (value is Vector2 vector2)
+        switch (value)
         {
-            coordinates["x"] = vector2.x;
-            coordinates["y"] = vector2.y;
-        }
-        else if (value is Vector3 vector3)
-        {
-            coordinates["x"] = vector3.x;
-            coordinates["y"] = vector3.y;
-            coordinates["z"] = vector3.z;
-        }
-        else if (value is Vector4 vector4)
-        {
-            coordinates["x"] = vector4.x;
-            coordinates["y"] = vector4.y;
-            coordinates["z"] = vector4.z;
-            coordinates["w"] = vector4.w;
+            case Vector2 vector2:
+                coordinates["x"] = vector2.x;
+                coordinates["y"] = vector2.y;
+                break;
+            case Vector2Int vector2i:
+                coordinates["x"] = vector2i.x;
+                coordinates["y"] = vector2i.y;
+                break;
+            case Vector3 vector3:
+                coordinates["x"] = vector3.x;
+                coordinates["y"] = vector3.y;
+                coordinates["z"] = vector3.z;
+                break;
+            case Vector3Int vector3i:
+                coordinates["x"] = vector3i.x;
+                coordinates["y"] = vector3i.y;
+                coordinates["z"] = vector3i.z;
+                break;
+            case Vector4 vector4:
+                coordinates["x"] = vector4.x;
+                coordinates["y"] = vector4.y;
+                coordinates["z"] = vector4.z;
+                coordinates["w"] = vector4.w;
+                break;
         }
 
         emitter.Emit(new MappingStart());

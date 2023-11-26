@@ -5,7 +5,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace LethalAPI.Core.Loader.Configs.Converters;
+namespace LethalAPI.Core.Loader.Configs.Converters.Yaml;
 
 using System;
 using System.Collections.Generic;
