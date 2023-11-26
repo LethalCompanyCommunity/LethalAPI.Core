@@ -75,6 +75,7 @@ public static class Serialization
         ContractResolver = new UnityTypeContractResolver(),
         Converters = new JsonConverter[]
         {
+            // Unity Specific Converters
             new Color32Converter(),
             new Converters.Json.ColorConverter(),
             new QuaternionConverter(),
@@ -83,8 +84,27 @@ public static class Serialization
             new Vector3Converter(),
             new Vector3IntConverter(),
             new Vector4Converter(),
+
+            // Default Newtonsoft.Json Converters
+            new BinaryConverter(),
+            new DataSetConverter(),
+            new DataTableConverter(),
+            new IsoDateTimeConverter(),
+            new JavaScriptDateTimeConverter(),
+            new UnixDateTimeConverter(),
+            new XmlNodeConverter(),
+            new KeyValuePairConverter(),
+            new RegexConverter(),
             new StringEnumConverter(),
             new VersionConverter(),
+
+            // dynamic tools
+            new ExpandoObjectConverter(),
+
+            // Unused Newtonsoft.Json Converters.
+            /* new BsonObjectIdConverter(), - Obsolete. */
+            /* new DiscriminatedUnionConverter(), - F# tool. Unnecessary. */
+            /* new EntityKeyMemberConverter(), - Entity Framework. Unnecessary. */
         },
         ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
         ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
