@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Text;
 
 using BepInEx.Logging;
+using Core.Events.Attributes;
 
 #pragma warning disable SA1402
 #pragma warning disable SA1313
@@ -26,6 +27,7 @@ using BepInEx.Logging;
 // ReSharper disable UnusedParameter.Local
 // This now is called manually in the plugin loader.
 // [HarmonyPatch(typeof(ConsoleLogListener), nameof(ConsoleLogListener.LogEvent))]
+[IgnorePatch]
 internal static class FixBepInExLoggerPrefix
 {
     /// <inheritdoc cref ="Core.Log.ColorCodes" />

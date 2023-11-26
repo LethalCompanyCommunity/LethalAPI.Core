@@ -198,7 +198,10 @@ public class Patcher
                 if (type.GetCustomAttribute<HarmonyPatch>() is null)
                     continue;
 
-                if (!type.GetCustomAttributes<EventPatchAttribute>().Any())
+                if (type.GetCustomAttributes<EventPatchAttribute>().Any())
+                    continue;
+
+                if (type.GetCustomAttributes<EventPatchAttribute>().Any())
                     continue;
 
                 types.Add(type);
