@@ -69,7 +69,7 @@ public class Plugin : BaseUnityPlugin
 
     private void InitModData()
     {
-        ModData.ModData.PopulateModData();
+        ModData.SaveData.PopulateModData();
     }
 
     // ReSharper disable once ParameterHidesMember
