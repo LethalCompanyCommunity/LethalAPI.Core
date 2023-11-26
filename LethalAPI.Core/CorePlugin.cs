@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="Plugin.cs" company="LethalAPI Modding Community">
+// <copyright file="CorePlugin.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
 // Licensed under the GPL-3.0 license.
 // </copyright>
@@ -12,52 +12,51 @@ namespace LethalAPI.Core;
 #pragma warning disable SA1401 // field should be made private
 #pragma warning disable SA1309 // Names should not start with an underscore. ie: _Logger.
 using System;
-using System.Diagnostics;
-using System.Reflection;
 
-using BepInEx;
-using BepInEx.Logging;
+using Features;
 using HarmonyLib;
 using MEC;
-using MonoMod.RuntimeDetour;
 
 /// <inheritdoc />
-[BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-public class Plugin : BaseUnityPlugin
+public class CorePlugin : Plugin<CoreConfig>
 {
     /// <summary>
-    /// Gets the instance for the main api.
+    /// Gets the main instance of the core plugin.
     /// </summary>
-    public static Plugin Instance = null!;
-
-    /// <summary>
-    /// Gets the <see cref="BepInEx.Logging.Logger"/>.
-    /// </summary>
-    /// <summary>
-    /// The base logger.
-    /// </summary>
-    internal static ManualLogSource _Logger = null!;
+    public static CorePlugin Instance = null!;
 
     /// <summary>
     /// The harmony instance.
     /// </summary>
     internal static Harmony Harmony = null!;
 
-    private void Awake()
+    /// <inheritdoc />
+    // sets this so the config name isn't a mess. :)
+    public override string Name => "LethalApi-Core";
+
+    /// <inheritdoc />
+    public override string Description => "The core library for lethal api.";
+
+    /// <inheritdoc />
+    public override string Author => "Lethal API Modding Community";
+
+    /// <inheritdoc />
+    public override Version Version => Version.Parse(PluginInfo.PLUGIN_VERSION);
+
+    /// <inheritdoc />
+    public override void OnEnabled()
     {
-        _Logger = this.Logger;
+        Instance = this;
         Harmony = new(PluginInfo.PLUGIN_GUID);
 
         // Events.Events contains the instance. This should become a plugin for loading and config purposes, in the future.
         // Events..cctor -> Patcher.PatchAll will do the patching. This is necessary for dynamic patching.
         _ = new Events.Events();
 
-        // Hooks and fixes the exception stacktrace il.
-        _ = new ILHook(typeof(StackTrace).GetMethod("AddFrames", BindingFlags.Instance | BindingFlags.NonPublic), Patches.Fixes.FixExceptionIL.IlHook);
-
         Instance = this;
+
         Events.Handlers.Server.GameOpened += InitTimings;
-        Log.Info($"{PluginInfo.PLUGIN_GUID} is being loaded...");
+        Log.Info($"{this.Name} is being loaded...");
     }
 
     private void InitTimings()

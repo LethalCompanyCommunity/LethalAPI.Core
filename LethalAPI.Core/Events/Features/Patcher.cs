@@ -60,7 +60,7 @@ public class Patcher
     /// Gets the <see cref="HarmonyLib.Harmony"/> instance.
     /// </summary>
     // ReSharper disable once MemberCanBePrivate.Global
-    public Harmony Harmony { get; }
+    public HarmonyLib.Harmony Harmony { get; }
 
     /// <summary>
     /// Patches all events that target a specific <see cref="ILethalApiEvent"/>.
@@ -153,7 +153,7 @@ public class Patcher
     public void UnpatchAll()
     {
         Log.Debug("Un-patching events...");
-        Harmony.UnpatchID(Harmony.Id);
+        HarmonyLib.Harmony.UnpatchID(Harmony.Id);
         UnpatchedTypes = GetAllPatchTypes();
         PatchedTypes.Clear();
 
@@ -164,11 +164,53 @@ public class Patcher
     /// Gets all types that have a <see cref="HarmonyPatch"/> attributed to them.
     /// </summary>
     /// <returns>A <see cref="HashSet{T}"/> of all patch types.</returns>
-    private static HashSet<Type> GetAllPatchTypes() => Assembly.GetExecutingAssembly().GetTypes().Where((type) => type.CustomAttributes.Any((customAtt) => customAtt.AttributeType == typeof(HarmonyPatch))).ToHashSet();
+    private static HashSet<Type> GetAllPatchTypes()
+    {
+        HashSet<Type> types = new ();
+        foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+        {
+            try
+            {
+                if (type.GetCustomAttribute<HarmonyPatch>() is null)
+                    continue;
+
+                types.Add(type);
+            }
+            catch (TypeLoadException)
+            {
+            }
+        }
+
+        return types;
+    }
 
     /// <summary>
     /// Gets all types that have a <see cref="HarmonyPatch"/> attributed to them, but don't have an <see cref="EventPatchAttribute"/> attribute.
     /// </summary>
     /// <returns>A <see cref="HashSet{T}"/> of all patch types.</returns>
-    private static HashSet<Type> GetNonEventPatchTypes() => Assembly.GetExecutingAssembly().GetTypes().Where((type) => type.GetCustomAttribute<HarmonyPatch>() is not null && !type.GetCustomAttributes<EventPatchAttribute>().Any()).ToHashSet();
+    private static HashSet<Type> GetNonEventPatchTypes()
+    {
+        HashSet<Type> types = new ();
+        foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+        {
+            try
+            {
+                if (type.GetCustomAttribute<HarmonyPatch>() is null)
+                    continue;
+
+                if (type.GetCustomAttributes<EventPatchAttribute>().Any())
+                    continue;
+
+                if (type.GetCustomAttributes<EventPatchAttribute>().Any())
+                    continue;
+
+                types.Add(type);
+            }
+            catch (TypeLoadException)
+            {
+            }
+        }
+
+        return types;
+    }
 }

@@ -13,18 +13,25 @@
             https://api.nuget.org/v3/index.json;
             https://nuget.bepinex.dev/v3/index.json
         </RestoreAdditionalProjectSources>
-        <DocumentationFile>..\bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)LethalAPI.ruleset</CodeAnalysisRuleSet>
-        <OutputPath>..\bin\$(Configuration)\</OutputPath>
+        <DocumentationFile>..\bin\Release\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)..\LethalAPI.ruleset</CodeAnalysisRuleSet>
+        <OutputPath>..\bin\Release\</OutputPath>
         <Nullable>enable</Nullable>
+        <Platform>AnyCPU</Platform>
+        <Configurations>Release</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <Optimize>true</Optimize>
+        <DefineConstants>trace</DefineConstants>
     </PropertyGroup>
-
     <ItemGroup>
-        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" ExcludeAssets="RUNTIME" />
-        <PackageReference Include="BepInEx.Core" Version="5.*" ExcludeAssets="RUNTIME" />
-        <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" ExcludeAssets="RUNTIME" />
-        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" ExcludeAssets="RUNTIME" />
-        <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" ExcludeAssets="RUNTIME" />
+        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="BepInEx.Core" Version="5.*" ExcludeAssets="runtime" />
+        <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" ExcludeAssets="runtime" />
+        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" ExcludeAssets="runtime" />
+        <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" ExcludeAssets="runtime" />
+        <PackageReference Include="YamlDotNet" Version="13.7.1" ExcludeAssets="runtime" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" ExcludeAssets="runtime" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
@@ -32,29 +39,26 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp.dll" Private="False" />
-      <Reference Include="GameNetworkManager" HintPath="$(LC_REFERENCES)\Facepunch.Steamworks.Win64.dll" Private="False" />
-      <Reference Include="Unity.TextMeshPro" HintPath="$(LC_REFERENCES)\Unity.TextMeshPro.dll" Private="False" />
-      <Reference Include="UnityEngine" HintPath="$(LC_REFERENCES)\UnityEngine.dll" Private="False" />
-      <Reference Include="UnityEngine.UI" HintPath="$(LC_REFERENCES)\UnityEngine.UI.dll" Private="False" />
-      <Reference Include="Unity.Networking.Transport" HintPath="$(LC_REFERENCES)\Unity.Networking.Transport.dll" Private="False" />
-      <Reference Include="Unity.Netcode.Runtime" HintPath="$(LC_REFERENCES)\Unity.Netcode.Runtime.dll" Private="False" />
+        <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp.dll" Private="False" Publicize="True" />
+        <Reference Include="MelonLoader" HintPath="$(LC_REFERENCES)\MelonLoader.dll" Private="False" />
+        <Reference Include="GameNetworkManager" HintPath="$(LC_REFERENCES)\Facepunch.Steamworks.Win64.dll" Private="False" />
+        <Reference Include="Unity.TextMeshPro" HintPath="$(LC_REFERENCES)\Unity.TextMeshPro.dll" Private="False" />
+        <Reference Include="UnityEngine" HintPath="$(LC_REFERENCES)\UnityEngine.dll" Private="False" />
+        <Reference Include="UnityEngine.UI" HintPath="$(LC_REFERENCES)\UnityEngine.UI.dll" Private="False" />
+        <Reference Include="Unity.Networking.Transport" HintPath="$(LC_REFERENCES)\Unity.Networking.Transport.dll" Private="False" />
+        <Reference Include="Unity.Netcode.Runtime" HintPath="$(LC_REFERENCES)\Unity.Netcode.Runtime.dll" Private="False" />
     </ItemGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="stylecop.json" />
+        <AdditionalFiles Include="..\stylecop.json" />
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.gitignore">
-        <Link>.gitignore</Link>
-      </Content>
-      <Content Include="..\LICENSE">
-        <Link>LICENSE</Link>
-      </Content>
-      <Content Include="..\README.md">
-        <Link>README.md</Link>
-      </Content>
+      <Content Include="..\.editorconfig" Link=".editorconfig" />
+      <Content Include="..\.gitignore" Link=".gitignore" />
+      <Content Include="..\LethalAPI.ruleset" Link="LethalAPI.ruleset" />
+      <Content Include="..\LICENSE" Link="LICENSE" />
+      <Content Include="..\README.md" Link="README.md" />
     </ItemGroup>
     
 </Project>
