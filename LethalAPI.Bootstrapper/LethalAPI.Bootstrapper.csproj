@@ -24,6 +24,8 @@
         <UnsafeCodeBlocks>true</UnsafeCodeBlocks>
     </PropertyGroup>
     
+    
+    <!-- Debug -->
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>Trace;Manual;Bepinex;Melonloader</DefineConstants>
     </PropertyGroup>
@@ -31,13 +33,17 @@
         <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="BepInEx.Core" Version="5.*" ExcludeAssets="runtime" />
         <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" ExcludeAssets="runtime" />
-        <Reference Include="MelonLoader" HintPath="$(LC_REFERENCES)\MelonLoader.dll" Private="False" />
+        <PackageReference Include="LavaGang.MelonLoader" Version="0.6.1" ExcludeAssets="runtime" />
     </ItemGroup>
 
+    
+    <!-- Manual -->
     <PropertyGroup Condition=" '$(Configuration)' == 'Manual' ">
         <DefineConstants>Trace;Manual</DefineConstants>
     </PropertyGroup>
 
+    
+    <!-- BepInEx -->
     <PropertyGroup Condition=" '$(Configuration)' == 'BepInEx' ">
         <DefineConstants>Trace;Bepinex</DefineConstants>
     </PropertyGroup>
@@ -47,11 +53,13 @@
         <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" ExcludeAssets="runtime" />
     </ItemGroup>
 
+    
+    <!-- MelonLoader -->
     <PropertyGroup Condition=" '$(Configuration)' == 'Melonloader' ">
         <DefineConstants>Trace;Melonloader</DefineConstants>
     </PropertyGroup>
     <ItemGroup Condition=" '$(Configuration)' == 'Melonloader' ">
-        <Reference Include="MelonLoader" HintPath="$(LC_REFERENCES)\MelonLoader.dll" Private="False" />
+        <PackageReference Include="LavaGang.MelonLoader" Version="0.6.1" ExcludeAssets="runtime" />
     </ItemGroup>
 
         
