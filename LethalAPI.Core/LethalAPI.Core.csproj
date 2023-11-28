@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
         <AssemblyName>LethalAPI.Core</AssemblyName>
@@ -22,6 +21,7 @@
         <Platforms>AnyCPU</Platforms>
         <Optimize>true</Optimize>
         <DefineConstants>trace</DefineConstants>
+        <NoWarn>1701;1702;CS0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" ExcludeAssets="runtime" />
