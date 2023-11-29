@@ -7,7 +7,7 @@
       "headerDecoration": "-----------------------------------------------------------------------",
       "variables": {
         "licenseFile": "LICENSE",
-        "licenseName": "GPL-3.0"
+        "licenseName": "LGPL-3.0"
       }
     },
     "orderingRules": {
