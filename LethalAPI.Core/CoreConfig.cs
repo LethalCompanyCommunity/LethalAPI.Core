@@ -12,6 +12,7 @@ using Interfaces;
 /// <summary>
 /// The main config instance for LethalAPI.Core.
 /// </summary>
+// Named "CoreConfig" as to not be confused with the Config class.
 public sealed class CoreConfig : IConfig
 {
     /// <inheritdoc />
