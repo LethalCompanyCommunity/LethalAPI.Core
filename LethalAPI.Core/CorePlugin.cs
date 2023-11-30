@@ -18,7 +18,8 @@ using HarmonyLib;
 using MEC;
 
 /// <inheritdoc />
-public class CorePlugin : Plugin<CoreConfig>
+// We name this "CorePlugin" so it won't be confused with "Plugin."
+public sealed class CorePlugin : Plugin<CoreConfig>
 {
     /// <summary>
     /// Gets the main instance of the core plugin.
@@ -56,7 +57,7 @@ public class CorePlugin : Plugin<CoreConfig>
         Instance = this;
 
         Events.Handlers.Server.GameOpened += InitTimings;
-        Log.Info($"{this.Name} is being loaded...");
+        Log.Debug($"Started {this.Name} successfully.");
     }
 
     private void InitTimings()
