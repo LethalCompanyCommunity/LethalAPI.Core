@@ -9,34 +9,43 @@ namespace LethalAPI.Core.ModData;
 
 using System;
 using System.IO;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 using BepInEx.Bootstrap;
+using Interfaces;
+using Internal;
 
 /// <summary>
-/// The class that handle your custom mod save data.
+/// A class containing information about save data for a plugin.
 /// </summary>
-//todo: get a better name
-public sealed class SaveData
+public sealed class SaveInfo
 {
-     /// <summary>
-     /// Gets or sets the name of this SaveData, by default it should be your mod name or better GUID to prevent duplication.
-     /// </summary>
-    public string SaveName { get; set; }
+    /// <summary>
+    /// Gets the path to the save data where all modded saves will be saved to.
+    /// </summary>
+    public static string GlobalSaveDirectory => UnityEngine.Application.persistentDataPath;
 
     /// <summary>
-    /// Gets full path where the save data of this instance is located at.
+    /// Gets the plugin being represented.
     /// </summary>
-    public string SavePath { get; private set; }
+    public IPlugin<IConfig> Plugin { get; init; } = null!;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SaveData"/> class.<br/>
+    /// Gets the save handler.
     /// </summary>
-    /// <param name="name">temp</param>
-    public SaveData(string name)
+    public SaveHandler Save { get; init; } = null!;
+
+    /// <summary>
+    /// Gets the Com Name of the plugin.
+    /// </summary>
+    public string SaveName => $"{this.Plugin.Author}.{this.Plugin.Name}";
+/*
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SaveInfo"/> class.<br/>
+    /// </summary>
+    /// <param name="name">temp.</param>
+    public SaveInfo(string name)
     {
         SaveName = name;
         SavePath = Path.Combine(UnityEngine.Application.persistentDataPath, name);
@@ -45,11 +54,11 @@ public sealed class SaveData
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SaveData"/> class.<br/>
+    /// Initializes a new instance of the <see cref="SaveInfo"/> class.<br/>
     /// </summary>
     /// <param name="name">temp</param>
     /// <param name="path">temp2</param>
-    public SaveData(string name, string path)
+    public SaveInfo(string name, string path)
     {
         SaveName = name;
         SavePath = path;
@@ -58,12 +67,12 @@ public sealed class SaveData
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SaveData"/> class.<br/>
+    /// Initializes a new instance of the <see cref="SaveInfo"/> class.<br/>
     /// </summary>
     /// <param name="name">temp</param>
     /// <param name="path">temp2</param>
     /// <param name="compressionType">temp3</param>
-    public SaveData(string name, string path, ModDataCompression compressionType)
+    public SaveInfo(string name, string path, ModDataCompression compressionType)
     {
         SaveName = name;
         SavePath = path;
@@ -72,13 +81,13 @@ public sealed class SaveData
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SaveData"/> class.<br/>
+    /// Initializes a new instance of the <see cref="SaveInfo"/> class.<br/>
     /// </summary>
     /// <param name="name">temp</param>
     /// <param name="path">temp2</param>
     /// <param name="compressionType">temp3</param>
     /// <param name="encryptionPassphrase">temp4</param>
-    public SaveData(string name, string path, ModDataCompression compressionType, string encryptionPassphrase)
+    public SaveInfo(string name, string path, ModDataCompression compressionType, string encryptionPassphrase)
     {
         SaveName = name;
         SavePath = path;
@@ -104,4 +113,5 @@ public sealed class SaveData
             CatchAttribute(types);
         }
     }
+    */
 }
