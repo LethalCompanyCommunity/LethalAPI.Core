@@ -40,6 +40,7 @@
 
     <ItemGroup>
         <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp.dll" Private="False" Publicize="True" />
+        <Reference Include="Assembly-CSharp-Firstpass" HintPath="$(LC_REFERENCES)\Assembly-CSharp-Firstpass.dll" Private="False" Publicize="True" />
         <Reference Include="MelonLoader" HintPath="$(LC_REFERENCES)\MelonLoader.dll" Private="False" />
         <Reference Include="GameNetworkManager" HintPath="$(LC_REFERENCES)\Facepunch.Steamworks.Win64.dll" Private="False" />
         <Reference Include="Unity.TextMeshPro" HintPath="$(LC_REFERENCES)\Unity.TextMeshPro.dll" Private="False" />
