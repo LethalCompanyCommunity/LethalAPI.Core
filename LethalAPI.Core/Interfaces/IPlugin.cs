@@ -10,6 +10,8 @@ namespace LethalAPI.Core.Interfaces;
 using System;
 using System.Reflection;
 
+using ModData.Internal;
+
 /// <summary>
 /// The main interface for implementing a plugin.
 /// </summary>
@@ -52,6 +54,11 @@ public interface IPlugin<out TConfig>
     /// Gets the minimum required version of the api for the plugin to load.
     /// </summary>
     public Version RequiredAPIVersion { get; }
+
+    /// <summary>
+    /// Gets or sets the saving instance. If a plugin doesn't implement save data, this will be null.
+    /// </summary>
+    internal SaveHandler? SaveData { get; set; }
 
     /// <summary>
     /// Updates a config with a new config.
