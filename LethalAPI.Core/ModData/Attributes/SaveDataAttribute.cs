@@ -8,7 +8,6 @@
 namespace LethalAPI.Core.ModData.Attributes;
 
 using System;
-using LethalAPI.Core.ModData;
 
 /// <summary>
 /// An attribute that specify whether a given field is used to store/retrieve save data.
@@ -17,42 +16,37 @@ using LethalAPI.Core.ModData;
 public sealed class SaveDataAttribute : Attribute
 {
     /// <summary>
-    /// The custom save name, if this parameter is empty, default will be taken.
+    /// Gets a value indicating whether this are globally used/modified for all player or just for a single player.
     /// </summary>
-    public string SaveName { get; init; }
+    public bool IsGlobal { get; init; }
 
     /// <summary>
-    /// The compression type that will be used when storing and loading your data.
+    /// Gets a value indicating whether this will be loaded right after the game start up finished.
     /// </summary>
-    public ModDataCompression CompressionType { get; }
+    public bool LoadOnStartUp { get; init; }
 
     /// <summary>
-    /// The encryption passphrase that will be used when storing and loading data.
-    /// </summary>
-    public string EncryptionPassphrase { get; init; }
-
-    /// <summary>
-    /// Indicate whether this will be automatically loaded when the game begin to load it data.
+    /// Gets a value indicating whether this will be automatically loaded when the game begin to load it data.
     /// </summary>
     public bool AutomaticallyLoad { get; init; }
 
     /// <summary>
-    /// Indicate whether this will be automatically saved when the game begin to save it data.
+    /// Gets a value indicating whether this will be automatically saved when the game begin to save it data.
     /// </summary>
     public bool AutomaticallySave { get; init; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SaveDataAttribute"/> class.
     /// </summary>
-    /// <param name="saveName">The custom save name, if this parameter is empty, default will be taken.</param>
-    /// <param name="compressionType">The compression type that will be used when storing and loading your data.</param>
-    /// <param name="encryptionPassphrase">The encryption passphrase that will be used when storing and loading data.</param>
+    /// <param name="loadOnStartup">Whether to load right after the game start up finished, if set to true <paramref name="autoLoad"/> and <paramref name="autoSave"/> will be set to true</param>
+    /// <param name="global">Indicate whether this are globally used/modified for all player or just for a single player.</param>
     /// <param name="autoLoad">Indicate whether this will be automatically loaded when the game begin to load it data.</param>
     /// <param name="autoSave">Indicate whether this will be automatically saved when the game begin to save it data.</param>
-    public SaveDataAttribute(string saveName, ModDataCompression compressionType, string encryptionPassphrase, bool? autoLoad, bool? autoSave)
+    public SaveDataAttribute(bool loadOnStartup = false, bool global = false, bool autoLoad = false, bool autoSave = false)
     {
-        this.SaveName = saveName ?? string.Empty;
-        this.CompressionType = compressionType;
-        this.EncryptionPassphrase = encryptionPassphrase ?? string.Empty;
+        LoadOnStartUp = loadOnStartup;
+        IsGlobal = global;
+        AutomaticallyLoad = loadOnStartup || autoLoad;
+        AutomaticallySave = loadOnStartup || autoSave;
     }
 }

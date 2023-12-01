@@ -10,25 +10,10 @@ namespace LethalAPI.Core.ModData;
 /// <summary>
 /// Enum present for supported method of compression for storing mod data on disk.<br/>
 /// </summary>
-public enum ModDataCompression
+public interface IPrefixableItem
 {
     /// <summary>
-    /// Don't use any compression.
+    /// Gets the prefix of the item.
     /// </summary>
-    None = 0,
-
-    /// <summary>
-    /// Compress your data using GZip specification.
-    /// </summary>
-    GZip = 1,
-
-    /// <summary>
-    /// Compress your data using ZLib specification.
-    /// </summary>
-    ZLib = 2,
-
-    /// <summary>
-    /// Compress your data using Brotli specification.
-    /// </summary>
-    Brotli = 3,
+    string Prefix { get; }
 }

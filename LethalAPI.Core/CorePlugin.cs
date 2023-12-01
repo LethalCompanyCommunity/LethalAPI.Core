@@ -15,6 +15,7 @@ using System;
 
 using Features;
 using HarmonyLib;
+using LethalAPI.Core.ModData.Features;
 using MEC;
 
 /// <inheritdoc />
@@ -67,7 +68,7 @@ public class CorePlugin : Plugin<CoreConfig>
 
     private void InitModData()
     {
-        ModData.SaveData.PopulateModData();
+        SaveData.PopulateModData();
     }
 
     // ReSharper disable once ParameterHidesMember
