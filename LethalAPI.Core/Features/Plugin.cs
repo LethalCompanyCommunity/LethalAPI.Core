@@ -15,6 +15,7 @@ using System.Reflection;
 
 using Interfaces;
 using Loader.Configs;
+using ModData.Internal;
 
 /// <summary>
 /// Creates a new instance of a plugin.
@@ -29,6 +30,17 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     public Plugin()
     {
         this.Assembly = Assembly.GetCallingAssembly();
+        if (((IPlugin<TConfig>)this).SaveData is null)
+        {
+            try
+            {
+                ((IPlugin<TConfig>)this).SaveData = new InheritedSaveHandler((IPlugin<IConfig>)this);
+            }
+            catch (Exception)
+            {
+                // unused.
+            }
+        }
     }
 
     /// <inheritdoc />
@@ -56,6 +68,9 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     /// <inheritdoc />
     public virtual Version RequiredAPIVersion { get; } = new(1, 0, 0);
 
+    /// <inheritdoc />
+    SaveHandler? IPlugin<TConfig>.SaveData { get; set; }
+
     /// <inheritdoc/>
     public void UpdateConfig(object newConfig)
     {
@@ -81,9 +96,9 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
 /// </summary>
 /// <typeparam name="TPlugin">The type of the class..</typeparam>
 /// <typeparam name="TConfig">The type of the config.</typeparam>
-internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
-#pragma warning restore SA1402
+internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>, IPlugin<TConfig>
     where TConfig : IConfig, new()
+#pragma warning restore SA1402
 {
     private readonly string nameValue;
     private readonly string authorValue;
@@ -123,6 +138,18 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
         this.onDisable = onDisabled;
         this.Config = new TConfig();
         this.Assembly = typeof(TPlugin).Assembly;
+
+        if (((IPlugin<TConfig>)this).SaveData is null)
+        {
+            try
+            {
+                ((IPlugin<TConfig>)this).SaveData = new PropertySaveHandler((this as IPlugin<IConfig>)!);
+            }
+            catch (Exception)
+            {
+                // unused.
+            }
+        }
     }
 
     /// <summary>
@@ -151,6 +178,9 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
 
     /// <inheritdoc/>
     public override Version RequiredAPIVersion => this.requiredAPIVersionValue;
+
+    /// <inheritdoc/>
+    SaveHandler? IPlugin<TConfig>.SaveData { get; set; }
 
     /// <inheritdoc/>
     public override void OnEnabled()
