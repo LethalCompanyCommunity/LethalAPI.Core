@@ -15,8 +15,6 @@ using System;
 
 using Features;
 using HarmonyLib;
-using Interfaces;
-using Loader;
 using MEC;
 
 /// <inheritdoc />
@@ -70,10 +68,6 @@ public class CorePlugin : Plugin<CoreConfig>
 
     private void InitModData()
     {
-        foreach (IPlugin<IConfig> plugin in PluginLoader.Plugins.Values)
-        {
-            Log.Debug($"Plugin {plugin.Name} {(plugin.SaveData is null ? "&2Cannot&r Handle Saves" : "&6Can&r Handle Saves")}!");
-        }
         // ModData.SaveInfo.PopulateModData();
     }
 
