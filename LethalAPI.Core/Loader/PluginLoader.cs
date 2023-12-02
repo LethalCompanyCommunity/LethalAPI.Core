@@ -597,6 +597,13 @@ public sealed class PluginLoader
         Plugins.FirstOrDefault(x => x.Value.GetType() == typeof(TPlugin)).Value;
 
     /// <summary>
+    /// Gets a plugin with an assembly.
+    /// </summary>
+    /// <param name="assembly">The assembly to search.</param>
+    /// <returns>The desired plugin, null if not found.</returns>
+    public static IPlugin<IConfig>? GetPlugin(Assembly assembly) => Plugins.FirstOrDefault(x => x.Value.Assembly == assembly).Value;
+
+    /// <summary>
     /// Loads all dependencies.
     /// </summary>
     // ReSharper disable once UnusedMember.Local
