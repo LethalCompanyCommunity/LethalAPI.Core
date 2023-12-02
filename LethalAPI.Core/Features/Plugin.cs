@@ -7,12 +7,13 @@
 
 namespace LethalAPI.Core.Features;
 
-// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming.
 #pragma warning disable SA1402 // file may only contain a single type
 
 using System;
 using System.Reflection;
 
+using BepInEx;
 using Interfaces;
 using Loader.Configs;
 using ModData.Internal;
@@ -29,18 +30,20 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     /// </summary>
     public Plugin()
     {
+        this.RootInstance ??= this;
         this.Assembly = Assembly.GetCallingAssembly();
-        if (((IPlugin<TConfig>)this).SaveData is null)
-        {
-            try
-            {
-                ((IPlugin<TConfig>)this).SaveData = new InheritedSaveHandler((IPlugin<IConfig>)this);
-            }
-            catch (Exception)
-            {
-                // unused.
-            }
-        }
+        ((IPlugin<TConfig>)this).SaveHandler = SaveHandler.GetSaveHandler((this as IPlugin<IConfig>)!);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Plugin{TConfig}"/> class.
+    /// </summary>
+    /// <param name="instance">The instance of the plugin to use as the <see cref="RootInstance"/>.</param>
+    internal Plugin(object instance)
+    {
+        this.RootInstance = instance;
+        this.Assembly = instance.GetType().Assembly;
+        ((IPlugin<TConfig>)this).SaveHandler = SaveHandler.GetSaveHandler((this as IPlugin<IConfig>)!);
     }
 
     /// <inheritdoc />
@@ -69,7 +72,10 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     public virtual Version RequiredAPIVersion { get; } = new(1, 0, 0);
 
     /// <inheritdoc />
-    SaveHandler? IPlugin<TConfig>.SaveData { get; set; }
+    SaveHandler? IPlugin<TConfig>.SaveHandler { get; set; }
+
+    /// <inheritdoc />
+    public object RootInstance { get; init; }
 
     /// <inheritdoc/>
     public void UpdateConfig(object newConfig)
@@ -96,9 +102,8 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
 /// </summary>
 /// <typeparam name="TPlugin">The type of the class..</typeparam>
 /// <typeparam name="TConfig">The type of the config.</typeparam>
-internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>, IPlugin<TConfig>
+internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
     where TConfig : IConfig, new()
-#pragma warning restore SA1402
 {
     private readonly string nameValue;
     private readonly string authorValue;
@@ -124,7 +129,8 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>, IPlug
     /// <param name="onEnabled">The action that will be called when the plugin is enabled.</param>
     /// <param name="onDisabled">The action that will be called when the plugin is disabled.</param>
     /// <param name="onReloaded">The action that will be called when the plugin is reloaded.</param>
-    public AttributePlugin(object instance, string name, string description, string author, Version version, Action onEnabled, FieldInfo configField, Version? requiredAPIVersion = null, Action? onDisabled = null, Action? onReloaded = null)
+    internal AttributePlugin(object instance, string name, string description, string author, Version version, Action onEnabled, FieldInfo configField, Version? requiredAPIVersion = null, Action? onDisabled = null, Action? onReloaded = null)
+        : base(instance)
     {
         this.Instance = (TPlugin)instance;
         this.nameValue = name;
@@ -138,18 +144,7 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>, IPlug
         this.onDisable = onDisabled;
         this.Config = new TConfig();
         this.Assembly = typeof(TPlugin).Assembly;
-
-        if (((IPlugin<TConfig>)this).SaveData is null)
-        {
-            try
-            {
-                ((IPlugin<TConfig>)this).SaveData = new PropertySaveHandler((this as IPlugin<IConfig>)!);
-            }
-            catch (Exception)
-            {
-                // unused.
-            }
-        }
+        this.RootInstance = this.Instance;
     }
 
     /// <summary>
@@ -180,9 +175,6 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>, IPlug
     public override Version RequiredAPIVersion => this.requiredAPIVersionValue;
 
     /// <inheritdoc/>
-    SaveHandler? IPlugin<TConfig>.SaveData { get; set; }
-
-    /// <inheritdoc/>
     public override void OnEnabled()
     {
         onEnable.Invoke();
@@ -200,5 +192,73 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>, IPlug
     {
         onReload?.Invoke();
         base.OnReloaded();
+    }
+}
+
+/// <summary>
+/// Contains the abstractions for BepInEx plugins.
+/// </summary>
+internal sealed class BepInExPlugin : IPlugin<IConfig>
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BepInExPlugin"/> class.
+    /// </summary>
+    /// <param name="info">The BepInEx plugin info.</param>
+    internal BepInExPlugin(PluginInfo info)
+    {
+        this.RootInstance = info.Instance;
+        this.Assembly = info.Instance.GetType().Assembly;
+        this.Name = info.Metadata.Name;
+        this.Version = info.Metadata.Version;
+        this.Description = "Unknown";
+        this.Author = "Unknown";
+        this.Config = new DefaultConfig();
+    }
+
+    /// <inheritdoc/>
+    public IConfig Config { get; }
+
+    /// <inheritdoc/>
+    public Assembly Assembly { get; init; }
+
+    /// <inheritdoc/>
+    public string Name { get; }
+
+    /// <inheritdoc/>
+    public string Description { get; }
+
+    /// <inheritdoc/>
+    public string Author { get; }
+
+    /// <inheritdoc/>
+    public Version Version { get; }
+
+    /// <inheritdoc/>
+    public Version RequiredAPIVersion => new(1, 0, 0);
+
+    /// <inheritdoc/>
+    public SaveHandler? SaveHandler { get; set; }
+
+    /// <inheritdoc/>
+    public object RootInstance { get; init; }
+
+    /// <inheritdoc/>
+    public void UpdateConfig(object newConfig)
+    {
+    }
+
+    /// <inheritdoc/>
+    public void OnEnabled()
+    {
+    }
+
+    /// <inheritdoc/>
+    public void OnDisabled()
+    {
+    }
+
+    /// <inheritdoc/>
+    public void OnReloaded()
+    {
     }
 }

@@ -58,7 +58,12 @@ public interface IPlugin<out TConfig>
     /// <summary>
     /// Gets or sets the saving instance. If a plugin doesn't implement save data, this will be null.
     /// </summary>
-    internal SaveHandler? SaveData { get; set; }
+    public SaveHandler? SaveHandler { get; set; }
+
+    /// <summary>
+    /// Gets the root instance of the plugin. For attribute plugins it is the plugin running the code, not the wrapper class.
+    /// </summary>
+    public object RootInstance { get; init; }
 
     /// <summary>
     /// Updates a config with a new config.
