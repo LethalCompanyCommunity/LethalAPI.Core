@@ -1,7 +1,7 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="PropertySaveType.cs" company="LethalAPI Modding Community">
+// <copyright file="PropertySaveHandler.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
-// Licensed under the GPL-3.0 license.
+// Licensed under the LGPL-3.0 license.
 // </copyright>
 // -----------------------------------------------------------------------
 
@@ -14,11 +14,8 @@ using Attributes;
 using Interfaces;
 
 /// <inheritdoc />
-internal sealed class PropertySaveHandler : SaveHandler
+internal class PropertySaveHandler : SaveHandler
 {
-    private readonly IPlugin<IConfig> plugin;
-    private readonly PropertyInfo property;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="PropertySaveHandler"/> class.
     /// </summary>
@@ -26,35 +23,54 @@ internal sealed class PropertySaveHandler : SaveHandler
     /// <exception cref="MissingMemberException">Thrown if no valid save data property is found in the plugin.</exception>
     internal PropertySaveHandler(IPlugin<IConfig> plugin)
     {
-        this.plugin = plugin;
-        foreach (PropertyInfo propertyInfo in this.plugin.GetType().GetProperties())
+        this.Plugin = plugin;
+        this.PluginInstance = plugin.RootInstance;
+        foreach (PropertyInfo propertyInfo in this.Plugin.GetType().GetProperties())
         {
             if (propertyInfo.Name == "SaveData")
             {
-                this.property = propertyInfo;
+                this.Property = propertyInfo;
                 goto ensureValid;
             }
 
-            if (propertyInfo.GetCustomAttribute<SaveDataAttribute>() is not { })
+            if (propertyInfo.GetCustomAttribute<SaveDataAttribute>() is not { } settings)
                 continue;
 
-            this.property = propertyInfo;
+            this.Property = propertyInfo;
+            this.Settings = settings;
 
             // Check to ensure the property has a getter and setter. If it doesnt, continue.
             ensureValid:
-            if (this.property.GetMethod is null || this.property.SetMethod is null)
+            if (this.Property.GetMethod is null || this.Property.SetMethod is null)
                 continue;
 
             return;
         }
 
-        throw new MissingMemberException("The SaveData property does not exist for this plugin! It cannot save data to or from.");
+        throw new MissingMemberException("The SaveData property does not exist for this plugin!");
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PropertySaveHandler"/> class.
+    /// </summary>
+    protected PropertySaveHandler()
+    {
     }
 
     /// <inheritdoc />
-    internal override ISave Save
+    public override ISave Save
     {
-        get => (ISave)this.property.GetValue(this.plugin);
-        set => this.property.SetValue(this.plugin, value);
+        get => (ISave)this.Property.GetValue(this.PluginInstance);
+        set => this.Property.SetValue(this.PluginInstance, value);
     }
+
+    /// <summary>
+    /// Gets the plugin instance. This may not be a <see cref="IPlugin{TConfig}"/>.
+    /// </summary>
+    protected object PluginInstance { get; init; } = null!;
+
+    /// <summary>
+    /// Gets the property instance.
+    /// </summary>
+    protected PropertyInfo Property { get; init; } = null!;
 }

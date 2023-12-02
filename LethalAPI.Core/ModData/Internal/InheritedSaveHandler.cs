@@ -1,20 +1,19 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="InheritedSaveType.cs" company="LethalAPI Modding Community">
+// <copyright file="InheritedSaveHandler.cs" company="LethalAPI Modding Community">
 // Copyright (c) LethalAPI Modding Community. All rights reserved.
-// Licensed under the GPL-3.0 license.
+// Licensed under the LGPL-3.0 license.
 // </copyright>
 // -----------------------------------------------------------------------
 
 namespace LethalAPI.Core.ModData.Internal;
 
 using System;
-using System.Linq;
-using System.Reflection;
 
-using LethalAPI.Core.Interfaces;
+using Attributes;
+using Interfaces;
 
 /// <inheritdoc />
-internal sealed class InheritedSaveHandler : SaveHandler
+internal sealed class InheritedSaveHandler : PropertySaveHandler
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="InheritedSaveHandler"/> class.
@@ -22,21 +21,26 @@ internal sealed class InheritedSaveHandler : SaveHandler
     /// <param name="plugin">The plugin to get the save instance from.</param>
     internal InheritedSaveHandler(IPlugin<IConfig> plugin)
     {
-        // ReSharper disable once SuspiciousTypeConversion.Global
-        if (plugin is not ISavePlugin { } save)
+        this.Plugin = plugin;
+        this.PluginInstance = plugin.RootInstance;
+        Type? saveInterface = null;
+        foreach (Type pluginInterface in plugin.GetType().GetInterfaces())
+        {
+            Log.Debug($"{pluginInterface.Name} {(pluginInterface.GenericTypeArguments.Length > 0 ? pluginInterface.GenericTypeArguments[0] : string.Empty)}");
+            Log.Debug($"{pluginInterface.IsGenericType} {pluginInterface.GetGenericTypeDefinition()?.Name} {(pluginInterface.GetGenericTypeDefinition()?.GenericTypeArguments.Length > 0 ? pluginInterface.GetGenericTypeDefinition().GenericTypeArguments[0] : string.Empty)}");
+            if (pluginInterface.IsGenericType && pluginInterface.GetGenericTypeDefinition() == typeof(ISavePlugin<>))
+            {
+                saveInterface = pluginInterface;
+            }
+        }
+
+        if (saveInterface is null)
         {
             throw new ArgumentNullException(nameof(plugin), "Plugin does not inherit ISavePlugin.");
         }
 
-        this.SaveInstance = save;
+        this.Plugin = plugin;
+        this.Settings = (SaveDataAttribute)saveInterface.GetProperty("SaveSettings")!.GetValue(plugin);
+        this.Property = saveInterface.GetProperty("SaveData")!;
     }
-
-    /// <inheritdoc />
-    internal override ISave Save
-    {
-        get => this.SaveInstance.SaveData;
-        set => this.SaveInstance.SaveData = value;
-    }
-
-    private ISavePlugin SaveInstance { get; init; }
 }
