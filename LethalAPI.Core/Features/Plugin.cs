@@ -11,10 +11,14 @@ namespace LethalAPI.Core.Features;
 #pragma warning disable SA1402 // file may only contain a single type
 
 using System;
+using System.Linq;
 using System.Reflection;
 
+using Attributes;
 using Interfaces;
 using Loader.Configs;
+using MelonLoader;
+using Models;
 
 /// <summary>
 /// Creates a new instance of a plugin.
@@ -28,7 +32,22 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     /// </summary>
     public Plugin()
     {
+        this.RootInstance = this;
         this.Assembly = Assembly.GetCallingAssembly();
+
+        // ReSharper disable VirtualMemberCallInConstructor
+        bool isRequired = this.IsRequired || this.RootInstance.GetType().GetCustomAttributes<LethalRequiredPluginAttribute>().Any();
+        this.Info = new PluginInfoRecord(this.Name, this.Version, isRequired);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Plugin{TConfig}"/> class.
+    /// </summary>
+    /// <param name="rootInstance">The root instance of the plugin.</param>
+    protected Plugin(object rootInstance)
+    {
+        this.RootInstance = rootInstance;
+        this.Assembly = rootInstance.GetType().Assembly;
     }
 
     /// <inheritdoc />
@@ -40,6 +59,12 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
 
     /// <inheritdoc />
     public Assembly Assembly { get; init; }
+
+    /// <inheritdoc />
+    public object RootInstance { get; }
+
+    /// <inheritdoc />
+    public virtual PluginInfoRecord Info { get; } = null!;
 
     /// <inheritdoc />
     public abstract string Name { get; }
@@ -55,6 +80,11 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
 
     /// <inheritdoc />
     public virtual Version RequiredAPIVersion { get; } = new(1, 0, 0);
+
+    /// <summary>
+    /// Gets a value indicating whether or not the plugin is required for everyone in the lobby.
+    /// </summary>
+    public virtual bool IsRequired => false;
 
     /// <inheritdoc/>
     public void UpdateConfig(object newConfig)
@@ -82,17 +112,11 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
 /// <typeparam name="TPlugin">The type of the class..</typeparam>
 /// <typeparam name="TConfig">The type of the config.</typeparam>
 internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
-#pragma warning restore SA1402
     where TConfig : IConfig, new()
 {
-    private readonly string nameValue;
-    private readonly string authorValue;
-    private readonly string descriptionValue;
-    private readonly Version versionValue;
     private readonly Action onEnable;
     private readonly FieldInfo configField;
 
-    private readonly Version requiredAPIVersionValue;
     private readonly Action? onDisable;
     private readonly Action? onReload;
 
@@ -110,19 +134,22 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
     /// <param name="onDisabled">The action that will be called when the plugin is disabled.</param>
     /// <param name="onReloaded">The action that will be called when the plugin is reloaded.</param>
     public AttributePlugin(object instance, string name, string description, string author, Version version, Action onEnabled, FieldInfo configField, Version? requiredAPIVersion = null, Action? onDisabled = null, Action? onReloaded = null)
+        : base(instance)
     {
         this.Instance = (TPlugin)instance;
-        this.nameValue = name;
-        this.descriptionValue = description;
-        this.authorValue = author;
-        this.versionValue = version;
+        this.Name = name;
+        this.Description = description;
+        this.Author = author;
+        this.Version = version;
         this.onEnable = onEnabled;
         this.configField = configField;
-        this.requiredAPIVersionValue = requiredAPIVersion ?? new Version(1, 0, 0);
+        this.RequiredAPIVersion = requiredAPIVersion ?? new Version(1, 0, 0);
         this.onReload = onReloaded;
         this.onDisable = onDisabled;
         this.Config = new TConfig();
         this.Assembly = typeof(TPlugin).Assembly;
+        bool isRequired = this.IsRequired || this.RootInstance.GetType().GetCustomAttributes<LethalRequiredPluginAttribute>().Any();
+        this.Info = new PluginInfoRecord(this.Name, this.Version, isRequired);
     }
 
     /// <summary>
@@ -138,19 +165,22 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
     }
 
     /// <inheritdoc/>
-    public override string Name => this.nameValue;
+    public override PluginInfoRecord Info { get; }
 
     /// <inheritdoc/>
-    public override string Author => this.authorValue;
+    public override string Name { get; }
 
     /// <inheritdoc/>
-    public override string Description => this.descriptionValue;
+    public override string Author { get; }
 
     /// <inheritdoc/>
-    public override Version Version => this.versionValue;
+    public override string Description { get; }
 
     /// <inheritdoc/>
-    public override Version RequiredAPIVersion => this.requiredAPIVersionValue;
+    public override Version Version { get; }
+
+    /// <inheritdoc/>
+    public override Version RequiredAPIVersion { get; }
 
     /// <inheritdoc/>
     public override void OnEnabled()
@@ -171,4 +201,101 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
         onReload?.Invoke();
         base.OnReloaded();
     }
+}
+
+/// <summary>
+/// An implementation of plugins for BepInEx or MelonLoader.
+/// </summary>
+internal sealed class ExternalPlugin : IPlugin<IConfig>
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExternalPlugin"/> class.
+    /// </summary>
+    /// <param name="pluginInfo">The plugin instance.</param>
+    internal ExternalPlugin(BepInEx.PluginInfo pluginInfo)
+    {
+        this.RootInstance = pluginInfo.Instance;
+        this.Assembly = pluginInfo.Instance.GetType().Assembly;
+        this.Name = pluginInfo.Metadata.Name;
+        this.Version = pluginInfo.Metadata.Version;
+        this.Config = new DefaultConfig();
+        this.Author = "Unknown";
+        bool isRequired = this.RootInstance.GetType().GetCustomAttributes<LethalRequiredPluginAttribute>().Any();
+        this.Info = new PluginInfoRecord(this.Name, this.Version, isRequired);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExternalPlugin"/> class.
+    /// </summary>
+    /// <param name="mod">The mod instance.</param>
+    internal ExternalPlugin(MelonMod mod)
+    {
+        this.RootInstance = mod;
+        this.Assembly = mod.MelonAssembly.Assembly;
+        this.Author = mod.Info.Author;
+        this.Name = mod.Info.Name;
+        this.Config = new DefaultConfig();
+        this.Version = new Version(mod.Info.SemanticVersion.Major, mod.Info.SemanticVersion.Minor, mod.Info.SemanticVersion.Patch);
+        bool isRequired = this.RootInstance.GetType().GetCustomAttributes<LethalRequiredPluginAttribute>().Any();
+        this.Info = new PluginInfoRecord(this.Name, this.Version, isRequired);
+    }
+
+    /// <inheritdoc />
+    public IConfig Config { get; }
+
+    /// <inheritdoc />
+    public Assembly Assembly { get; init; }
+
+    /// <inheritdoc />
+    public object RootInstance { get; }
+
+    /// <inheritdoc />
+    public PluginInfoRecord Info { get; }
+
+    /// <inheritdoc />
+    public string Name { get; }
+
+    /// <inheritdoc />
+    public string Description => "Unknown";
+
+    /// <inheritdoc />
+    public string Author { get; }
+
+    /// <inheritdoc />
+    public Version Version { get; }
+
+    /// <inheritdoc />
+    public Version RequiredAPIVersion => new (0, 0, 0);
+
+    /// <inheritdoc />
+    public void UpdateConfig(object newConfig)
+    {
+    }
+
+    /// <inheritdoc />
+    public void OnEnabled()
+    {
+    }
+
+    /// <inheritdoc />
+    public void OnDisabled()
+    {
+    }
+
+    /// <inheritdoc />
+    public void OnReloaded()
+    {
+    }
+}
+
+/// <summary>
+/// Gets a default implementation for a config.
+/// </summary>
+internal class DefaultConfig : IConfig
+{
+    /// <inheritdoc />
+    public bool IsEnabled { get; set; } = true;
+
+    /// <inheritdoc />
+    public bool Debug { get; set; } = false;
 }
