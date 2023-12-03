@@ -8,8 +8,8 @@
 namespace LethalAPI.Core.ModData.Internal;
 
 using System;
+using System.Reflection;
 
-using Attributes;
 using Interfaces;
 
 /// <inheritdoc />
@@ -19,28 +19,49 @@ internal sealed class InheritedSaveHandler : PropertySaveHandler
     /// Initializes a new instance of the <see cref="InheritedSaveHandler"/> class.
     /// </summary>
     /// <param name="plugin">The plugin to get the save instance from.</param>
-    internal InheritedSaveHandler(IPlugin<IConfig> plugin)
+    /// <param name="searchGlobal">Indicates whether or not to search globally.</param>
+    internal InheritedSaveHandler(IPlugin<IConfig> plugin, bool searchGlobal = false)
+        : base(searchGlobal)
     {
+        this.IsGlobalSave = searchGlobal;
         this.Plugin = plugin;
         this.PluginInstance = plugin.RootInstance;
         Type? saveInterface = null;
-        foreach (Type pluginInterface in plugin.GetType().GetInterfaces())
+        foreach (Type pluginInterface in this.PluginInstance.GetType().GetInterfaces())
         {
-            Log.Debug($"{pluginInterface.Name} {(pluginInterface.GenericTypeArguments.Length > 0 ? pluginInterface.GenericTypeArguments[0] : string.Empty)}");
-            Log.Debug($"{pluginInterface.IsGenericType} {pluginInterface.GetGenericTypeDefinition()?.Name} {(pluginInterface.GetGenericTypeDefinition()?.GenericTypeArguments.Length > 0 ? pluginInterface.GetGenericTypeDefinition().GenericTypeArguments[0] : string.Empty)}");
-            if (pluginInterface.IsGenericType && pluginInterface.GetGenericTypeDefinition() == typeof(ISavePlugin<>))
+            if (!pluginInterface.IsGenericType)
+                continue;
+
+            Type type = pluginInterface.GetGenericTypeDefinition();
+            if(searchGlobal)
             {
+                if (type != typeof(IGlobalDataSave<>))
+                    continue;
+
                 saveInterface = pluginInterface;
+                break;
             }
+
+            if (type != typeof(ILocalDataSave<>))
+                continue;
+
+            saveInterface = pluginInterface;
+            break;
         }
 
         if (saveInterface is null)
         {
-            throw new ArgumentNullException(nameof(plugin), "Plugin does not inherit ISavePlugin.");
+            throw new ArgumentNullException(nameof(plugin), $"Plugin does not inherit I{(searchGlobal ? "Global" : "Local")}SaveData.");
         }
 
+        // nameof(ILocalDataSave<>.LocalSaveSettings)
+        // nameof(IGlobalDataSave<>.GlobalSaveSettings)
         this.Plugin = plugin;
-        this.Settings = (SaveDataAttribute)saveInterface.GetProperty("SaveSettings")!.GetValue(plugin);
-        this.Property = saveInterface.GetProperty("SaveData")!;
+        this.Settings = (SaveDataSettings)this.PluginInstance.GetType().GetProperty((searchGlobal ? "Global" : "Local") + "SaveSettings", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!.GetValue(plugin);
+        this.Property = this.PluginInstance.GetType().GetProperty((searchGlobal ? "Global" : "Local") + "SaveData")!;
+
+        if(Settings.AutoSave)
+            HookAutoSave();
+        Log.Debug($"Successfully created inherited save handler for plugin {plugin.Name} [{Settings.AutoSave}, {Settings.AutoLoad}].");
     }
 }
