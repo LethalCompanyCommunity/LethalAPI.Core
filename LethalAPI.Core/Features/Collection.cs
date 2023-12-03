@@ -50,6 +50,20 @@ public class Collection<T> : IEnumerable<T>
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="Collection{T}"/> class.
+    /// </summary>
+    /// <param name="items">The items to use.</param>
+    public Collection(List<T> items)
+    {
+        this.itemsByPrefix = new();
+        this.Items = items;
+        foreach (T item in this.Items)
+        {
+            itemsByPrefix.Add(item.Prefix, item);
+        }
+    }
+
+    /// <summary>
     /// Gets a value indicating whether the collection is loaded.
     /// </summary>
     public bool IsLoaded => this.isLoaded;
