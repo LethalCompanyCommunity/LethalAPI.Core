@@ -50,6 +50,7 @@
         <LangVersion>latest</LangVersion>
         <NeutralLanguage>en</NeutralLanguage>
         <NoDefaultExcludes>true</NoDefaultExcludes>
+		<DefineConstants>$(DefineConstants);LOG_TO_SEQ</DefineConstants>
     </PropertyGroup>
     
     <ItemGroup>
@@ -58,7 +59,10 @@
         <PackageReference Include="BepInEx.Core" Version="5.*" ExcludeAssets="runtime" />
         <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" ExcludeAssets="runtime" />
         <PackageReference Include="LavaGang.MelonLoader" Version="0.6.1" ExcludeAssets="runtime" />
+        <PackageReference Include="Serilog" Version="3.1.1" />
+        <PackageReference Include="Serilog.Sinks.Seq" Version="6.0.0" />
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" ExcludeAssets="runtime" />
+        <PackageReference Include="System.Net.Http" Version="4.3.4" />
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" ExcludeAssets="runtime" />
         <PackageReference Include="YamlDotNet" Version="13.7.1" ExcludeAssets="runtime" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" ExcludeAssets="runtime" />
