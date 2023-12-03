@@ -7,12 +7,15 @@
 
 namespace LethalAPI.Core.ModData;
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
 using Enums;
 using Interfaces;
+using Internal;
 using Loader;
 using Newtonsoft.Json;
 
@@ -36,10 +39,16 @@ public static class SaveManager
     };
 
     /// <summary>
-    /// Gets or sets a dictionary of plugin save data.
+    /// Gets or sets a dictionary of plugin local save data.
     /// </summary>
     // ReSharper disable once CollectionNeverQueried.Local
-    private static Dictionary<string, SaveItemCollection> Saves { get; set; } = new();
+    private static Dictionary<string, SaveItemCollection> LocalSaves { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets a dictionary of plugin global save data.
+    /// </summary>
+    // ReSharper disable once CollectionNeverQueried.Local
+    private static Dictionary<string, SaveItemCollection> GlobalSaves { get; set; } = new();
 
     /// <summary>
     /// Gets the directory where saves are stored.
@@ -67,16 +76,11 @@ public static class SaveManager
     /// </summary>
     public static void LoadFromFile()
     {
+        Log.Debug("Loading from file.");
         IPlugin<IConfig>? plugin = GetCallingPlugin();
         if (plugin == null)
         {
             Log.Warn("Only LethalAPI Plugins can load and save data.");
-            return;
-        }
-
-        if (plugin.SaveHandler is null)
-        {
-            Log.Warn($"Plugin '{plugin.Name}' has no save handler!.");
             return;
         }
 
@@ -88,16 +92,11 @@ public static class SaveManager
     /// </summary>
     public static void LoadFromGlobalFile()
     {
+        Log.Debug("Loading from global file.");
         IPlugin<IConfig>? plugin = GetCallingPlugin();
         if (plugin == null)
         {
             Log.Warn("Only LethalAPI Plugins can load and save data.");
-            return;
-        }
-
-        if (plugin.SaveHandler is null)
-        {
-            Log.Warn($"Plugin '{plugin.Name}' has no save handler!.");
             return;
         }
 
@@ -109,16 +108,11 @@ public static class SaveManager
     /// </summary>
     public static void SaveToFile()
     {
+        Log.Debug("Saving to file.");
         IPlugin<IConfig>? plugin = GetCallingPlugin();
         if (plugin == null)
         {
             Log.Warn("Only LethalAPI Plugins can load and save data.");
-            return;
-        }
-
-        if (plugin.SaveHandler is null)
-        {
-            Log.Warn($"Plugin '{plugin.Name}' has no save handler!.");
             return;
         }
 
@@ -130,16 +124,11 @@ public static class SaveManager
     /// </summary>
     public static void SaveToGlobalFile()
     {
+        Log.Debug("Saving to global file.");
         IPlugin<IConfig>? plugin = GetCallingPlugin();
         if (plugin == null)
         {
             Log.Warn("Only LethalAPI Plugins can load and save data.");
-            return;
-        }
-
-        if (plugin.SaveHandler is null)
-        {
-            Log.Warn($"Plugin '{plugin.Name}' has no save handler!.");
             return;
         }
 
@@ -153,6 +142,22 @@ public static class SaveManager
     /// <param name="global">Should the global data instance be saved.</param>
     internal static void SaveData(IPlugin<IConfig> plugin, bool global = false)
     {
+        Log.Debug($"Saving data for plugin {plugin.Name}{(global ? " [&2Global&r]" : string.Empty)}.");
+        if (global)
+        {
+            if (plugin.GlobalSaveHandler is IInstanceSave globalSaveHandler)
+                plugin.GlobalSaveHandler.DataCollection.UpdateCollectionWithObjectValues(globalSaveHandler.Save);
+
+            GlobalSaves[plugin.Name] = plugin.GlobalSaveHandler.DataCollection;
+            SerializeAllSaves(true);
+            return;
+        }
+
+        if(plugin.LocalSaveHandler is IInstanceSave localSaveHandler)
+            plugin.LocalSaveHandler.DataCollection.UpdateCollectionWithObjectValues(localSaveHandler.Save);
+
+        LocalSaves[plugin.Name] = plugin.LocalSaveHandler.DataCollection;
+        SerializeAllSaves();
     }
 
     /// <summary>
@@ -162,6 +167,28 @@ public static class SaveManager
     /// <param name="global">Should the global data instance be loaded.</param>
     internal static void LoadData(IPlugin<IConfig> plugin, bool global = false)
     {
+        Log.Debug($"Loading data for plugin {plugin.Name}{(global ? " [&2Global&r]" : string.Empty)}.");
+        if (global)
+        {
+            DeserializeAllSaves(true);
+            if (!GlobalSaves.ContainsKey(plugin.Name))
+            {
+                GenerateNewSaveCollection(plugin, true);
+                SerializeAllSaves();
+            }
+
+            plugin.GlobalSaveHandler.DataCollection = GlobalSaves.TryGetValue(plugin.Name, out SaveItemCollection? globalSave) ? globalSave : new();
+            return;
+        }
+
+        DeserializeAllSaves();
+        if (!LocalSaves.ContainsKey(plugin.Name))
+        {
+            GenerateNewSaveCollection(plugin);
+            SerializeAllSaves();
+        }
+
+        plugin.GlobalSaveHandler.DataCollection = LocalSaves.TryGetValue(plugin.Name, out SaveItemCollection? localSave) ? localSave : new();
     }
 
     /// <summary>
@@ -173,32 +200,126 @@ public static class SaveManager
 
     private static void DeserializeAllSaves(bool global = false)
     {
-        string path = GetCurrentSavePath();
-        string data = File.ReadAllText(path);
+        Log.Debug($"Loading all plugin data{(global ? " [&2Global&r]" : string.Empty)}.");
+        string path = GetCurrentSavePath(global);
+        string data = File.Exists(path) ? File.ReadAllText(path) : string.Empty;
         Dictionary<string, List<SaveItem>>? values = JsonConvert.DeserializeObject<Dictionary<string, List<SaveItem>>>(data);
         if (values is null)
         {
+            if(global)
+                GlobalSaves = new();
+            else
+                LocalSaves = new();
+
             Log.Error("The save file has been corrupted and could not be loaded.");
             Log.Debug($"Slot: {(global ? LocalModdedSaveFileName : GlobalModdedSaveFileName)}. Null or empty save slot.");
+
+            try
+            {
+                if(File.Exists(path))
+                    File.Delete(path);
+
+                foreach (IPlugin<IConfig> plugin in PluginLoader.Plugins.Values)
+                    GenerateNewSaveCollection(plugin, global);
+
+                SerializeAllSaves();
+            }
+            catch (Exception e)
+            {
+                Log.Warn("Could not delete the save file.");
+                if(CorePlugin.Instance.Config.Debug)
+                    Log.Exception(e);
+            }
+
             return;
         }
 
         foreach (KeyValuePair<string, List<SaveItem>> kvp in values)
         {
-            SaveItemCollection collection = new ();
-            foreach (SaveItem saveItem in kvp.Value)
+            SaveItemCollection collection = new(kvp.Value);
+            collection.MarkAsLoaded();
+            if((global ? GlobalSaves : LocalSaves).ContainsKey(kvp.Key))
+                (global ? GlobalSaves : LocalSaves)[kvp.Key] = collection;
+            else
+                (global ? GlobalSaves : LocalSaves).Add(kvp.Key, collection);
+        }
+    }
+
+    private static void GenerateNewSaveCollection(IPlugin<IConfig> plugin, bool global = false)
+    {
+        Log.Debug($"Generating new plugin data for plugin {plugin.Name}{(global ? " [&2Global&r]" : string.Empty)}.");
+        SaveItemCollection collection = new();
+        if (global)
+        {
+            if (plugin.GlobalSaveHandler is IInstanceSave globalSave)
             {
-                collection.TryAddItem(saveItem, out _);
+                object? value = null;
+                try
+                {
+                    value = Activator.CreateInstance(globalSave.Save.GetType(), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Could not create an instance of the global save data for type '{globalSave.Save.GetType().FullName}'. This is probably due to an invalid type.");
+                    if(CorePlugin.Instance.Config.Debug)
+                        Log.Exception(e);
+                }
+
+                if(value is not null)
+                    collection.UpdateCollectionWithObjectValues(value);
             }
 
-            collection.MarkAsLoaded();
-            Saves.Add(kvp.Key, collection);
+            GlobalSaves.Add(plugin.Name, collection);
+            return;
+        }
+
+        if (plugin.LocalSaveHandler is IInstanceSave localSave)
+        {
+            object? value = null;
+            try
+            {
+                value = Activator.CreateInstance(localSave.Save.GetType(), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not create an instance of the global save data for type '{localSave.Save.GetType().FullName}'. This is probably due to an invalid type.");
+                if(CorePlugin.Instance.Config.Debug)
+                    Log.Exception(e);
+            }
+
+            if(value is not null)
+                collection.UpdateCollectionWithObjectValues(value);
+        }
+
+        LocalSaves.Add(plugin.Name, collection);
+    }
+
+    private static void SerializeAllSaves(bool global = false)
+    {
+        Log.Debug($"Saving all plugin data{(global ? " [&2Global&r]" : string.Empty)}.");
+        Dictionary<string, List<SaveItem>> items = new();
+        foreach (KeyValuePair<string, SaveItemCollection> saves in global ? GlobalSaves : LocalSaves)
+        {
+            items.Add(saves.Key, saves.Value.AsList);
+        }
+
+        string json = JsonConvert.SerializeObject(items);
+        string path = GetCurrentSavePath(global);
+        try
+        {
+            File.WriteAllText(path, json);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Could not save to file '{path}'.");
+            if(CorePlugin.Instance.Config.Debug)
+                Log.Exception(e);
         }
     }
 
     private static IPlugin<IConfig>? GetCallingPlugin(int framesToSkip = 1)
     {
-        Type? type = new StackTrace().GetFrame(framesToSkip).GetMethod().DeclaringType;
+        Type? type = new StackTrace().GetFrame(framesToSkip + 1).GetMethod().DeclaringType;
         if (type is null)
             return null;
 
