@@ -32,7 +32,11 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     {
         this.RootInstance ??= this;
         this.Assembly = Assembly.GetCallingAssembly();
-        ((IPlugin<TConfig>)this).SaveHandler = SaveHandler.GetSaveHandler((this as IPlugin<IConfig>)!);
+        this.LocalSaveHandler = SaveHandler.GetSaveHandler((IPlugin<IConfig>)this);
+        this.GlobalSaveHandler = SaveHandler.GetSaveHandler((IPlugin<IConfig>)this, true);
+
+        // ReSharper disable once VirtualMemberCallInConstructor
+        Log.Debug($"&3{this.Name}&r Local Handler: {this.LocalSaveHandler.GetType().Name}, Global Handler: {this.GlobalSaveHandler.GetType().Name}");
     }
 
     /// <summary>
@@ -43,7 +47,11 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     {
         this.RootInstance = instance;
         this.Assembly = instance.GetType().Assembly;
-        ((IPlugin<TConfig>)this).SaveHandler = SaveHandler.GetSaveHandler((this as IPlugin<IConfig>)!);
+        this.LocalSaveHandler = SaveHandler.GetSaveHandler((IPlugin<IConfig>)this);
+        this.GlobalSaveHandler = SaveHandler.GetSaveHandler((IPlugin<IConfig>)this, true);
+
+        // ReSharper disable once VirtualMemberCallInConstructor
+        Log.Debug($"&3{this.Name}&r Local Handler: {this.LocalSaveHandler.GetType().Name}, Global Handler: {this.GlobalSaveHandler.GetType().Name}");
     }
 
     /// <inheritdoc />
@@ -53,45 +61,48 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
     /// </remarks>
     public virtual TConfig Config { get; set; } = new();
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin{TConfig}.Assembly" />
     public Assembly Assembly { get; init; }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin{TConfig}.Name" />
     public abstract string Name { get; }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin{TConfig}.Description" />
     public abstract string Description { get; }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin{TConfig}.Author" />
     public abstract string Author { get; }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin{TConfig}.Version" />
     public abstract Version Version { get; }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin{TConfig}.RequiredAPIVersion" />
     public virtual Version RequiredAPIVersion { get; } = new(1, 0, 0);
 
-    /// <inheritdoc />
-    SaveHandler? IPlugin<TConfig>.SaveHandler { get; set; }
+    /// <inheritdoc cref="IPlugin{TConfig}.LocalSaveHandler" />
+    public SaveHandler LocalSaveHandler { get; set; }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin{TConfig}.GlobalSaveHandler" />
+    public SaveHandler GlobalSaveHandler { get; set; }
+
+    /// <inheritdoc cref="IPlugin{TConfig}.RootInstance" />
     public object RootInstance { get; init; }
 
-    /// <inheritdoc/>
+    /// <inheritdoc cref="IPlugin{TConfig}.UpdateConfig" />
     public void UpdateConfig(object newConfig)
     {
         Config.CopyProperties(newConfig);
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin{TConfig}.OnEnabled" />
     public abstract void OnEnabled();
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin{TConfig}.OnDisabled" />
     public virtual void OnDisabled()
     {
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin{TConfig}.OnReloaded" />
     public virtual void OnReloaded()
     {
     }
@@ -105,14 +116,9 @@ public abstract class Plugin<TConfig> : IPlugin<TConfig>
 internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
     where TConfig : IConfig, new()
 {
-    private readonly string nameValue;
-    private readonly string authorValue;
-    private readonly string descriptionValue;
-    private readonly Version versionValue;
     private readonly Action onEnable;
     private readonly FieldInfo configField;
 
-    private readonly Version requiredAPIVersionValue;
     private readonly Action? onDisable;
     private readonly Action? onReload;
 
@@ -133,13 +139,13 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
         : base(instance)
     {
         this.Instance = (TPlugin)instance;
-        this.nameValue = name;
-        this.descriptionValue = description;
-        this.authorValue = author;
-        this.versionValue = version;
+        this.Name = name;
+        this.Description = description;
+        this.Author = author;
+        this.Version = version;
         this.onEnable = onEnabled;
         this.configField = configField;
-        this.requiredAPIVersionValue = requiredAPIVersion ?? new Version(1, 0, 0);
+        this.RequiredAPIVersion = requiredAPIVersion ?? new Version(1, 0, 0);
         this.onReload = onReloaded;
         this.onDisable = onDisabled;
         this.Config = new TConfig();
@@ -160,19 +166,19 @@ internal sealed class AttributePlugin<TPlugin, TConfig> : Plugin<TConfig>
     }
 
     /// <inheritdoc/>
-    public override string Name => this.nameValue;
+    public override string Name { get; }
 
     /// <inheritdoc/>
-    public override string Author => this.authorValue;
+    public override string Author { get; }
 
     /// <inheritdoc/>
-    public override string Description => this.descriptionValue;
+    public override string Description { get; }
 
     /// <inheritdoc/>
-    public override Version Version => this.versionValue;
+    public override Version Version { get; }
 
     /// <inheritdoc/>
-    public override Version RequiredAPIVersion => this.requiredAPIVersionValue;
+    public override Version RequiredAPIVersion { get; }
 
     /// <inheritdoc/>
     public override void OnEnabled()
@@ -213,6 +219,8 @@ internal sealed class BepInExPlugin : IPlugin<IConfig>
         this.Description = "Unknown";
         this.Author = "Unknown";
         this.Config = new DefaultConfig();
+        this.LocalSaveHandler = SaveHandler.GetSaveHandler(this);
+        this.GlobalSaveHandler = SaveHandler.GetSaveHandler(this, true);
     }
 
     /// <inheritdoc/>
@@ -237,7 +245,10 @@ internal sealed class BepInExPlugin : IPlugin<IConfig>
     public Version RequiredAPIVersion => new(1, 0, 0);
 
     /// <inheritdoc/>
-    public SaveHandler? SaveHandler { get; set; }
+    public SaveHandler LocalSaveHandler { get; set; }
+
+    /// <inheritdoc/>
+    public SaveHandler GlobalSaveHandler { get; set; }
 
     /// <inheritdoc/>
     public object RootInstance { get; init; }

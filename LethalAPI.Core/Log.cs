@@ -289,6 +289,10 @@ public static class Log
         if (!PluginLoader.Locations.ContainsKey(method.DeclaringType!.Assembly))
             return;
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if(CorePlugin.Instance is null && CorePlugin.PreLoaderDebugLogs)
+            goto skip;
+
         IPlugin<IConfig>? plugin = PluginLoader.Plugins.Values.FirstOrDefault(x => x.Assembly == method.DeclaringType.Assembly && x.Assembly.DefinedTypes.Contains(method.DeclaringType));
         if (plugin is null)
             return;
@@ -296,6 +300,7 @@ public static class Log
         if (!plugin.Config.Debug)
             return;
 
+        skip:
         callingPlugin = GetCallingPlugin(method, callingPlugin, ShowCallingMethod);
 
         // &7[&b&5{type}&B&7] &7[&b&2{prefix}&B&7]&r
@@ -349,15 +354,15 @@ public static class Log
                 msg1 = msg1.PadBoth(name.Length);
             else
                 name = name.PadBoth(msg1.Length);
-            string msg2 = $"&r[&b {msg1} &r]&a".PadBoth(100, '-');
-            string name1 = $"&r[&1 {name} &r]&a".PadBoth(100);
-            Raw($"&r[&a{msg2}&r]");
-            Raw($" {name1} ");
-            Raw("&7" + e.Message + "\n&r" + e.StackTrace);
+            string msg2 = $" &r[&b {msg1} &r]&a".PadBoth(100, '-');
+            string name1 = $" &r[&1 {name} &r]&a".PadBoth(100);
+            Raw($" &r[&a{msg2}&r]");
+            Raw($"  {name1} ");
+            Raw(" &7" + e.Message + "\n&r" + e.StackTrace);
             if (e is ReflectionTypeLoadException typeLoadException)
             {
                 for (int index = 0; index < typeLoadException.Types.Length; ++index)
-                    Raw("&7ReflectionTypeLoadException.Types[&3" + index + "&7]: &6" + typeLoadException.Types[index]);
+                    Raw(" &7ReflectionTypeLoadException.Types[&3" + index + "&7]: &6" + typeLoadException.Types[index]);
                 for (int index = 0; index < typeLoadException.LoaderExceptions.Length; ++index)
                 {
                     Exception(typeLoadException
@@ -366,9 +371,9 @@ public static class Log
             }
 
             if (e is TypeLoadException)
-                Raw("TypeLoadException.TypeName: " + ((TypeLoadException)e).TypeName);
+                Raw(" TypeLoadException.TypeName: " + ((TypeLoadException)e).TypeName);
             if (e is BadImageFormatException)
-                Raw("BadImageFormatException.FileName: " + ((BadImageFormatException)e).FileName);
+                Raw(" BadImageFormatException.FileName: " + ((BadImageFormatException)e).FileName);
         }
     }
 
