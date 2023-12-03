@@ -187,7 +187,7 @@ public sealed class PluginLoader
                 {
                     plugin.OnEnabled();
                     toLoad.Remove(plugin);
-                    Log.Info($"Successfully Enabled LethalAPI Core Feature &3{plugin.Name} &gv{plugin.Version}&7, by &6{plugin.Author}&7");
+                    Log.Info($"Successfully Enabled LethalAPI Core Feature &3{plugin.Name} &gv{plugin.Version}&r, by &6{plugin.Author}&r{(plugin.Config.Debug ? $" [&2Debug&r]" : string.Empty)}");
                 }
             }
             catch (Exception exception)
@@ -204,7 +204,7 @@ public sealed class PluginLoader
                 if (plugin.Config.IsEnabled)
                 {
                     plugin.OnEnabled();
-                    Log.Info($"Successfully Enabled Plugin &3{plugin.Name} &gv{plugin.Version}&7, by &6{plugin.Author}&7");
+                    Log.Info($"Successfully Enabled Plugin &3{plugin.Name} &gv{plugin.Version}&r, by &6{plugin.Author}&r{(plugin.Config.Debug ? $" [&2Debug&r]" : string.Empty)}");
                 }
             }
             catch (Exception exception)
