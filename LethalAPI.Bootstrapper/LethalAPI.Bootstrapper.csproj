@@ -92,6 +92,9 @@
     </ItemGroup>
     
     <ItemGroup>
+        <PackageReference Include="Serilog" Version="3.1.1" ExcludeAssets="runtime" />
+        <PackageReference Include="Serilog.Sinks.Seq" Version="6.0.0" ExcludeAssets="runtime" />
+        <PackageReference Include="System.Net.Http" Version="4.3.4" ExcludeAssets="runtime" />
         <PackageReference Include="Fody" Version="6.8.0" IncludeAssets="runtime; compile; build; native; contentfiles; analyzers; buildtransitive" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="Costura.Fody" Version="5.8.0-alpha0098" IncludeAssets="runtime; compile; build; native; contentfiles; analyzers; buildtransitive" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" ExcludeAssets="runtime" />
