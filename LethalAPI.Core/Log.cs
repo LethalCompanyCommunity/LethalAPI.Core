@@ -152,11 +152,15 @@ public static class Log
 
     private static ILogger CreateSerilogLogger()
     {
-        return new LoggerConfiguration()
-#if LOG_TO_SEQ
-            .WriteTo.Seq("http://localhost:5341")
-#endif
-            .CreateLogger();
+        LoggerConfiguration loggerConfig = new();
+
+        string seqEndpoint = Environment.GetEnvironmentVariable("LC_SEQ_ENDPOINT");
+        if (seqEndpoint is not null)
+        {
+            loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint);
+        }
+
+        return loggerConfig.CreateLogger();
     }
 
     /// <summary>
