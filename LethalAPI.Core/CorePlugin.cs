@@ -26,9 +26,9 @@ public class CorePlugin : Plugin<CoreConfig>
     public static CorePlugin Instance = null!;
 
     /// <summary>
-    /// The harmony instance.
+    /// Indicates whether debug logs should be shown before the core plugin is loaded.
     /// </summary>
-    internal static Harmony Harmony = null!;
+    internal const bool PreLoaderDebugLogs = true;
 
     /// <inheritdoc />
     // sets this so the config name isn't a mess. :)
@@ -43,11 +43,16 @@ public class CorePlugin : Plugin<CoreConfig>
     /// <inheritdoc />
     public override Version Version => Version.Parse(PluginInfo.PLUGIN_VERSION);
 
+    /// <summary>
+    /// Gets the harmony instance.
+    /// </summary>
+    internal static Harmony Harmony => new ("LethalAPI.Core");
+
     /// <inheritdoc />
     public override void OnEnabled()
     {
+        this.Config.Debug = PreLoaderDebugLogs;
         Instance = this;
-        Harmony = new(PluginInfo.PLUGIN_GUID);
 
         // Events.Events contains the instance. This should become a plugin for loading and config purposes, in the future.
         // Events..cctor -> Patcher.PatchAll will do the patching. This is necessary for dynamic patching.
