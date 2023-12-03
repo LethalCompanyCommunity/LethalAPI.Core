@@ -154,7 +154,7 @@ public static class Log
     {
         LoggerConfiguration loggerConfig = new();
 
-        string seqEndpoint = Environment.GetEnvironmentVariable("LC_SEQ_ENDPOINT");
+        string? seqEndpoint = Environment.GetEnvironmentVariable("LC_SEQ_ENDPOINT");
         if (seqEndpoint is not null)
         {
             loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint);
