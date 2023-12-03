@@ -10,7 +10,6 @@ namespace LethalAPI.Core.Features;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Attributes;
 using BepInEx;
 using BepInEx.Bootstrap;
@@ -26,25 +25,35 @@ using Newtonsoft.Json;
 internal static class PluginHelper
 {
     /// <summary>
-    ///     Get all MelonLoader plugins.
+    ///     Gets all MelonLoader plugins (if any exist / if MelonLoader is present).
     /// </summary>
-    /// <returns> An IEnumerable of plugins in the <see cref="MelonLoader.MelonMod" /> format. </returns>
-    internal static IEnumerable<MelonMod> GetMelonLoaderPlugins()
+    public static IEnumerable<MelonMod> MelonLoaderPlugins => PluginLoader.MelonLoaderFound
+        ? GetMelonLoaderPlugins()
+        : new List<MelonMod>();
+
+    /// <summary>
+    ///     Gets all BepInEx plugins (if any exist / if BepInEx is present).
+    /// </summary>
+    public static IEnumerable<PluginInfo> BepInExPlugins => PluginLoader.BepInExFound
+        ? GetBepInExPlugins()
+        : new List<PluginInfo>();
+
+    /// <summary>
+    ///     Getter for MelonLoader plugins. Prevents TypeLoad exceptions.
+    /// </summary>
+    /// <returns>IEnumerable of all MelonLoader plugins.</returns>
+    private static IEnumerable<MelonMod> GetMelonLoaderPlugins()
     {
-        if (PluginLoader.MelonLoaderFound)
-            return MelonMod.RegisteredMelons;
-        return new List<MelonMod>();
+        return MelonMod.RegisteredMelons;
     }
 
     /// <summary>
-    ///     Get all BepInEx plugins.
+    ///     Getter for BepInEx plugins. Prevents TypeLoad exceptions.
     /// </summary>
-    /// <returns> An IEnumerable of plugins in the <see cref="BepInEx.PluginInfo" /> format. </returns>
-    internal static IEnumerable<PluginInfo> GetBepInExPlugins()
+    /// <returns>IEnumerable of all BepInEx plugins.</returns>
+    private static IEnumerable<PluginInfo> GetBepInExPlugins()
     {
-        if (PluginLoader.BepInExFound)
-            return Chainloader.PluginInfos.Values;
-        return new List<PluginInfo>();
+        return Chainloader.PluginInfos.Values;
     }
 
     /// <summary>
@@ -66,6 +75,18 @@ internal static class PluginHelper
         return plugin.GetType().GetCustomAttributes(typeof(LethalRequiredPluginAttribute), false).Any();
     }
 
+    private static void AddMelonLoaderPlugins(ref List<PluginInfoRecord> plugins)
+    {
+        plugins.AddRange(MelonLoaderPlugins.Select(plugin =>
+            new PluginInfoRecord(plugin.Info.Name, new Version(plugin.Info.Version), IsPluginRequired(plugin))));
+    }
+
+    private static void AddBepInExPlugins(ref List<PluginInfoRecord> plugins)
+    {
+        plugins.AddRange(BepInExPlugins.Select(plugin =>
+            new PluginInfoRecord(plugin.Metadata.Name, plugin.Metadata.Version, IsPluginRequired(plugin))));
+    }
+
     /// <summary>
     ///     Get all plugins in the <see cref="PluginInfoRecord" /> format.
     /// </summary>
@@ -74,11 +95,11 @@ internal static class PluginHelper
     {
         List<PluginInfoRecord> plugins = new();
 
-        plugins.AddRange(GetMelonLoaderPlugins().Select(plugin =>
-            new PluginInfoRecord(plugin.Info.Name, new Version(plugin.Info.Version), IsPluginRequired(plugin))));
+        if (PluginLoader.MelonLoaderFound)
+            AddMelonLoaderPlugins(ref plugins);
 
-        plugins.AddRange(GetBepInExPlugins().Select(plugin =>
-            new PluginInfoRecord(plugin.Metadata.Name, plugin.Metadata.Version, IsPluginRequired(plugin))));
+        if (PluginLoader.BepInExFound)
+            AddBepInExPlugins(ref plugins);
 
         plugins.AddRange(GetLethalPlugins().Select(plugin =>
             new PluginInfoRecord(plugin.Name, plugin.Version, IsPluginRequired(plugin))));
