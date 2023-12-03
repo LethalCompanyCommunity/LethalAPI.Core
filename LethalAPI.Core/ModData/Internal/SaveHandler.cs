@@ -9,7 +9,6 @@ namespace LethalAPI.Core.ModData.Internal;
 
 using System;
 
-using Attributes;
 using Interfaces;
 
 /// <summary>
@@ -18,19 +17,24 @@ using Interfaces;
 public abstract class SaveHandler
 {
     /// <summary>
-    /// Gets or sets the save instance to use.
+    /// Gets the primary data collection.
     /// </summary>
-    public abstract ISave Save { get; set; }
+    public SaveItemCollection DataCollection { get; internal set; } = null!;
 
     /// <summary>
-    /// Gets the plugin instance this handler represents.
+    /// Gets or sets a value indicating whether or not this save handler is handling global data or local data.
     /// </summary>
-    public IPlugin<IConfig> Plugin { get; init; } = null!;
+    protected bool IsGlobalSave { get; set; }
 
     /// <summary>
     /// Gets the settings related to the save data, as indicated by the plugin author.
     /// </summary>
-    public SaveDataAttribute Settings { get; init; } = null!;
+    protected SaveDataSettings Settings { get; init; } = null!;
+
+    /// <summary>
+    /// Gets the plugin instance this handler represents.
+    /// </summary>
+    protected IPlugin<IConfig> Plugin { get; init; } = null!;
 
     /// <summary>
     /// Loads the save from the saved file location.
@@ -49,27 +53,28 @@ public abstract class SaveHandler
     /// </summary>
     /// <remarks>Not all plugins have save handlers! Always check to ensure that a plugin has a save handler.</remarks>
     /// <param name="plugin">The plugin to create the save handler from.</param>
-    /// <returns>The save handler if it was found, null if it could not be found.</returns>
-    internal static SaveHandler? GetSaveHandler(IPlugin<IConfig> plugin)
+    /// <param name="searchGlobal">Indicates whether or not to search for a global save or a local save instance.</param>
+    /// <returns>The save handler that was found.</returns>
+    internal static SaveHandler GetSaveHandler(IPlugin<IConfig> plugin, bool searchGlobal = false)
     {
         try
         {
-            return new InheritedSaveHandler(plugin);
+            return new InheritedSaveHandler(plugin, searchGlobal);
         }
         catch (Exception)
         {
-            // Ignore.
+            // unused.
         }
 
         try
         {
-            return new PropertySaveHandler(plugin);
+            return new PropertySaveHandler(plugin, searchGlobal);
         }
         catch (Exception)
         {
-            // Ignore
+            // unused.
         }
 
-        return null;
+        return new GenericSaveHandler(searchGlobal);
     }
 }
