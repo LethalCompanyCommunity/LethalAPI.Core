@@ -56,9 +56,14 @@ public interface IPlugin<out TConfig>
     public Version RequiredAPIVersion { get; }
 
     /// <summary>
-    /// Gets or sets the saving instance. If a plugin doesn't implement save data, this will be null.
+    /// Gets or sets the saving instance for local save data.
     /// </summary>
-    public SaveHandler? SaveHandler { get; set; }
+    public SaveHandler LocalSaveHandler { get; set; }
+
+    /// <summary>
+    /// Gets or sets the saving instance for global save data.
+    /// </summary>
+    public SaveHandler GlobalSaveHandler { get; set; }
 
     /// <summary>
     /// Gets the root instance of the plugin. For attribute plugins it is the plugin running the code, not the wrapper class.
