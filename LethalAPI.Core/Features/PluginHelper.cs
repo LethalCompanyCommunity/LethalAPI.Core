@@ -27,31 +27,39 @@ internal static class PluginHelper
     /// <summary>
     ///     Gets all MelonLoader plugins (if any exist / if MelonLoader is present).
     /// </summary>
-    public static IEnumerable<MelonMod> MelonLoaderPlugins => PluginLoader.MelonLoaderFound
-        ? GetMelonLoaderPlugins()
-        : new List<MelonMod>();
+    /// <returns> IEnumerable of all MelonLoader plugins. </returns>
+    private static IEnumerable<MelonMod> GetMelonLoaderPlugins()
+    {
+        return PluginLoader.MelonLoaderFound
+            ? GetMelonLoaderPluginsTypeLoadSafe()
+            : new List<MelonMod>();
+    }
 
     /// <summary>
     ///     Gets all BepInEx plugins (if any exist / if BepInEx is present).
     /// </summary>
-    public static IEnumerable<PluginInfo> BepInExPlugins => PluginLoader.BepInExFound
-        ? GetBepInExPlugins()
-        : new List<PluginInfo>();
+    /// <returns>IEnumerable of all BepInEx plugins.</returns>
+    private static IEnumerable<PluginInfo> GetBepInExPlugins()
+    {
+        return PluginLoader.BepInExFound
+            ? GetBepInExPluginsTypeLoadSafe()
+            : new List<PluginInfo>();
+    }
 
     /// <summary>
-    ///     Getter for MelonLoader plugins. Prevents TypeLoad exceptions.
+    ///     Getter for MelonLoader plugins. Prevents TypeLoad exceptions due to being called a level deeper.
     /// </summary>
     /// <returns>IEnumerable of all MelonLoader plugins.</returns>
-    private static IEnumerable<MelonMod> GetMelonLoaderPlugins()
+    private static IEnumerable<MelonMod> GetMelonLoaderPluginsTypeLoadSafe()
     {
         return MelonMod.RegisteredMelons;
     }
 
     /// <summary>
-    ///     Getter for BepInEx plugins. Prevents TypeLoad exceptions.
+    ///     Getter for BepInEx plugins. Prevents TypeLoad exceptions due to being called a level deeper.
     /// </summary>
     /// <returns>IEnumerable of all BepInEx plugins.</returns>
-    private static IEnumerable<PluginInfo> GetBepInExPlugins()
+    private static IEnumerable<PluginInfo> GetBepInExPluginsTypeLoadSafe()
     {
         return Chainloader.PluginInfos.Values;
     }
@@ -77,13 +85,13 @@ internal static class PluginHelper
 
     private static void AddMelonLoaderPlugins(ref List<PluginInfoRecord> plugins)
     {
-        plugins.AddRange(MelonLoaderPlugins.Select(plugin =>
+        plugins.AddRange(GetMelonLoaderPlugins().Select(plugin =>
             new PluginInfoRecord(plugin.Info.Name, new Version(plugin.Info.Version), IsPluginRequired(plugin))));
     }
 
     private static void AddBepInExPlugins(ref List<PluginInfoRecord> plugins)
     {
-        plugins.AddRange(BepInExPlugins.Select(plugin =>
+        plugins.AddRange(GetBepInExPlugins().Select(plugin =>
             new PluginInfoRecord(plugin.Metadata.Name, plugin.Metadata.Version, IsPluginRequired(plugin))));
     }
 
@@ -130,7 +138,7 @@ internal static class PluginHelper
     /// </summary>
     /// <param name="json"> The json string to parse. </param>
     /// <returns> A list of plugins in the APIPluginInfo format. </returns>
-    internal static List<PluginInfoRecord> ParseLobbyPluginsMetadata(string json)
+    internal static IEnumerable<PluginInfoRecord> ParseLobbyPluginsMetadata(string json)
     {
         return JsonConvert.DeserializeObject<List<PluginInfoRecord>>(json) ?? new List<PluginInfoRecord>();
     }
