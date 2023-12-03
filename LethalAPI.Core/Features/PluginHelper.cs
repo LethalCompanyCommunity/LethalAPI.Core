@@ -7,15 +7,12 @@
 
 namespace LethalAPI.Core.Features;
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Attributes;
-using BepInEx;
-using BepInEx.Bootstrap;
 using Interfaces;
 using Loader;
-using MelonLoader;
 using Models;
 using Newtonsoft.Json;
 
@@ -25,94 +22,13 @@ using Newtonsoft.Json;
 internal static class PluginHelper
 {
     /// <summary>
-    ///     Gets all MelonLoader plugins (if any exist / if MelonLoader is present).
-    /// </summary>
-    /// <returns> IEnumerable of all MelonLoader plugins. </returns>
-    private static IEnumerable<MelonMod> GetMelonLoaderPlugins()
-    {
-        return PluginLoader.MelonLoaderFound
-            ? GetMelonLoaderPluginsTypeLoadSafe()
-            : new List<MelonMod>();
-    }
-
-    /// <summary>
-    ///     Gets all BepInEx plugins (if any exist / if BepInEx is present).
-    /// </summary>
-    /// <returns>IEnumerable of all BepInEx plugins.</returns>
-    private static IEnumerable<PluginInfo> GetBepInExPlugins()
-    {
-        return PluginLoader.BepInExFound
-            ? GetBepInExPluginsTypeLoadSafe()
-            : new List<PluginInfo>();
-    }
-
-    /// <summary>
-    ///     Getter for MelonLoader plugins. Prevents TypeLoad exceptions due to being called a level deeper.
-    /// </summary>
-    /// <returns>IEnumerable of all MelonLoader plugins.</returns>
-    private static IEnumerable<MelonMod> GetMelonLoaderPluginsTypeLoadSafe()
-    {
-        return MelonMod.RegisteredMelons;
-    }
-
-    /// <summary>
-    ///     Getter for BepInEx plugins. Prevents TypeLoad exceptions due to being called a level deeper.
-    /// </summary>
-    /// <returns>IEnumerable of all BepInEx plugins.</returns>
-    private static IEnumerable<PluginInfo> GetBepInExPluginsTypeLoadSafe()
-    {
-        return Chainloader.PluginInfos.Values;
-    }
-
-    /// <summary>
-    ///     Get all plugins in the <see cref="IPlugin{TConfig}" /> format.
-    /// </summary>
-    /// <returns> An IEnumerable of plugins in the <see cref="IPlugin{TConfig}" /> format. </returns>
-    internal static IEnumerable<IPlugin<IConfig>> GetLethalPlugins()
-    {
-        return PluginLoader.Plugins.Values;
-    }
-
-    /// <summary>
     ///     Check if a plugin is required.
     /// </summary>
     /// <param name="plugin"> The plugin to check. </param>
     /// <returns> True if the plugin is required, false otherwise. </returns>
-    internal static bool IsPluginRequired(object plugin)
+    internal static bool IsPluginRequired(IPlugin<IConfig> plugin)
     {
-        return plugin.GetType().GetCustomAttributes(typeof(LethalRequiredPluginAttribute), false).Any();
-    }
-
-    private static void AddMelonLoaderPlugins(ref List<PluginInfoRecord> plugins)
-    {
-        plugins.AddRange(GetMelonLoaderPlugins().Select(plugin =>
-            new PluginInfoRecord(plugin.Info.Name, new Version(plugin.Info.Version), IsPluginRequired(plugin))));
-    }
-
-    private static void AddBepInExPlugins(ref List<PluginInfoRecord> plugins)
-    {
-        plugins.AddRange(GetBepInExPlugins().Select(plugin =>
-            new PluginInfoRecord(plugin.Metadata.Name, plugin.Metadata.Version, IsPluginRequired(plugin))));
-    }
-
-    /// <summary>
-    ///     Get all plugins in the <see cref="PluginInfoRecord" /> format.
-    /// </summary>
-    /// <returns> An IEnumerable of plugins in the <see cref="PluginInfoRecord" /> format. </returns>
-    internal static IEnumerable<PluginInfoRecord> GetAllPluginInfo()
-    {
-        List<PluginInfoRecord> plugins = new();
-
-        if (PluginLoader.MelonLoaderFound)
-            AddMelonLoaderPlugins(ref plugins);
-
-        if (PluginLoader.BepInExFound)
-            AddBepInExPlugins(ref plugins);
-
-        plugins.AddRange(GetLethalPlugins().Select(plugin =>
-            new PluginInfoRecord(plugin.Name, plugin.Version, IsPluginRequired(plugin))));
-
-        return plugins;
+        return plugin.RootInstance.GetType().GetCustomAttributes(typeof(LethalRequiredPluginAttribute), false).Any();
     }
 
     /// <summary>
@@ -154,5 +70,14 @@ internal static class PluginHelper
 
         return targetPluginInfo.Where(pluginInfo => pluginInfo.IsRequired).All(pluginInfo =>
             clientPluginInfo.Exists(plugin => plugin.GUID == pluginInfo.GUID && plugin.Version >= pluginInfo.Version));
+    }
+
+    /// <summary>
+    ///     Get all plugins in the <see cref="PluginInfoRecord" /> format.
+    /// </summary>
+    /// <returns> An IEnumerable of plugins in the <see cref="PluginInfoRecord" /> format. </returns>
+    private static IEnumerable<PluginInfoRecord> GetAllPluginInfo()
+    {
+        return PluginLoader.Plugins.Values.Select(x => x.Info);
     }
 }
