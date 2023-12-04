@@ -1,30 +1,59 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net48</TargetFramework>
+        <Platforms>AnyCPU</Platforms>
         <AssemblyName>LethalAPI.Bootstrapper.$(Configuration)</AssemblyName>
         <RootNamespace>LethalAPI.Bootstrapper</RootNamespace>
+        <PackageId>LethalAPI.Bootstrapper</PackageId>
+        <Company>LethalAPI Modding Community</Company>
+        <Authors>LethalAPI Modding Community</Authors>
         <Description>The bootstrapper for LethalAPI, a core modding library for Lethal Company.</Description>
         <Version>1.0.0</Version>
-        <DebugType>embedded</DebugType>
+        <FileVersion>$(Version)</FileVersion>
+        <AssemblyVersion>$(Version)</AssemblyVersion>
+        <PackageVersion>$(Version)</PackageVersion>
+        <TargetFramework>net48</TargetFramework>
+        <ImplicitUsings>false</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>preview</LangVersion>
+        <Configurations>Manual;BepInEx;Melonloader;Debug</Configurations>
+        <Platform>AnyCPU</Platform>
+        <UnsafeCodeBlocks>true</UnsafeCodeBlocks>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <LangVersion>latest</LangVersion>
+        <Optimize>true</Optimize>
+        <DebugType>embedded</DebugType>
+        <OutputPath>..\bin\Release\</OutputPath>
+        <DocumentationFile>..\bin\Release\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+        <CodeAnalysisRuleSet>..\LethalAPI.ruleset</CodeAnalysisRuleSet>
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;
             https://nuget.bepinex.dev/v3/index.json
         </RestoreAdditionalProjectSources>
-        <DocumentationFile>..\bin\Release\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)..\LethalAPI.ruleset</CodeAnalysisRuleSet>
-        <OutputPath>..\bin\Release\</OutputPath>
-        <Nullable>enable</Nullable>
-        <Platform>AnyCPU</Platform>
-        <Configurations>Manual;BepInEx;Melonloader;Debug</Configurations>
-        <Platforms>AnyCPU</Platforms>
-        <Optimize>true</Optimize>
-        <UnsafeCodeBlocks>true</UnsafeCodeBlocks>
+        <DefineConstants>Trace</DefineConstants>
+        <NoWarn>1701;1702;CS0436;NU5128</NoWarn>
+        <PackageType>Dependency</PackageType>
+        <PackageId>LethalAPI.Bootstrapper</PackageId>
+        <Title>LethalAPI.Bootstrapper</Title>
+        <PackageTags>lethal company;lethalapi;plugin;mod</PackageTags>
+        <IncludeContentInPack>true</IncludeContentInPack>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <ContentTargetFolders>content</ContentTargetFolders>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Copyright>Copyright (c) LethalAPI Modding Community. All rights reserved. Licensed under the LGPL-3.0 license.</Copyright>
+        <PackageProjectUrl>https://github.com/LethalCompany/LethalCompanyModdingWiki/wiki</PackageProjectUrl>
+        <PackageLicense>https://github.com/LethalCompany/LethalAPI.Core/LICENSE.txt</PackageLicense>
+        <PackageIcon>LethalAPITemplateIcon.png</PackageIcon>
+        <RepositoryUrl>https://github.com/LethalCompany/LethalAPI.Core</RepositoryUrl>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <LangVersion>latest</LangVersion>
+        <NeutralLanguage>en</NeutralLanguage>
+        <NoDefaultExcludes>true</NoDefaultExcludes>
     </PropertyGroup>
-    
-    
+
+
+
     <!-- Debug -->
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>Trace;Manual;Bepinex;Melonloader</DefineConstants>
@@ -61,23 +90,23 @@
     <ItemGroup Condition=" '$(Configuration)' == 'Melonloader' ">
         <PackageReference Include="LavaGang.MelonLoader" Version="0.6.1" ExcludeAssets="runtime" />
     </ItemGroup>
-
-        
+    
     <ItemGroup>
-        <PackageReference Include="Costura.Fody" Version="5.8.0-alpha0098" PrivateAssets="all" IncludeAssets="runtime; compile; build; native; contentfiles; analyzers; buildtransitive" ExcludeAssets="runtime" />
-        <PackageReference Include="Fody" Version="6.8.0" PrivateAssets="all" IncludeAssets="runtime; compile; build; native; contentfiles; analyzers; buildtransitive" ExcludeAssets="runtime" />
+        <PackageReference Include="Serilog" Version="3.1.1" ExcludeAssets="runtime" />
+        <PackageReference Include="Serilog.Sinks.Seq" Version="6.0.0" ExcludeAssets="runtime" />
+        <PackageReference Include="System.Net.Http" Version="4.3.4" ExcludeAssets="runtime" />
+        <PackageReference Include="Fody" Version="6.8.0" IncludeAssets="runtime; compile; build; native; contentfiles; analyzers; buildtransitive" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="Costura.Fody" Version="5.8.0-alpha0098" IncludeAssets="runtime; compile; build; native; contentfiles; analyzers; buildtransitive" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" ExcludeAssets="runtime" />
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" ExcludeAssets="runtime" />
-        <PackageReference Include="YamlDotNet" Version="13.7.1" ExcludeAssets="runtime"/>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" ExcludeAssets="runtime"/>
+        <PackageReference Include="YamlDotNet" Version="13.7.1" ExcludeAssets="runtime" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" ExcludeAssets="runtime" />
+        <PackageReference Include="HarmonyX" Version="2.10.2" ExcludeAssets="runtime" />
     </ItemGroup>
-
-    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" ExcludeAssets="RUNTIME" />
-    </ItemGroup>
-
+    
     <ItemGroup>
-        <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp.dll" Private="False" />
+        <Reference Include="Assembly-CSharp" HintPath="$(LC_REFERENCES)\Assembly-CSharp.dll" Private="False" Publicize="True" />
         <Reference Include="GameNetworkManager" HintPath="$(LC_REFERENCES)\Facepunch.Steamworks.Win64.dll" Private="False" />
         <Reference Include="Unity.TextMeshPro" HintPath="$(LC_REFERENCES)\Unity.TextMeshPro.dll" Private="False" />
         <Reference Include="UnityEngine" HintPath="$(LC_REFERENCES)\UnityEngine.dll" Private="False" />
@@ -89,7 +118,25 @@
     <ItemGroup>
         <ProjectReference Include="..\LethalAPI.Core\LethalAPI.Core.csproj" />
     </ItemGroup>
+
     <ItemGroup>
-        <AdditionalFiles Include="..\stylecop.json" />
+        <None Remove=".gitignore" />
+        <None Remove="LICENSE.txt" />
+        <None Remove="Plugin.ruleset" />
+        <None Remove="README.md" />
+        <None Remove="stylecop.json" />
+        <None Remove="NuGet.Config" />
+        <Content Include="NuGet.Config" Link="Resources/NuGet.Config" />
+        <Content Include="../.editorconfig" Link="Resources/.editorconfig" />
+        <Content Include="../.gitignore" Link="Resources/.gitignore" />
+        <Content Include="../LICENSE.txt" Link="Resources/LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
+        <Content Include="../LethalAPI.ruleset" Link="Resources/LethalAPI.ruleset" />
+        <Content Include="../README.md" Link="Resources/README.md" Pack="true" PackagePath="$(PackageReadmeFile)" />
+        <Content Include="../stylecop.json" Link="Resources/stylecop.json" />
+        <Content Include="../LethalAPITemplateIcon.png" Pack="true" PackagePath="" Link="Resources/LethalAPITemplateIcon.png" />
+        <AdditionalFiles Include="../stylecop.json" Link="Resources/stylecop.json" />
+        <None Remove="FodyWeavers.xml" />
+        <None Include="FodyWeavers.xml" Link="Resources/FodyWeavers.xml" />
     </ItemGroup>
+    
 </Project>

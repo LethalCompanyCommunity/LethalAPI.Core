@@ -3,6 +3,13 @@
     <IncludeAssemblies>
       YamlDotNet
       Newtonsoft.Json
+      Serilog
+      Serilog.Formatting.Compact
+      Serilog.Sinks.File
+      Serilog.Sinks.PeriodicBatching
+      Serilog.Sinks.Seq
+      System.Diagnostics.DiagnosticSource
+      System.Runtime.CompilerServices.Unsafe
       </IncludeAssemblies>
   </Costura> 
 </Weavers>

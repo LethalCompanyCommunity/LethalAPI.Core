@@ -20,6 +20,7 @@ using System.Text;
 using Interfaces;
 using Loader;
 using MelonLoader;
+using Serilog;
 
 // ReSharper Unity.PerformanceAnalysis
 #pragma warning disable SA1201 // ordering by correct order.
@@ -34,6 +35,8 @@ public static class Log
     {
         AssemblyNameReplacements = new ConcurrentDictionary<string, string>();
         AssemblyNameReplacements.TryAdd("UnityEngine.CoreModule", "Unity");
+
+        Serilog.Log.Logger = CreateSerilogLogger();
     }
 
     /// <summary>
@@ -147,6 +150,19 @@ public static class Log
     /// Gets the longest length of text representing a color.
     /// </summary>
     public static int LongestColor => ColorCodes.Keys.OrderByDescending(x => x.Length).First().Length;
+
+    private static ILogger CreateSerilogLogger()
+    {
+        LoggerConfiguration loggerConfig = new();
+
+        string? seqEndpoint = Environment.GetEnvironmentVariable("LC_SEQ_ENDPOINT");
+        if (seqEndpoint is not null)
+        {
+            loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint);
+        }
+
+        return loggerConfig.CreateLogger();
+    }
 
     /// <summary>
     /// Gets the formatted date string.
@@ -284,6 +300,8 @@ public static class Log
     {
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
+        Serilog.Log.Information("[{assembly}] {message}", callingPlugin, message);
+
         // &7[&b&6{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Info"].Replace("{time}", GetDateString()).Replace("{prefix}", $"{callingPlugin,-5}")
             .Replace("{msg}", message));
@@ -319,6 +337,8 @@ public static class Log
 
         callingPlugin = GetCallingPlugin(method, callingPlugin, ShowCallingMethod);
 
+        Serilog.Log.Debug("[{assembly}] {message}", callingPlugin, message);
+
         // &7[&b&5{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Debug"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
             .Replace("{msg}", message));
@@ -332,6 +352,8 @@ public static class Log
     public static void Warn(string message, string callingPlugin = "")
     {
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
+
+        Serilog.Log.Warning("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&3{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Warn"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
@@ -347,6 +369,8 @@ public static class Log
     {
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
+        Serilog.Log.Error("[{assembly}] {message}", callingPlugin, message);
+
         // &7[&b&1{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
             .Replace("{msg}", message));
@@ -359,6 +383,10 @@ public static class Log
     /// <param name="callingPlugin">Displays a custom message for the plugin name. This will be automatically inferred.</param>
     public static void Exception(Exception exception, string callingPlugin = "")
     {
+        callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
+
+        Serilog.Log.Error(exception, "[{assembly}] An error has occured.", callingPlugin);
+
         string message = $"An error has occured. {exception.Message}. Information: \n";
         Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
             .Replace("{msg}", message));

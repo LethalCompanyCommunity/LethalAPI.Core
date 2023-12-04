@@ -440,7 +440,7 @@ public sealed class PluginLoader
 
             foreach (Exception loaderException in reflectionTypeLoadException.LoaderExceptions)
             {
-                Log.Error(loaderException);
+                Log.Exception(loaderException);
             }
         }
         catch (Exception exception)
