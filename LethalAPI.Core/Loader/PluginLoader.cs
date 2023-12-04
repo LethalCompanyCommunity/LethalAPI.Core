@@ -255,7 +255,8 @@ public sealed class PluginLoader
     /// </summary>
     public static void LoadPlugins()
     {
-        Log.Debug("Now loading plugins.", ShowDebug);
+        if(ShowDebug)
+            Log.Debug("Now loading plugins.");
         foreach (string assemblyPath in Directory.GetFiles(PluginDirectory, "*.dll"))
         {
             Assembly? assembly = LoadAssembly(assemblyPath);
@@ -507,19 +508,19 @@ public sealed class PluginLoader
                 if (methodInfo.GetParameters().Length > 0)
                     continue;
 
-                if (onEnabled is null && (methodInfo.Name == "OnEnabled" || methodInfo.GetCustomAttribute<LethalEntrypointAttribute>() is not null))
+                if (onEnabled is null && (methodInfo.GetCustomAttribute<LethalEntrypointAttribute>() is not null || methodInfo.Name == "OnEnabled" ))
                 {
                     onEnabled = methodInfo;
                     continue;
                 }
 
-                if (onDisabled is null && (methodInfo.Name == "OnDisabled" || methodInfo.GetCustomAttribute<LethalDisableHandlerAttribute>() is not null))
+                if (onDisabled is null && (methodInfo.GetCustomAttribute<LethalDisableHandlerAttribute>() is not null || methodInfo.Name == "OnDisabled"))
                 {
                     onDisabled = methodInfo;
                     continue;
                 }
 
-                if (onReloaded is null && (methodInfo.Name == "OnReloaded" || methodInfo.GetCustomAttribute<LethalReloadHandlerAttribute>() is not null))
+                if (onReloaded is null && (methodInfo.GetCustomAttribute<LethalReloadHandlerAttribute>() is not null || methodInfo.Name == "OnReloaded"))
                     onReloaded = methodInfo;
             }
 
