@@ -36,7 +36,10 @@ public static class Log
         AssemblyNameReplacements = new ConcurrentDictionary<string, string>();
         AssemblyNameReplacements.TryAdd("UnityEngine.CoreModule", "Unity");
 
-        Serilog.Log.Logger = CreateSerilogLogger();
+        ILogger? serilog = CreateSerilogLogger();
+        if (serilog is null)
+            return;
+        Serilog.Log.Logger = serilog;
     }
 
     /// <summary>
@@ -151,7 +154,7 @@ public static class Log
     /// </summary>
     public static int LongestColor => ColorCodes.Keys.OrderByDescending(x => x.Length).First().Length;
 
-    private static ILogger CreateSerilogLogger()
+    private static ILogger? CreateSerilogLogger()
     {
         LoggerConfiguration loggerConfig = new();
 
@@ -159,9 +162,10 @@ public static class Log
         if (seqEndpoint is not null)
         {
             loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint);
+            return loggerConfig.CreateLogger();
         }
 
-        return loggerConfig.CreateLogger();
+        return null;
     }
 
     /// <summary>
