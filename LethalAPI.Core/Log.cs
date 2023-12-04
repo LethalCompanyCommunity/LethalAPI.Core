@@ -15,6 +15,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 using Interfaces;
 using Loader;
@@ -87,10 +88,10 @@ public static class Log
     /// </example>
     public static readonly Dictionary<string, string> Templates = new()
     {
-        { "Info", "{time} &r[&6{type}&r] &r[&2{prefix}&r]&r {msg}" },
-        { "Debug", "{time} &r[&5{type}&r] &r[&2{prefix}&r]&r {msg}" },
-        { "Warn", "{time} &r[&3{type}&r] &r[&2{prefix}&r]&r {msg}" },
-        { "Error", "{time} &r[&1{type}&r] &r[&2{prefix}&r]&r {msg}" },
+        { "Info", "{time} &r[&6Info &r] &r[&2{prefix}&r]&r {msg}" },
+        { "Debug", "{time} &r[&5Debug&r] &r[&2{prefix}&r]&r {msg}" },
+        { "Warn", "{time} &r[&3Warn &r] &r[&2{prefix}&r]&r {msg}" },
+        { "Error", "{time} &r[&1Error&r] &r[&2{prefix}&r]&r {msg}" },
         { "LineLocNotFound", "&1Line Unknown &h[&6IL_{il}&h]&r" },
         { "LineLocFound", "&3Line {line} &h[&6IL_{il}&h]&r" },
     };
@@ -151,13 +152,33 @@ public static class Log
     /// Gets the formatted date string.
     /// </summary>
     /// <returns>The formatted date / time string.</returns>
+    // ReSharper disable HeuristicUnreachableCode
+#pragma warning disable CS0162 // Unreachable code detected
     internal static string GetDateString()
     {
+        const bool showDate = false;
+        const bool showSeconds = true;
+        const bool showMilliseconds = false;
         if (PluginLoader.MelonLoaderFound)
             return string.Empty;
         DateTime now = DateTime.Now;
-        return $"[{$"{now:g}",-19} ({$"{now:ss}",-2}.{$"{now.Millisecond:000}",-3}s)]";
+        StringBuilder builder = new();
+        builder.Append('[');
+        builder.Append(showDate ? $"{now:g,-19}" : $"{now:t}");
+        if (showSeconds || showMilliseconds)
+        {
+            builder.Append(" &a");
+            if (showSeconds)
+                builder.Append($"{now:ss}");
+            if (showMilliseconds)
+                builder.Append((showSeconds ? "." : string.Empty) + $"{now.Millisecond:000}");
+            builder.Append(showSeconds ? "s&r" : "ms&r");
+        }
+
+        builder.Append(']');
+        return builder.ToString();
     }
+#pragma warning restore CS0162 // Unreachable code detected
 
     /// <summary>
     /// Gets the name of the calling plugin.
@@ -265,7 +286,7 @@ public static class Log
 
         // &7[&b&6{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Info"].Replace("{time}", GetDateString()).Replace("{prefix}", $"{callingPlugin,-5}")
-            .Replace("{msg}", message).Replace("{type}", "Info "));
+            .Replace("{msg}", message));
     }
 
     /// <summary>
@@ -300,7 +321,7 @@ public static class Log
 
         // &7[&b&5{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Debug"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message).Replace("{type}", "Debug"));
+            .Replace("{msg}", message));
     }
 
     /// <summary>
@@ -328,7 +349,7 @@ public static class Log
 
         // &7[&b&1{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message).Replace("{type}", "Error"));
+            .Replace("{msg}", message));
     }
 
     /// <summary>
@@ -340,7 +361,7 @@ public static class Log
     {
         string message = $"An error has occured. {exception.Message}. Information: \n";
         Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message).Replace("{type}", "Error"));
+            .Replace("{msg}", message));
         for (Exception? e = exception; e != null; e = e.InnerException)
         {
             string msg1 = "Exception Information";
@@ -381,7 +402,7 @@ public static class Log
     {
         string errorMsg = $"{e}";
         Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", errorMsg).Replace("{type}", "Error"));
+            .Replace("{msg}", errorMsg));
     }
 
     /// <summary>
