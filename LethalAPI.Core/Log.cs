@@ -31,15 +31,16 @@ using Serilog;
 /// </summary>
 public static class Log
 {
+    private static bool useSerilog;
+
     static Log()
     {
         AssemblyNameReplacements = new ConcurrentDictionary<string, string>();
         AssemblyNameReplacements.TryAdd("UnityEngine.CoreModule", "Unity");
 
         ILogger? serilog = CreateSerilogLogger();
-        if (serilog is null)
-            return;
-        Serilog.Log.Logger = serilog;
+        if (useSerilog)
+            Serilog.Log.Logger = serilog!;
     }
 
     /// <summary>
@@ -130,6 +131,7 @@ public static class Log
     public static readonly ReadOnlyDictionary<string, ConsoleColor> ColorCodes = new(
         new Dictionary<string, ConsoleColor>()
         {
+            // Note: If ever updated, make sure to update longest color.
             { "0", ConsoleColor.Black }, // black
             { "1", ConsoleColor.Red }, // red
             { "2", ConsoleColor.Green }, // green
@@ -152,7 +154,7 @@ public static class Log
     /// <summary>
     /// Gets the longest length of text representing a color.
     /// </summary>
-    public static int LongestColor => ColorCodes.Keys.OrderByDescending(x => x.Length).First().Length;
+    public static int LongestColor => 1;
 
     private static ILogger? CreateSerilogLogger()
     {
@@ -162,6 +164,7 @@ public static class Log
         if (seqEndpoint is not null)
         {
             loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint);
+            useSerilog = true;
             return loggerConfig.CreateLogger();
         }
 
@@ -304,7 +307,8 @@ public static class Log
     {
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
-        Serilog.Log.Information("[{assembly}] {message}", callingPlugin, message);
+        if(useSerilog)
+            Serilog.Log.Information("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&6{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Info"].Replace("{time}", GetDateString()).Replace("{prefix}", $"{callingPlugin,-5}")
@@ -341,7 +345,8 @@ public static class Log
 
         callingPlugin = GetCallingPlugin(method, callingPlugin, ShowCallingMethod);
 
-        Serilog.Log.Debug("[{assembly}] {message}", callingPlugin, message);
+        if(useSerilog)
+            Serilog.Log.Debug("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&5{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Debug"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
@@ -357,7 +362,8 @@ public static class Log
     {
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
-        Serilog.Log.Warning("[{assembly}] {message}", callingPlugin, message);
+        if(useSerilog)
+            Serilog.Log.Warning("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&3{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Warn"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
@@ -373,7 +379,8 @@ public static class Log
     {
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
-        Serilog.Log.Error("[{assembly}] {message}", callingPlugin, message);
+        if(useSerilog)
+            Serilog.Log.Error("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&1{type}&B&7] &7[&b&2{prefix}&B&7]&r
         Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
@@ -433,7 +440,8 @@ public static class Log
 
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
-        Serilog.Log.Error(exception, "[{assembly}] An error has occured.", callingPlugin);
+        if(useSerilog)
+            Serilog.Log.Error(exception, "[{assembly}] An error has occured.", callingPlugin);
 
         string message = $"An error has occured. {exception.Message}. Information: \n";
         Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
