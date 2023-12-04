@@ -145,6 +145,7 @@ namespace LethalAPI.Bootstrapper.MelonLoader
 #endif
 
 #if Bepinex
+#pragma warning disable SA1401 // field should be made private.
 namespace LethalAPI.Bootstrapper.BepInEx
 {
     using System.IO;
@@ -159,6 +160,11 @@ namespace LethalAPI.Bootstrapper.BepInEx
     [BepInPlugin("LethalAPI-Bootstrap", "LethalAPI", "1.0.0")]
     internal class Bootstrapper : BaseUnityPlugin
     {
+        /// <summary>
+        /// Indicates whether or not the logging patch has been executed.
+        /// </summary>
+        internal static bool Patched;
+
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private static ManualLogSource logger = null!;
 
@@ -168,7 +174,10 @@ namespace LethalAPI.Bootstrapper.BepInEx
         /// <param name="message">The message to log.</param>
         internal static void LogMessage(string message)
         {
-            logger.Log((LogLevel)62, message);
+            if(!Patched)
+                logger.Log(LogLevel.Info, message);
+            else
+                logger.Log(0, message);
         }
 
         /// <summary>
@@ -276,6 +285,7 @@ namespace LethalAPI.Bootstrapper
     using System.IO;
     using System.IO.Compression;
     using System.Reflection;
+    using System.Reflection.Emit;
 
     using Core.Loader;
     using HarmonyLib;
@@ -306,9 +316,24 @@ namespace LethalAPI.Bootstrapper
             LoadDependencies();
         }
 
-        private static void Log(string message) => Postfix(message);
+        // Allow for logging via Log.Raw();
+        private static IEnumerable<CodeInstruction> Transpiler()
+        {
+            yield return new CodeInstruction(OpCodes.Ldarg_0);
+#if Melonloader
+            yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(MelonLoader.Bootstrapper), nameof(MelonLoader.Bootstrapper.LogMessage)));
+#endif
+#if Bepinex
+            yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(BepInEx.Bootstrapper), nameof(BepInEx.Bootstrapper.LogMessage)));
+#endif
+#if Manual
+            Doorstop.Entrypoint.Log(message);
+#endif
+            yield return new CodeInstruction(OpCodes.Ret);
+        }
 
-        private static void Postfix(string message)
+        // Here to allow bootstrapper logging.
+        private static void Log(string message)
         {
 #if Melonloader
             MelonLoader.Bootstrapper.LogMessage(message);
@@ -360,10 +385,11 @@ namespace LethalAPI.Bootstrapper
                 // Apply the patches for logging in a type load safe manner.
 #if Bepinex
                 PluginLoader.FixLoggingBepInEx(Harmony);
+                BepInEx.Bootstrapper.Patched = true;
 #endif
 
                 // This is less expensive.
-                Harmony.Patch(AccessTools.Method(typeof(Core.Log), nameof(Core.Log.Raw)), null, new HarmonyMethod(AccessTools.Method(typeof(Loader), nameof(Postfix))));
+                Harmony.Patch(AccessTools.Method(typeof(Core.Log), nameof(Core.Log.Raw)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(Loader), nameof(Transpiler))));
                 Log(" [LethalAPI-Bootstrapper] Log fix patched.");
                 _ = new PluginLoader(LoadMethod);
                 foreach (Assembly dependency in Dependencies)
