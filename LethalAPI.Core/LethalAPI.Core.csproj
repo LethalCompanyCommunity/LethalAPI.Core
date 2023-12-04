@@ -55,7 +55,7 @@
     <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="BepInEx.Core" Version="5.*" ExcludeAssets="runtime" />
+        <PackageReference Include="BepInEx.Core" Version="5.*" ExcludeAssets="runtime" Publicize="true" />
         <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" ExcludeAssets="runtime" />
         <PackageReference Include="LavaGang.MelonLoader" Version="0.6.1" ExcludeAssets="runtime" />
         <PackageReference Include="Serilog" Version="3.1.1" ExcludeAssets="runtime" />

@@ -367,6 +367,8 @@ public sealed class PluginLoader
     /// <returns>Returns the created plugin instance or <see langword="null"/>.</returns>
     private static IPlugin<IConfig>? CreatePlugin(Assembly assembly)
     {
+        bool canExecute = ShowDebug;
+        bool showPluginFinderDebug = ShowPluginFinderDebug;
         try
         {
             foreach (Type type in assembly.GetTypes())
@@ -376,24 +378,28 @@ public sealed class PluginLoader
 
                 if (type.IsAbstract || type.IsInterface)
                 {
-                    Log.Debug($"\"{type.FullName}\" is an interface or abstract class, skipping.", ShowPluginFinderDebug);
+                    if(showPluginFinderDebug)
+                        Log.Debug($"\"{type.FullName}\" is an interface or abstract class, skipping.");
                     continue;
                 }
 
                 if (!IsDerivedFromPlugin(type))
                 {
-                    Log.Debug($"\"{type.FullName}\" does not inherit from Plugin<TConfig>, skipping.", ShowPluginFinderDebug);
+                    if(showPluginFinderDebug)
+                        Log.Debug($"\"{type.FullName}\" does not inherit from Plugin<TConfig>, skipping.");
                     continue;
                 }
 
-                Log.Debug($"Loading type {type.FullName}", ShowPluginFinderDebug);
+                if(showPluginFinderDebug)
+                    Log.Debug($"Loading type {type.FullName}");
 
                 IPlugin<IConfig>? plugin = null;
 
                 ConstructorInfo? constructor = type.GetConstructor(new[] { typeof(Assembly) }) ?? type.GetConstructor(Type.EmptyTypes);
                 if (constructor is not null)
                 {
-                    Log.Debug("Public default constructor found, creating instance...", ShowDebug);
+                    if(canExecute)
+                        Log.Debug("Public default constructor found, creating instance...");
 
                     object obj = constructor.Invoke(null);
 
@@ -409,7 +415,8 @@ public sealed class PluginLoader
                 }
                 else
                 {
-                    Log.Debug($"Constructor wasn't found, searching for a property with the {type.FullName} type...", ShowDebug);
+                    if(canExecute)
+                        Log.Debug($"Constructor wasn't found, searching for a property with the {type.FullName} type...");
 
                     object? value = Array
                         .Find(
@@ -427,7 +434,8 @@ public sealed class PluginLoader
                     continue;
                 }
 
-                Log.Debug($"Instantiated type {type.FullName}", ShowDebug);
+                if(canExecute)
+                    Log.Debug($"Instantiated type {type.FullName}");
 
                 if (CheckPluginRequiredAPIVersion(plugin))
                     continue;
@@ -463,15 +471,6 @@ public sealed class PluginLoader
             }
 
             Version? version = null;
-            try
-            {
-                if (type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion is { } versionString)
-                    version = Version.Parse(versionString);
-            }
-            catch (Exception)
-            {
-                // unused.
-            }
 
             // if version is not defined via assembly.
             version ??= pluginInfo.Version;
@@ -508,19 +507,19 @@ public sealed class PluginLoader
                 if (methodInfo.GetParameters().Length > 0)
                     continue;
 
-                if (onEnabled is null && (methodInfo.GetCustomAttribute<LethalEntrypointAttribute>() is not null || methodInfo.Name == "OnEnabled"))
+                if (onEnabled is null && (methodInfo.Name == "OnEnabled" || methodInfo.GetCustomAttribute<LethalEntrypointAttribute>() is not null))
                 {
                     onEnabled = methodInfo;
                     continue;
                 }
 
-                if (onDisabled is null && (methodInfo.GetCustomAttribute<LethalDisableHandlerAttribute>() is not null || methodInfo.Name == "OnDisabled"))
+                if (onDisabled is null && (methodInfo.Name == "OnDisabled" || methodInfo.GetCustomAttribute<LethalDisableHandlerAttribute>() is not null))
                 {
                     onDisabled = methodInfo;
                     continue;
                 }
 
-                if (onReloaded is null && (methodInfo.GetCustomAttribute<LethalReloadHandlerAttribute>() is not null || methodInfo.Name == "OnReloaded"))
+                if (onReloaded is null && (methodInfo.Name == "OnReloaded" || methodInfo.GetCustomAttribute<LethalReloadHandlerAttribute>() is not null))
                     onReloaded = methodInfo;
             }
 

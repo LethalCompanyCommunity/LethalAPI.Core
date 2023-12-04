@@ -121,7 +121,7 @@ internal static class BepInExLogFix
     {
         try
         {
-            // Set default color
+            // BepInEx.ConsoleManager.SetConsoleColor(Log.ColorCodes["r"]);
             setConsoleColor.Invoke(null, new object[] { Log.ColorCodes["r"] });
 
             string text = eventArgs.ToString();
