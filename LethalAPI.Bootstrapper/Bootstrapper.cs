@@ -40,7 +40,7 @@ namespace LethalAPI.Bootstrapper.MelonLoader
         public override void OnEarlyInitializeMelon()
         {
             Loader.LoadMethod = LoadMethod.MelonLoader;
-            LogMessage(" [LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [MelonLoader]");
+            LogMessage("[LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [MelonLoader]");
             Loader.Load();
         }
 
@@ -195,7 +195,7 @@ namespace LethalAPI.Bootstrapper.BepInEx
         {
             logger = this.Logger;
             Loader.LoadMethod = LoadMethod.BepInEx;
-            LogMessage(" [LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [BepInEx]");
+            LogMessage("[LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [BepInEx]");
             Loader.Load();
         }
     }
@@ -228,7 +228,7 @@ namespace Doorstop
         /// </summary>
         public static void Start()
         {
-            Log(" [LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [Doorstop]");
+            Log("[LethalAPI-Bootstrapper] Loading Lethal API Bootstrapper [Doorstop]");
             AllocConsole();
             basePath = Path.Combine(Assembly.GetExecutingAssembly().Location, "../../LethalAPI");
             configPath = Path.Combine(basePath, "Configs");
@@ -310,7 +310,7 @@ namespace LethalAPI.Bootstrapper
         internal static void Load()
         {
             CosturaUtility.Initialize();
-            Log($" [LethalAPI-Bootstrapper] Loading Bootstrapper [{LoadMethod}].");
+            Log($"[LethalAPI-Bootstrapper] Loading Bootstrapper [{LoadMethod}].");
             baseAssembly = typeof(Loader).Assembly;
             LoadPaths();
             LoadDependencies();
@@ -363,20 +363,20 @@ namespace LethalAPI.Bootstrapper
 
         private static void LoadDependencies()
         {
-            Log(" [LethalAPI-Bootstrapper] Loading dependencies.");
+            Log("[LethalAPI-Bootstrapper] Loading dependencies.");
             foreach (string resourcePath in baseAssembly.GetManifestResourceNames())
             {
                 if (!LoadAssembly(resourcePath, out Assembly? resultAssembly))
                     continue;
 
-                Log($" [LethalAPI-Bootstrapper] Loaded embedded dependency '{resultAssembly!.GetName().Name}'@v{resultAssembly.GetName().Version}.");
+                Log($"[LethalAPI-Bootstrapper] Loaded embedded dependency '{resultAssembly!.GetName().Name}'@v{resultAssembly.GetName().Version}.");
                 try
                 {
                     Dependencies.Add(resultAssembly);
                 }
                 catch (Exception e)
                 {
-                    Log($" [LethalAPI-Bootstrapper] An error has occured while loading dependency '{resourcePath}'. Exception: \n{e}");
+                    Log($"[LethalAPI-Bootstrapper] An error has occured while loading dependency '{resourcePath}'. Exception: \n{e}");
                 }
             }
 
@@ -390,7 +390,7 @@ namespace LethalAPI.Bootstrapper
 
                 // This is less expensive.
                 Harmony.Patch(AccessTools.Method(typeof(Core.Log), nameof(Core.Log.Raw)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(Loader), nameof(Transpiler))));
-                Log(" [LethalAPI-Bootstrapper] Log fix patched.");
+                Log("[LethalAPI-Bootstrapper] Log fix patched.");
                 _ = new PluginLoader(LoadMethod);
                 foreach (Assembly dependency in Dependencies)
                 {
@@ -399,7 +399,7 @@ namespace LethalAPI.Bootstrapper
             }
             catch (Exception e)
             {
-                Log($" [LethalAPI-Bootstrapper] An error has occured while loading the LethalAPI Core Plugin. Exception: \n{e}");
+                Log($"[LethalAPI-Bootstrapper] An error has occured while loading the LethalAPI Core Plugin. Exception: \n{e}");
             }
         }
 
@@ -431,11 +431,11 @@ namespace LethalAPI.Bootstrapper
             }
             catch (TypeLoadException e)
             {
-                Log($" Missing dependency for plugin '{resourcePath}'. Exception: {e.Message}");
+                Log($"Missing dependency for plugin '{resourcePath}'. Exception: {e.Message}");
             }
             catch (Exception e)
             {
-                Log($" Could not load a dependency or plugin. Exception: \n{e}");
+                Log($"Could not load a dependency or plugin. Exception: \n{e}");
             }
 
             assembly = null;
