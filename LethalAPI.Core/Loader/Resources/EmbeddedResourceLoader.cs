@@ -46,7 +46,8 @@ public class EmbeddedResourceLoader
             }
             catch (Exception e)
             {
-                Log.Debug($"Resource '{name}' could not be loaded. It was probably embedded incorrectly. Exception: \n{e}", Debug, "Lethal-Loader-Resources");
+                Log.Debug($"Resource '{name}' could not be loaded. It was probably embedded incorrectly.", Debug, "Lethal-Loader-Resources");
+                Log.Exception(e, "Lethal-Loader-Resources");
             }
         }
     }

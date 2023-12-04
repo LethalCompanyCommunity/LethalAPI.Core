@@ -81,7 +81,8 @@ public sealed class CommentsObjectGraphVisitor : ChainedObjectGraphVisitor
         }
         catch (Exception e)
         {
-            Log.Debug($"Yaml error caught. E: \n {e}");
+            Log.Debug($"Yaml error caught.");
+            Log.Exception(e);
         }
 
         SkipDefaultsCheck:
@@ -95,7 +96,8 @@ public sealed class CommentsObjectGraphVisitor : ChainedObjectGraphVisitor
         }
         catch (Exception e)
         {
-            Log.Debug($"Cannot emit comment. \n {e}");
+            Log.Debug($"Cannot emit comment.");
+            Log.Exception(e);
         }
 
         return base.EnterMapping(key, value, context);

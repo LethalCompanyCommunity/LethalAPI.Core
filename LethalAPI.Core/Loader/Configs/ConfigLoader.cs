@@ -87,7 +87,7 @@ public static class ConfigLoader
         catch (Exception e)
         {
             Log.Error($"Could not load configs due to an error!", "LethalAPI-Loader");
-            Log.Debug($"Exception: \n{e}", EmbeddedResourceLoader.Debug, "LethalAPI-Loader");
+            Log.Exception(e, EmbeddedResourceLoader.Debug, "LethalAPI-Loader");
         }
     }
 
@@ -261,7 +261,8 @@ public static class ConfigLoader
         }
         catch (Exception e)
         {
-            Log.Warn($"A backup file could not be made of the invalid config due to an error. Error: \n{e}");
+            Log.Warn($"A backup file could not be made of the invalid config due to an error.");
+            Log.Exception(e);
         }
     }
 }

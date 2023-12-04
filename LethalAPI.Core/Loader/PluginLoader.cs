@@ -90,7 +90,7 @@ public sealed class PluginLoader
             }
             catch (Exception e)
             {
-                Log.Debug(e.ToString());
+                Log.Exception(e);
             }
 
             EnablePlugins();
@@ -98,7 +98,7 @@ public sealed class PluginLoader
         catch (Exception e)
         {
             Log.Error($"An error has occured while loading plugins.");
-            Log.Debug($"{e}");
+            Log.Exception(e);
         }
     }
 
@@ -282,7 +282,7 @@ public sealed class PluginLoader
             catch (Exception e)
             {
                 Log.Warn($"An error has occured while loading embedded dependency '{highPriorityAssembly}'.", "LethalAPI-Loader");
-                Log.Debug($"Exception: \n{e}", ShowDebug, "LethalAPI-Loader");
+                Log.Exception(e, ShowDebug, "LethalAPI-Loader");
             }
         }
 
@@ -346,7 +346,8 @@ public sealed class PluginLoader
             }
             catch (Exception e)
             {
-                Log.Warn($"Could not load embedded assemblies. Error: \n{e}");
+                Log.Warn($"Could not load embedded assemblies.");
+                Log.Exception(e);
             }
 
             return assembly;
@@ -561,7 +562,7 @@ public sealed class PluginLoader
             catch (Exception e)
             {
                 Log.Warn($"Could not initialize plugin \'{type.FullName}\' due to an error.");
-                Log.Debug($"{e}", ShowDebug);
+                Log.Exception(e, ShowDebug);
             }
         }
 
