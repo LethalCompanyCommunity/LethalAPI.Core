@@ -380,9 +380,53 @@ public static class Log
     /// Logs an exception and any relevant information to the console.
     /// </summary>
     /// <param name="exception">The exception being logged.</param>
-    /// <param name="callingPlugin">Displays a custom message for the plugin name. This will be automatically inferred.</param>
-    public static void Exception(Exception exception, string callingPlugin = "")
+    public static void Exception(Exception exception)
     {
+        Exception(exception, string.Empty, true);
+    }
+
+    /// <summary>
+    /// Logs an exception and any relevant information to the console.
+    /// </summary>
+    /// <param name="exception">The exception being logged.</param>
+    /// <param name="canLog">Can be used to prevent the log from being logged. Essentially an integrated if statement.
+    /// <code>
+    /// if(canLog)
+    ///     Log.Debug();
+    /// </code></param>
+    /// <param name="callingPlugin">Displays a custom message for the plugin name. This will be automatically inferred.</param>
+    /// <param name="abideByDebug">Indicates whether or not to consider the debug option before sending. If users need to see this exception regardless of debug mode, set this to false.</param>
+    public static void Exception(Exception exception, bool canLog = true, string callingPlugin = "", bool abideByDebug = true)
+    {
+        if(canLog)
+            Exception(exception, callingPlugin, abideByDebug);
+    }
+
+    /// <summary>
+    /// Logs an exception and any relevant information to the console.
+    /// </summary>
+    /// <param name="exception">The exception being logged.</param>
+    /// <param name="callingPlugin">Displays a custom message for the plugin name. This will be automatically inferred.</param>
+    /// <param name="abideByDebug">Indicates whether or not to consider the debug option before sending. If users need to see this exception regardless of debug mode, set this to false.</param>
+    public static void Exception(Exception exception, string callingPlugin = "", bool abideByDebug = true)
+    {
+        if (abideByDebug)
+        {
+            bool x = new StackTrace(1).GetFrame(0).GetMethod().DeclaringType == typeof(Log);
+            StackTrace stack = new(x ? 3 : 2);
+
+            MethodBase method = stack.GetFrame(0).GetMethod();
+            if (!PluginLoader.Locations.ContainsKey(method.DeclaringType!.Assembly))
+                return;
+
+            IPlugin<IConfig>? plugin = PluginLoader.Plugins.Values.FirstOrDefault(x => x.Assembly == method.DeclaringType.Assembly && x.Assembly.DefinedTypes.Contains(method.DeclaringType));
+            if (plugin is null)
+                return;
+
+            if (!plugin.Config.Debug)
+                return;
+        }
+
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
         Serilog.Log.Error(exception, "[{assembly}] An error has occured.", callingPlugin);
@@ -419,18 +463,6 @@ public static class Log
             if (e is BadImageFormatException)
                 Raw("BadImageFormatException.FileName: " + ((BadImageFormatException)e).FileName);
         }
-    }
-
-    /// <summary>
-    /// Logs an exception and the respective information to the console.
-    /// </summary>
-    /// <param name="e">The exception to log.</param>
-    /// <param name="callingPlugin">The name of the calling plugin.</param>
-    public static void Error(Exception e, string callingPlugin = "")
-    {
-        string errorMsg = $"{e}";
-        Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", errorMsg));
     }
 
     /// <summary>
