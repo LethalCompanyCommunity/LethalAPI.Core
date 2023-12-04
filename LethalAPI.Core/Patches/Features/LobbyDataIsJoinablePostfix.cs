@@ -17,6 +17,8 @@ using Steamworks.Data;
 ///     Checks if required plugins are present in the lobby metadata and are the same version as the client.
 /// </summary>
 /// <seealso cref="GameNetworkManager.LobbyDataIsJoinable" />
+// ReSharper disable UnusedMember.Local
+#pragma warning disable SA1313 // parameter name should start with a lower letter.
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.LobbyDataIsJoinable))]
 [HarmonyPriority(Priority.Last)]
 [HarmonyWrapSafe]

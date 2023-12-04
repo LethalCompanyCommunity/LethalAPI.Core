@@ -19,6 +19,7 @@ using Steamworks.Data;
 ///     Adds extra lobby metadata to be used by the API for dependency checking.
 /// </summary>
 /// <seealso cref="GameNetworkManager.SteamMatchmaking_OnLobbyCreated" />
+// ReSharper disable UnusedMember.Local
 [HarmonyPatch(typeof(GameNetworkManager), "SteamMatchmaking_OnLobbyCreated")]
 [HarmonyPriority(Priority.Last)]
 [HarmonyWrapSafe]

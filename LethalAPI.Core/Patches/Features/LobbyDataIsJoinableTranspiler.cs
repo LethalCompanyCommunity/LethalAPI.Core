@@ -19,6 +19,7 @@ using Steamworks.Data;
 ///     lobby, since the API will then disable joining for vanilla clients.
 /// </summary>
 /// <seealso cref="GameNetworkManager.LobbyDataIsJoinable" />
+// ReSharper disable UnusedMember.Local
 [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.LobbyDataIsJoinable))]
 [HarmonyPriority(Priority.Last)]
 [HarmonyWrapSafe]
