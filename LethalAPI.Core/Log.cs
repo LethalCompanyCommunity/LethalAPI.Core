@@ -176,6 +176,7 @@ public static class Log
     /// </summary>
     /// <returns>The formatted date / time string.</returns>
     // ReSharper disable HeuristicUnreachableCode
+    // ReSharper disable RedundantLogicalConditionalExpressionOperand
 #pragma warning disable CS0162 // Unreachable code detected
     internal static string GetDateString()
     {
@@ -401,7 +402,7 @@ public static class Log
     /// <param name="exception">The exception being logged.</param>
     public static void Exception(Exception exception)
     {
-        Exception(exception, string.Empty, true);
+        Exception(exception, string.Empty);
     }
 
     /// <summary>
@@ -440,7 +441,7 @@ public static class Log
             if (!PluginLoader.Locations.ContainsKey(method.DeclaringType!.Assembly))
                 return;
 
-            IPlugin<IConfig>? plugin = PluginLoader.Plugins.Values.FirstOrDefault(x => x.Assembly == method.DeclaringType.Assembly && x.Assembly.DefinedTypes.Contains(method.DeclaringType));
+            IPlugin<IConfig>? plugin = PluginLoader.Plugins.Values.FirstOrDefault(plugin => plugin.Assembly == method.DeclaringType.Assembly && plugin.Assembly.DefinedTypes.Contains(method.DeclaringType));
             if (plugin is null)
                 return;
 

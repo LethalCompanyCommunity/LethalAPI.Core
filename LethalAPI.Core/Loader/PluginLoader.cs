@@ -508,7 +508,7 @@ public sealed class PluginLoader
                 if (methodInfo.GetParameters().Length > 0)
                     continue;
 
-                if (onEnabled is null && (methodInfo.GetCustomAttribute<LethalEntrypointAttribute>() is not null || methodInfo.Name == "OnEnabled" ))
+                if (onEnabled is null && (methodInfo.GetCustomAttribute<LethalEntrypointAttribute>() is not null || methodInfo.Name == "OnEnabled"))
                 {
                     onEnabled = methodInfo;
                     continue;
