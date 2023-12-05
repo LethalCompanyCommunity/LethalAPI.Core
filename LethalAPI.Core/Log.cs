@@ -95,10 +95,10 @@ public static class Log
     /// </example>
     public static readonly Dictionary<string, string> Templates = new()
     {
-        { "Info",  " &r[&6Info &r] &r[&2&r]&r" }, // time: 0, prefix: 20, msg: 26.
-        { "Debug", " &r[&5Debug&r] &r[&2&r]&r" }, // ^
-        { "Warn",  " &r[&3Warn &r] &r[&2&r]&r" }, // ^
-        { "Error", " &r[&1Error&r] &r[&2&r]&r" }, // ^
+        { "Info",  " &r[&6Info &r] &r[&2&r]&r " }, // time: 0, prefix: 20, msg: 26.
+        { "Debug", " &r[&5Debug&r] &r[&2&r]&r " }, // ^
+        { "Warn",  " &r[&3Warn &r] &r[&2&r]&r " }, // ^
+        { "Error", " &r[&1Error&r] &r[&2&r]&r " }, // ^
         { "LineLocNotFound", "&1Line Unknown &h[&6IL_&h]&r" }, // il: 23
         { "LineLocFound", "&3Line  &h[&6IL_&h]&r" }, // line: 7, il: 16.
     };
