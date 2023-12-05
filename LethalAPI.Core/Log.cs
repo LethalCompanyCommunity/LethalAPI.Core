@@ -95,12 +95,12 @@ public static class Log
     /// </example>
     public static readonly Dictionary<string, string> Templates = new()
     {
-        { "Info", "{time} &r[&6Info &r] &r[&2{prefix}&r]&r {msg}" },
-        { "Debug", "{time} &r[&5Debug&r] &r[&2{prefix}&r]&r {msg}" },
-        { "Warn", "{time} &r[&3Warn &r] &r[&2{prefix}&r]&r {msg}" },
-        { "Error", "{time} &r[&1Error&r] &r[&2{prefix}&r]&r {msg}" },
-        { "LineLocNotFound", "&1Line Unknown &h[&6IL_{il}&h]&r" },
-        { "LineLocFound", "&3Line {line} &h[&6IL_{il}&h]&r" },
+        { "Info",  " &r[&6Info &r] &r[&2&r]&r" }, // time: 0, prefix: 20, msg: 26.
+        { "Debug", " &r[&5Debug&r] &r[&2&r]&r" }, // ^
+        { "Warn",  " &r[&3Warn &r] &r[&2&r]&r" }, // ^
+        { "Error", " &r[&1Error&r] &r[&2&r]&r" }, // ^
+        { "LineLocNotFound", "&1Line Unknown &h[&6IL_&h]&r" }, // il: 23
+        { "LineLocFound", "&3Line  &h[&6IL_&h]&r" }, // line: 7, il: 16.
     };
 
     /// <summary>
@@ -311,8 +311,10 @@ public static class Log
             Serilog.Log.Information("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&6{type}&B&7] &7[&b&2{prefix}&B&7]&r
-        Raw(Templates["Info"].Replace("{time}", GetDateString()).Replace("{prefix}", $"{callingPlugin,-5}")
-            .Replace("{msg}", message));
+        Raw(Templates["Info"]
+            .Insert(26, message)
+            .Insert(20, callingPlugin)
+            .Insert(0, GetDateString()));
     }
 
     /// <summary>
@@ -349,8 +351,10 @@ public static class Log
             Serilog.Log.Debug("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&5{type}&B&7] &7[&b&2{prefix}&B&7]&r
-        Raw(Templates["Debug"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message));
+        Raw(Templates["Debug"]
+            .Insert(26, message)
+            .Insert(20, callingPlugin)
+            .Insert(0, GetDateString()));
     }
 
     /// <summary>
@@ -366,8 +370,10 @@ public static class Log
             Serilog.Log.Warning("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&3{type}&B&7] &7[&b&2{prefix}&B&7]&r
-        Raw(Templates["Warn"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message).Replace("{type}", "Warn "));
+        Raw(Templates["Warn"]
+            .Insert(26, message)
+            .Insert(20, callingPlugin)
+            .Insert(0, GetDateString()));
     }
 
     /// <summary>
@@ -383,8 +389,10 @@ public static class Log
             Serilog.Log.Error("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&1{type}&B&7] &7[&b&2{prefix}&B&7]&r
-        Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message));
+        Raw(Templates["Error"]
+            .Insert(26, message)
+            .Insert(20, callingPlugin)
+            .Insert(0, GetDateString()));
     }
 
     /// <summary>
@@ -407,6 +415,7 @@ public static class Log
     /// </code></param>
     /// <param name="callingPlugin">Displays a custom message for the plugin name. This will be automatically inferred.</param>
     /// <param name="abideByDebug">Indicates whether or not to consider the debug option before sending. If users need to see this exception regardless of debug mode, set this to false.</param>
+    // ReSharper disable once MethodOverloadWithOptionalParameter
     public static void Exception(Exception exception, bool canLog = true, string callingPlugin = "", bool abideByDebug = true)
     {
         if(canLog)
@@ -419,6 +428,7 @@ public static class Log
     /// <param name="exception">The exception being logged.</param>
     /// <param name="callingPlugin">Displays a custom message for the plugin name. This will be automatically inferred.</param>
     /// <param name="abideByDebug">Indicates whether or not to consider the debug option before sending. If users need to see this exception regardless of debug mode, set this to false.</param>
+    // ReSharper disable once MethodOverloadWithOptionalParameter
     public static void Exception(Exception exception, string callingPlugin = "", bool abideByDebug = true)
     {
         if (abideByDebug)
@@ -444,8 +454,10 @@ public static class Log
             Serilog.Log.Error(exception, "[{assembly}] An error has occured.", callingPlugin);
 
         string message = $"An error has occured. {exception.Message}. Information: \n";
-        Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message));
+        Raw(Templates["Error"]
+            .Insert(26, message)
+            .Insert(20, callingPlugin)
+            .Insert(0, GetDateString()));
         for (Exception? e = exception; e != null; e = e.InnerException)
         {
             string msg1 = "Exception Information";

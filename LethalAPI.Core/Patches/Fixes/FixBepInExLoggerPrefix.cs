@@ -42,10 +42,10 @@ internal static class BepInExLogFix
     /// <param name="harmony">The harmony instance to patch with.</param>
     internal static void Patch(HarmonyLib.Harmony harmony)
     {
-        Templates.Add("Info", Log.Templates["Info"].Replace("{time}", "{0}").Replace("{prefix}", "{1}").Replace("{msg}", "{2}"));
-        Templates.Add("Debug", Log.Templates["Debug"].Replace("{time}", "{0}").Replace("{prefix}", "{1}").Replace("{msg}", "{2}"));
-        Templates.Add("Warn", Log.Templates["Warn"].Replace("{time}", "{0}").Replace("{prefix}", "{1}").Replace("{msg}", "{2}"));
-        Templates.Add("Error", Log.Templates["Error"].Replace("{time}", "{0}").Replace("{prefix}", "{1}").Replace("{msg}", "{2}"));
+        Templates.Add("Info", Log.Templates["Info"]);
+        Templates.Add("Debug", Log.Templates["Debug"]);
+        Templates.Add("Warn", Log.Templates["Warn"]);
+        Templates.Add("Error", Log.Templates["Error"]);
 
         // Get variables and default output.
         Type consoleManager = TypeByName("BepInEx.ConsoleManager");
@@ -113,7 +113,10 @@ internal static class BepInExLogFix
     [HarmonyPrefix]
     private static bool LogEventArgsPrefix(LogEventArgs __instance, ref string __result)
     {
-        __result = __instance.Level == 0 ? __instance.Data.ToString() : string.Format(GetTemplate(__instance.Level), Log.GetDateString(), __instance.Source.SourceName, __instance.Data);
+        __result = __instance.Level == 0 ? __instance.Data.ToString() : GetTemplate(__instance.Level)
+            .Insert(26, __instance.Data.ToString())
+            .Insert(20, __instance.Source.SourceName)
+            .Insert(0, Log.GetDateString());
         return false;
     }
 
