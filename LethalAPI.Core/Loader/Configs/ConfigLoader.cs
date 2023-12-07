@@ -112,7 +112,7 @@ public static class ConfigLoader
         try
         {
             if(File.Exists(path))
-                pluginConfigs = Serialization.Deserializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(path));
+                pluginConfigs = Serialization.YamlDeserializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(path));
         }
         catch (Exception)
         {
@@ -135,8 +135,8 @@ public static class ConfigLoader
 
             try
             {
-                string rawConfigString = Serialization.Serializer.Serialize(conf);
-                IConfig configSerialized = (IConfig)Serialization.Deserializer.Deserialize(rawConfigString, plugin.Config.GetType())!;
+                string rawConfigString = Serialization.YamlSerializer.Serialize(conf);
+                IConfig configSerialized = (IConfig)Serialization.YamlDeserializer.Deserialize(rawConfigString, plugin.Config.GetType())!;
                 returnedConfigs.Add(plugin.Name.ToSnakeCase(), configSerialized);
             }
             catch (Exception)
@@ -149,7 +149,7 @@ public static class ConfigLoader
         if (changed)
         {
             MakeBackupOfConfig(path);
-            string output = Serialization.Serializer.Serialize(returnedConfigs);
+            string output = Serialization.YamlSerializer.Serialize(returnedConfigs);
             File.WriteAllText(path, output);
         }
 
@@ -168,7 +168,7 @@ public static class ConfigLoader
         try
         {
             if(File.Exists(path))
-                conf = Serialization.Deserializer.Deserialize(File.ReadAllText(path), plugin.Config.GetType());
+                conf = Serialization.YamlDeserializer.Deserialize(File.ReadAllText(path), plugin.Config.GetType());
             else
                 Log.Warn($"Config for plugin '{plugin.Name}' was not found! A new one will be made.");
         }
@@ -192,7 +192,7 @@ public static class ConfigLoader
             }
 
             MakeBackupOfConfig(path);
-            File.WriteAllText(path, Serialization.Serializer.Serialize(conf));
+            File.WriteAllText(path, Serialization.YamlSerializer.Serialize(conf));
             Log.Warn($"[Seperated] Plugin config for plugin '{plugin.Name}' is invalid. Generating default values. [{plugin.Config.GetType().Name} != {conf.GetType().Name}]");
         }
 
