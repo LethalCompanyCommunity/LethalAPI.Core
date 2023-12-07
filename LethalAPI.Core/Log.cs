@@ -154,7 +154,7 @@ public static class Log
     /// <summary>
     /// Gets the longest length of text representing a color.
     /// </summary>
-    public static int LongestColor => 1;
+    public static int LongestColor { get; } = ColorCodes.Select(x => x.Key.Length).OrderByDescending(x => x).First();
 
     private static ILogger? CreateSerilogLogger()
     {

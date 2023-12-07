@@ -111,7 +111,7 @@ public sealed class PluginLoader
     /// <summary>
     /// Gets a value indicating whether or not BepInEx is found.
     /// </summary>
-    public static bool BepInExFound => LoaderType == LoadMethod.MelonLoader;
+    public static bool BepInExFound => LoaderType == LoadMethod.BepInEx;
 
     /// <summary>
     /// Gets a value indicating whether or not MelonLoader is found.
