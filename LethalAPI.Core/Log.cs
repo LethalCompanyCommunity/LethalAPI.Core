@@ -15,6 +15,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 using Interfaces;
 using Loader;
@@ -30,12 +31,16 @@ using Serilog;
 /// </summary>
 public static class Log
 {
+    private static bool useSerilog;
+
     static Log()
     {
         AssemblyNameReplacements = new ConcurrentDictionary<string, string>();
         AssemblyNameReplacements.TryAdd("UnityEngine.CoreModule", "Unity");
 
-        Serilog.Log.Logger = CreateSerilogLogger();
+        ILogger? serilog = CreateSerilogLogger();
+        if (useSerilog)
+            Serilog.Log.Logger = serilog!;
     }
 
     /// <summary>
@@ -90,12 +95,12 @@ public static class Log
     /// </example>
     public static readonly Dictionary<string, string> Templates = new()
     {
-        { "Info", "{time} &r[&6{type}&r] &r[&2{prefix}&r]&r {msg}" },
-        { "Debug", "{time} &r[&5{type}&r] &r[&2{prefix}&r]&r {msg}" },
-        { "Warn", "{time} &r[&3{type}&r] &r[&2{prefix}&r]&r {msg}" },
-        { "Error", "{time} &r[&1{type}&r] &r[&2{prefix}&r]&r {msg}" },
-        { "LineLocNotFound", "&1Line Unknown &h[&6IL_{il}&h]&r" },
-        { "LineLocFound", "&3Line {line} &h[&6IL_{il}&h]&r" },
+        { "Info",  " &r[&6Info &r] &r[&2&r]&r " }, // time: 0, prefix: 20, msg: 26.
+        { "Debug", " &r[&5Debug&r] &r[&2&r]&r " }, // ^
+        { "Warn",  " &r[&3Warn &r] &r[&2&r]&r " }, // ^
+        { "Error", " &r[&1Error&r] &r[&2&r]&r " }, // ^
+        { "LineLocNotFound", "&1Line Unknown &h[&6IL_&h]&r" }, // il: 23
+        { "LineLocFound", "&3Line  &h[&6IL_&h]&r" }, // line: 7, il: 16.
     };
 
     /// <summary>
@@ -126,6 +131,7 @@ public static class Log
     public static readonly ReadOnlyDictionary<string, ConsoleColor> ColorCodes = new(
         new Dictionary<string, ConsoleColor>()
         {
+            // Note: If ever updated, make sure to update longest color.
             { "0", ConsoleColor.Black }, // black
             { "1", ConsoleColor.Red }, // red
             { "2", ConsoleColor.Green }, // green
@@ -148,9 +154,9 @@ public static class Log
     /// <summary>
     /// Gets the longest length of text representing a color.
     /// </summary>
-    public static int LongestColor => ColorCodes.Keys.OrderByDescending(x => x.Length).First().Length;
+    public static int LongestColor { get; } = ColorCodes.Select(x => x.Key.Length).OrderByDescending(x => x).First();
 
-    private static ILogger CreateSerilogLogger()
+    private static ILogger? CreateSerilogLogger()
     {
         LoggerConfiguration loggerConfig = new();
 
@@ -158,22 +164,45 @@ public static class Log
         if (seqEndpoint is not null)
         {
             loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint);
+            useSerilog = true;
+            return loggerConfig.CreateLogger();
         }
 
-        return loggerConfig.CreateLogger();
+        return null;
     }
 
     /// <summary>
     /// Gets the formatted date string.
     /// </summary>
     /// <returns>The formatted date / time string.</returns>
+    // ReSharper disable HeuristicUnreachableCode
+    // ReSharper disable RedundantLogicalConditionalExpressionOperand
+#pragma warning disable CS0162 // Unreachable code detected
     internal static string GetDateString()
     {
+        const bool showDate = false;
+        const bool showSeconds = true;
+        const bool showMilliseconds = false;
         if (PluginLoader.MelonLoaderFound)
             return string.Empty;
         DateTime now = DateTime.Now;
-        return $"[{$"{now:g}",-19} ({$"{now:ss}",-2}.{$"{now.Millisecond:000}",-3}s)]";
+        StringBuilder builder = new();
+        builder.Append('[');
+        builder.Append(showDate ? $"{now:g,-19}" : $"{now:t}");
+        if (showSeconds || showMilliseconds)
+        {
+            builder.Append(" &a");
+            if (showSeconds)
+                builder.Append($"{now:ss}");
+            if (showMilliseconds)
+                builder.Append((showSeconds ? "." : string.Empty) + $"{now.Millisecond:000}");
+            builder.Append(showSeconds ? "s&r" : "ms&r");
+        }
+
+        builder.Append(']');
+        return builder.ToString();
     }
+#pragma warning restore CS0162 // Unreachable code detected
 
     /// <summary>
     /// Gets the name of the calling plugin.
@@ -279,11 +308,14 @@ public static class Log
     {
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
-        Serilog.Log.Information("[{assembly}] {message}", callingPlugin, message);
+        if(useSerilog)
+            Serilog.Log.Information("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&6{type}&B&7] &7[&b&2{prefix}&B&7]&r
-        Raw(Templates["Info"].Replace("{time}", GetDateString()).Replace("{prefix}", $"{callingPlugin,-5}")
-            .Replace("{msg}", message).Replace("{type}", "Info "));
+        Raw(Templates["Info"]
+            .Insert(26, message)
+            .Insert(20, callingPlugin)
+            .Insert(0, GetDateString()));
     }
 
     /// <summary>
@@ -316,11 +348,14 @@ public static class Log
 
         callingPlugin = GetCallingPlugin(method, callingPlugin, ShowCallingMethod);
 
-        Serilog.Log.Debug("[{assembly}] {message}", callingPlugin, message);
+        if(useSerilog)
+            Serilog.Log.Debug("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&5{type}&B&7] &7[&b&2{prefix}&B&7]&r
-        Raw(Templates["Debug"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message).Replace("{type}", "Debug"));
+        Raw(Templates["Debug"]
+            .Insert(26, message)
+            .Insert(20, callingPlugin)
+            .Insert(0, GetDateString()));
     }
 
     /// <summary>
@@ -332,11 +367,14 @@ public static class Log
     {
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
-        Serilog.Log.Warning("[{assembly}] {message}", callingPlugin, message);
+        if(useSerilog)
+            Serilog.Log.Warning("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&3{type}&B&7] &7[&b&2{prefix}&B&7]&r
-        Raw(Templates["Warn"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message).Replace("{type}", "Warn "));
+        Raw(Templates["Warn"]
+            .Insert(26, message)
+            .Insert(20, callingPlugin)
+            .Insert(0, GetDateString()));
     }
 
     /// <summary>
@@ -348,11 +386,41 @@ public static class Log
     {
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
-        Serilog.Log.Error("[{assembly}] {message}", callingPlugin, message);
+        if(useSerilog)
+            Serilog.Log.Error("[{assembly}] {message}", callingPlugin, message);
 
         // &7[&b&1{type}&B&7] &7[&b&2{prefix}&B&7]&r
-        Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message).Replace("{type}", "Error"));
+        Raw(Templates["Error"]
+            .Insert(26, message)
+            .Insert(20, callingPlugin)
+            .Insert(0, GetDateString()));
+    }
+
+    /// <summary>
+    /// Logs an exception and any relevant information to the console.
+    /// </summary>
+    /// <param name="exception">The exception being logged.</param>
+    public static void Exception(Exception exception)
+    {
+        Exception(exception, string.Empty);
+    }
+
+    /// <summary>
+    /// Logs an exception and any relevant information to the console.
+    /// </summary>
+    /// <param name="exception">The exception being logged.</param>
+    /// <param name="canLog">Can be used to prevent the log from being logged. Essentially an integrated if statement.
+    /// <code>
+    /// if(canLog)
+    ///     Log.Debug();
+    /// </code></param>
+    /// <param name="callingPlugin">Displays a custom message for the plugin name. This will be automatically inferred.</param>
+    /// <param name="abideByDebug">Indicates whether or not to consider the debug option before sending. If users need to see this exception regardless of debug mode, set this to false.</param>
+    // ReSharper disable once MethodOverloadWithOptionalParameter
+    public static void Exception(Exception exception, bool canLog = true, string callingPlugin = "", bool abideByDebug = true)
+    {
+        if(canLog)
+            Exception(exception, callingPlugin, abideByDebug);
     }
 
     /// <summary>
@@ -360,15 +428,37 @@ public static class Log
     /// </summary>
     /// <param name="exception">The exception being logged.</param>
     /// <param name="callingPlugin">Displays a custom message for the plugin name. This will be automatically inferred.</param>
-    public static void Exception(Exception exception, string callingPlugin = "")
+    /// <param name="abideByDebug">Indicates whether or not to consider the debug option before sending. If users need to see this exception regardless of debug mode, set this to false.</param>
+    // ReSharper disable once MethodOverloadWithOptionalParameter
+    public static void Exception(Exception exception, string callingPlugin = "", bool abideByDebug = true)
     {
+        if (abideByDebug)
+        {
+            bool x = new StackTrace(1).GetFrame(0).GetMethod().DeclaringType == typeof(Log);
+            StackTrace stack = new(x ? 3 : 2);
+
+            MethodBase method = stack.GetFrame(0).GetMethod();
+            if (!PluginLoader.Locations.ContainsKey(method.DeclaringType!.Assembly))
+                return;
+
+            IPlugin<IConfig>? plugin = PluginLoader.Plugins.Values.FirstOrDefault(plugin => plugin.Assembly == method.DeclaringType.Assembly && plugin.Assembly.DefinedTypes.Contains(method.DeclaringType));
+            if (plugin is null)
+                return;
+
+            if (!plugin.Config.Debug)
+                return;
+        }
+
         callingPlugin = GetCallingPlugin(GetCallingMethod(), callingPlugin, ShowCallingMethod);
 
-        Serilog.Log.Error(exception, "[{assembly}] An error has occured.", callingPlugin);
+        if(useSerilog)
+            Serilog.Log.Error(exception, "[{assembly}] An error has occured.", callingPlugin);
 
         string message = $"An error has occured. {exception.Message}. Information: \n";
-        Raw(Templates["Error"].Replace("{time}", GetDateString()).Replace("{prefix}", callingPlugin)
-            .Replace("{msg}", message).Replace("{type}", "Error"));
+        Raw(Templates["Error"]
+            .Insert(26, message)
+            .Insert(20, callingPlugin)
+            .Insert(0, GetDateString()));
         for (Exception? e = exception; e != null; e = e.InnerException)
         {
             string msg1 = "Exception Information";
