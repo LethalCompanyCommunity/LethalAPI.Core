@@ -78,6 +78,6 @@ internal static class PluginHelper
     /// <returns> An IEnumerable of plugins in the <see cref="PluginInfoRecord" /> format. </returns>
     private static IEnumerable<PluginInfoRecord> GetAllPluginInfo()
     {
-        return PluginLoader.Plugins.Values.Select(x => x.Info);
+        return PluginLoader.Plugins.Values.Select(plugin => plugin.Info);
     }
 }
