@@ -7,8 +7,6 @@
 
 namespace LethalAPI.Core.Patches.Features;
 
-using System.Collections.Generic;
-using System.Linq;
 using Core.Features;
 using Models;
 using Steamworks;
