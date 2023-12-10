@@ -7,6 +7,8 @@
 
 namespace LethalAPI.Core.Patches.Features;
 
+using System.Collections.Generic;
+using System.Linq;
 using Core.Features;
 using Models;
 using Steamworks;
@@ -25,15 +27,15 @@ using Steamworks.Data;
 internal static class LobbyDataIsJoinablePostfix
 {
     [HarmonyPostfix]
-    private static bool Postfix(bool __result, ref Lobby lobby)
+    private static bool Postfix(bool isJoinable, ref Lobby lobby)
     {
         // If original result was false, return false
-        if (!__result)
+        if (!isJoinable)
             return false;
 
         // If the lobby is not modded, return original result
         if (lobby.GetData(LobbyMetadata.Modded) != "true")
-            return __result;
+            return isJoinable;
 
         string lobbyPluginString = lobby.GetData(LobbyMetadata.Plugins);
 
@@ -41,7 +43,7 @@ internal static class LobbyDataIsJoinablePostfix
         if (string.IsNullOrEmpty(lobbyPluginString))
         {
             Log.Warn("Lobby is modded but does not have any plugin information.");
-            return __result;
+            return isJoinable;
         }
 
         bool matchesPluginRequirements =
