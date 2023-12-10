@@ -9,6 +9,9 @@ namespace LethalAPI.Core.Models;
 
 using System;
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 /// <summary>
 ///     A record containing information about a plugin.
 /// </summary>
@@ -16,4 +19,4 @@ using System;
 /// <param name="Version"> The version of the plugin. </param>
 /// <param name="IsRequired"> True if the plugin is required, false otherwise. </param>
 [Serializable]
-public record PluginInfoRecord(string GUID, Version Version, bool IsRequired);
+public record PluginInfoRecord(string GUID, [property:JsonConverter(typeof(VersionConverter))] Version Version, bool IsRequired);

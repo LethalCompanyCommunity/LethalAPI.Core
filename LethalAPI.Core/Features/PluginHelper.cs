@@ -7,14 +7,15 @@
 
 namespace LethalAPI.Core.Features;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Attributes;
 using Interfaces;
 using Loader;
 using Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 /// <summary>
 ///     Helper class for plugin related functions.
@@ -46,7 +47,7 @@ internal static class PluginHelper
     /// <returns> A json string containing the metadata of all plugins. </returns>
     internal static string GetLobbyPluginsMetadata()
     {
-        return JsonConvert.SerializeObject(GetAllRequiredPluginInfo().ToList());
+        return JsonConvert.SerializeObject(GetAllRequiredPluginInfo().ToList(), new VersionConverter());
     }
 
     /// <summary>
@@ -56,7 +57,17 @@ internal static class PluginHelper
     /// <returns> A list of plugins in the APIPluginInfo format. </returns>
     internal static IEnumerable<PluginInfoRecord> ParseLobbyPluginsMetadata(string json)
     {
-        return JsonConvert.DeserializeObject<List<PluginInfoRecord>>(json) ?? new List<PluginInfoRecord>();
+        try
+        {
+            return JsonConvert.DeserializeObject<List<PluginInfoRecord>>(json, new VersionConverter()) ??
+                   new List<PluginInfoRecord>();
+        }
+        catch (Exception e)
+        {
+            Log.Warn("Failed to parse lobby plugins metadata.");
+            Log.Exception(e);
+            throw;
+        }
     }
 
     /// <summary>
