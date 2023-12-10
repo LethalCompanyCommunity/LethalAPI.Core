@@ -38,7 +38,7 @@ internal static class SteamMatchmakingOnLobbyCreatedPostfix
         lobby.SetData(LobbyMetadata.JoinableModded, lobby.GetData(LobbyMetadata.Joinable));
         lobby.SetData(LobbyMetadata.Name, "modded // " + lobby.GetData(LobbyMetadata.Name));
 
-        Log.Warn($"Plugins: {PluginHelper.GetLobbyPluginsMetadata()}");
+        Log.Debug($"Lobby plugins metadata: {PluginHelper.GetLobbyPluginsMetadata()}");
 
         if (PluginHelper.GetAllRequiredPluginInfo().Any())
         {
