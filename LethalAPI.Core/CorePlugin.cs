@@ -15,6 +15,7 @@ using System;
 
 using Features;
 using HarmonyLib;
+using Loader;
 using MEC;
 
 /// <inheritdoc />
@@ -57,7 +58,8 @@ public sealed class CorePlugin : Plugin<CoreConfig>
         Instance = this;
 
         Events.Handlers.Server.GameOpened += InitTimings;
-        Log.Debug($"Started {this.Name} successfully.");
+        Events.Handlers.Server.GameOpened += PluginLoader.Singleton.LoadExternalPlugins;
+        Log.Info($"{this.Name} is being loaded...");
     }
 
     private void InitTimings()

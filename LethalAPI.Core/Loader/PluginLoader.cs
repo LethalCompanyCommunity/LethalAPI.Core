@@ -161,6 +161,40 @@ public sealed class PluginLoader
     public static void FixLoggingBepInEx(HarmonyLib.Harmony harmony) => BepInExLogFix.Patch(harmony);
 
     /// <summary>
+    /// Loads any external plugins in the proper sequence.
+    /// </summary>
+    internal void LoadExternalPlugins()
+    {
+        if(BepInExFound)
+            LoadBepInExPlugins();
+
+        if (MelonLoaderFound)
+            LoadMelonLoaderPlugins();
+    }
+
+    private void LoadBepInExPlugins() => TypeLoadSafeLoadBepInExPlugins();
+
+    private void TypeLoadSafeLoadBepInExPlugins()
+    {
+        foreach (BepInEx.PluginInfo plugin in BepInEx.Bootstrap.Chainloader.PluginInfos.Values)
+        {
+            ExternalPlugin externalPlugin = new (plugin);
+            PluginsValue.Add(externalPlugin.Name, externalPlugin);
+        }
+    }
+
+    private void LoadMelonLoaderPlugins() => TypeLoadSafeLoadMelonLoaderPlugins();
+
+    private void TypeLoadSafeLoadMelonLoaderPlugins()
+    {
+        foreach (MelonLoader.MelonMod mod in MelonLoader.MelonMod.RegisteredMelons)
+        {
+            ExternalPlugin externalPlugin = new (mod);
+            PluginsValue.Add(externalPlugin.Name, externalPlugin);
+        }
+    }
+
+    /// <summary>
     /// Enables all plugins.
     /// </summary>
     public static void EnablePlugins()
