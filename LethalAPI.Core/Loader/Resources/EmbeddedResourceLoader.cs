@@ -35,7 +35,7 @@ public class EmbeddedResourceLoader
 
         foreach (string name in resourceNames)
         {
-            Log.Debug($"Loading resource {name}", Debug, "Lethal-Loader");
+            Log.Debug($"Loading resource {name}", Debug, "LethalAPI-Loader");
             try
             {
                 // Cached in ResourceParser.CachedResources.
@@ -46,7 +46,8 @@ public class EmbeddedResourceLoader
             }
             catch (Exception e)
             {
-                Log.Debug($"Resource '{name}' could not be loaded. It was probably embedded incorrectly. Exception: \n{e}", Debug, "Lethal-Loader-Resources");
+                Log.Debug($"Resource '{name}' could not be loaded. It was probably embedded incorrectly.", Debug, "LethalAPI-Loader-Resources");
+                Log.Exception(e, "LethalAPI-Loader-Resources");
             }
         }
     }

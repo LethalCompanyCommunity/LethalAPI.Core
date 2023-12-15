@@ -47,7 +47,8 @@ public sealed class DllParser : ResourceParser
         }
         catch (Exception e)
         {
-            Log.Debug($"Couldn't find an AssemblyName instance for the dll resource '{resourceData.FileLocation}'. \n{e}", EmbeddedResourceLoader.Debug, "LethalAPI-Loader-DepsLoader");
+            Log.Debug($"Couldn't find an AssemblyName instance for the dll resource '{resourceData.FileLocation}'.", EmbeddedResourceLoader.Debug, "LethalAPI-Loader-DepsLoader");
+            Log.Exception(e, EmbeddedResourceLoader.Debug, "LethalAPI-Loader-DepsLoader");
         }
 
         base.ResourceFound(resourceData);

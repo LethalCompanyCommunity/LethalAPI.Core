@@ -58,17 +58,6 @@ public sealed class PluginLoader
         LoaderType = loadType;
         Log.Raw("[LethalAPI-Loader] Initializing Loader.");
         Singleton = this;
-        foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            if (assembly.GetName().Name.ToLower().Contains("melonloader"))
-                MelonLoaderFound = true;
-
-            if(assembly.GetName().Name.ToLower().Contains("bepinex"))
-                BepInExFound = true;
-
-            if (BepInExFound && MelonLoaderFound)
-                break;
-        }
 
         // Hooks and fixes the exception stacktrace il.
         _ = new ILHook(typeof(StackTrace).GetMethod("AddFrames", BindingFlags.Instance | BindingFlags.NonPublic), FixExceptionIL.IlHook);
@@ -101,7 +90,7 @@ public sealed class PluginLoader
             }
             catch (Exception e)
             {
-                Log.Debug(e.ToString());
+                Log.Exception(e);
             }
 
             EnablePlugins();
@@ -109,7 +98,7 @@ public sealed class PluginLoader
         catch (Exception e)
         {
             Log.Error($"An error has occured while loading plugins.");
-            Log.Debug($"{e}");
+            Log.Exception(e);
         }
     }
 
@@ -122,12 +111,12 @@ public sealed class PluginLoader
     /// <summary>
     /// Gets a value indicating whether or not BepInEx is found.
     /// </summary>
-    public static bool BepInExFound { get; private set; }
+    public static bool BepInExFound => LoaderType == LoadMethod.BepInEx;
 
     /// <summary>
     /// Gets a value indicating whether or not MelonLoader is found.
     /// </summary>
-    public static bool MelonLoaderFound { get; private set; }
+    public static bool MelonLoaderFound => LoaderType == LoadMethod.MelonLoader;
 
     /// <summary>
     /// Gets or sets the base directory to load plugins from.
@@ -169,7 +158,7 @@ public sealed class PluginLoader
     /// Triggers the fix for the BepInEx Logger.
     /// </summary>
     /// <param name="harmony">The harmony instance to use to log.</param>
-    public static void FixLoggingBepInEx(HarmonyLib.Harmony harmony) => FixBepInExLoggerPrefix.Patch(harmony);
+    public static void FixLoggingBepInEx(HarmonyLib.Harmony harmony) => BepInExLogFix.Patch(harmony);
 
     /// <summary>
     /// Loads any external plugins in the proper sequence.
@@ -300,7 +289,8 @@ public sealed class PluginLoader
     /// </summary>
     public static void LoadPlugins()
     {
-        Log.Debug("Now loading plugins.", ShowDebug);
+        if(ShowDebug)
+            Log.Debug("Now loading plugins.");
         foreach (string assemblyPath in Directory.GetFiles(PluginDirectory, "*.dll"))
         {
             Assembly? assembly = LoadAssembly(assemblyPath);
@@ -327,7 +317,7 @@ public sealed class PluginLoader
             catch (Exception e)
             {
                 Log.Warn($"An error has occured while loading embedded dependency '{highPriorityAssembly}'.", "LethalAPI-Loader");
-                Log.Debug($"Exception: \n{e}", ShowDebug, "LethalAPI-Loader");
+                Log.Exception(e, ShowDebug, "LethalAPI-Loader");
             }
         }
 
@@ -391,7 +381,8 @@ public sealed class PluginLoader
             }
             catch (Exception e)
             {
-                Log.Warn($"Could not load embedded assemblies. Error: \n{e}");
+                Log.Warn($"Could not load embedded assemblies.");
+                Log.Exception(e);
             }
 
             return assembly;
@@ -411,6 +402,8 @@ public sealed class PluginLoader
     /// <returns>Returns the created plugin instance or <see langword="null"/>.</returns>
     private static IPlugin<IConfig>? CreatePlugin(Assembly assembly)
     {
+        bool canExecute = ShowDebug;
+        bool showPluginFinderDebug = ShowPluginFinderDebug;
         try
         {
             foreach (Type type in assembly.GetTypes())
@@ -420,24 +413,28 @@ public sealed class PluginLoader
 
                 if (type.IsAbstract || type.IsInterface)
                 {
-                    Log.Debug($"\"{type.FullName}\" is an interface or abstract class, skipping.", ShowPluginFinderDebug);
+                    if(showPluginFinderDebug)
+                        Log.Debug($"\"{type.FullName}\" is an interface or abstract class, skipping.");
                     continue;
                 }
 
                 if (!IsDerivedFromPlugin(type))
                 {
-                    Log.Debug($"\"{type.FullName}\" does not inherit from Plugin<TConfig>, skipping.", ShowPluginFinderDebug);
+                    if(showPluginFinderDebug)
+                        Log.Debug($"\"{type.FullName}\" does not inherit from Plugin<TConfig>, skipping.");
                     continue;
                 }
 
-                Log.Debug($"Loading type {type.FullName}", ShowPluginFinderDebug);
+                if(showPluginFinderDebug)
+                    Log.Debug($"Loading type {type.FullName}");
 
                 IPlugin<IConfig>? plugin = null;
 
                 ConstructorInfo? constructor = type.GetConstructor(new[] { typeof(Assembly) }) ?? type.GetConstructor(Type.EmptyTypes);
                 if (constructor is not null)
                 {
-                    Log.Debug("Public default constructor found, creating instance...", ShowDebug);
+                    if(canExecute)
+                        Log.Debug("Public default constructor found, creating instance...");
 
                     object obj = constructor.Invoke(null);
 
@@ -453,7 +450,8 @@ public sealed class PluginLoader
                 }
                 else
                 {
-                    Log.Debug($"Constructor wasn't found, searching for a property with the {type.FullName} type...", ShowDebug);
+                    if(canExecute)
+                        Log.Debug($"Constructor wasn't found, searching for a property with the {type.FullName} type...");
 
                     object? value = Array
                         .Find(
@@ -471,7 +469,8 @@ public sealed class PluginLoader
                     continue;
                 }
 
-                Log.Debug($"Instantiated type {type.FullName}", ShowDebug);
+                if(canExecute)
+                    Log.Debug($"Instantiated type {type.FullName}");
 
                 if (CheckPluginRequiredAPIVersion(plugin))
                     continue;
@@ -485,7 +484,7 @@ public sealed class PluginLoader
 
             foreach (Exception loaderException in reflectionTypeLoadException.LoaderExceptions)
             {
-                Log.Error(loaderException);
+                Log.Exception(loaderException);
             }
         }
         catch (Exception exception)
@@ -507,15 +506,6 @@ public sealed class PluginLoader
             }
 
             Version? version = null;
-            try
-            {
-                if (type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion is { } versionString)
-                    version = Version.Parse(versionString);
-            }
-            catch (Exception)
-            {
-                // unused.
-            }
 
             // if version is not defined via assembly.
             version ??= pluginInfo.Version;
@@ -606,7 +596,7 @@ public sealed class PluginLoader
             catch (Exception e)
             {
                 Log.Warn($"Could not initialize plugin \'{type.FullName}\' due to an error.");
-                Log.Debug($"{e}", ShowDebug);
+                Log.Exception(e, ShowDebug);
             }
         }
 

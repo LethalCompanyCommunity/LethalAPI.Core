@@ -61,12 +61,11 @@ internal static class FixExceptionIL
         int line = instance.GetFileLineNumber();
         if (line is StackFrame.OFFSET_UNKNOWN or 0)
         {
-            return Log.Templates["LineLocNotFound"]
-                .Replace("{il}", instance.GetILOffset().ToString("X4"));
+            return Log.Templates["LineLocNotFound"].Insert(23, instance.GetILOffset().ToString("X4"));
         }
 
         return Log.Templates["LineLocFound"]
-            .Replace("{line}", line.ToString())
-            .Replace("{il}", instance.GetILOffset().ToString("X4"));
+            .Insert(16, instance.GetILOffset().ToString("X4"))
+            .Insert(7, line.ToString());
     }
 }

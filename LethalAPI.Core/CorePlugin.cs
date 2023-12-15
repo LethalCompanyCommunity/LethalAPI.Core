@@ -19,7 +19,8 @@ using Loader;
 using MEC;
 
 /// <inheritdoc />
-public class CorePlugin : Plugin<CoreConfig>
+// We name this "CorePlugin" so it won't be confused with "Plugin."
+public sealed class CorePlugin : Plugin<CoreConfig>
 {
     /// <summary>
     /// Gets the main instance of the core plugin.
