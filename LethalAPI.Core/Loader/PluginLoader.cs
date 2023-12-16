@@ -65,6 +65,7 @@ public sealed class PluginLoader
         // Ensure that these are registered by loading the reference.
         _ = new UnknownResourceParser();
         _ = new DllParser();
+        _ = new AssetBundleParser();
 
         // Instance is stored in the type.
         _ = new EmbeddedResourceLoader();
